@@ -45,6 +45,14 @@ export default function GiftPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
+  // Check local storage for verified state
+  useEffect(() => {
+    const isVerified = localStorage.getItem('gift_verified') === 'true';
+    if (isVerified) {
+      setIsSubscribed(true);
+    }
+  }, []);
+
   // Fetch folders + pages from DB
   useEffect(() => {
     const fetchData = async () => {
@@ -135,6 +143,7 @@ export default function GiftPage() {
 
       if (response.ok) {
         setIsSubscribed(true);
+        localStorage.setItem('gift_verified', 'true');
       } else {
         setError(data.error || 'Invalid or expired code');
       }
