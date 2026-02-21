@@ -12,7 +12,7 @@ export interface ISubscriber {
 const SubscriberSchema = new mongoose.Schema<ISubscriber>(
   {
     email: { type: String, required: true, unique: true },
-    source: { type: String, default: 'free-downloads' },
+    source: { type: String, default: 'gift' },
     downloadedPages: [{ type: String }],
   },
   { timestamps: true }

@@ -16,7 +16,7 @@ const footerLinks = {
   ],
   resources: [
     { name: 'Secret', href: '/secret', highlight: true },
-    { name: 'Free Downloads', href: '/free-downloads', highlight: true },
+    { name: 'Gift', href: '/gift', highlight: true },
     { name: 'FAQ', href: '/contact' },
     { name: 'Shipping', href: '/contact' },
   ],
@@ -158,17 +158,17 @@ export default function Footer() {
               </div>
             </form>
             
-            {/* Free Downloads Promo */}
+            {/* Gift Promo */}
             <div className="mt-6 p-4 bg-gradient-to-br from-neutral-800 to-neutral-800/50 rounded-xl border border-neutral-700">
               <div className="flex items-center gap-2 text-[var(--mosaic-gold)] mb-2">
                 <Gift className="h-5 w-5" />
-                <span className="font-medium text-sm">Free Coloring Pages</span>
+                <span className="font-medium text-sm">Gift</span>
               </div>
               <p className="text-xs text-neutral-400 mb-3">
-                Get 6 free mosaic coloring pages when you subscribe!
+                Get your gift when you subscribe!
               </p>
               <Link
-                href="/free-downloads"
+                href="/gift"
                 className="inline-flex items-center gap-2 text-xs font-medium text-white bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-gold)] px-4 py-2 rounded-lg hover:shadow-lg transition-all"
               >
                 Download Now

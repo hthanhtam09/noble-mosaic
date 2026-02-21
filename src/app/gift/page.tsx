@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Download, Mail, CheckCircle, Loader2, Gift, 
   Palette, Lock, Unlock, Heart, Sparkles,
-  FolderOpen, ChevronDown, ChevronUp, FolderHeart
+  FolderOpen, ChevronDown, ChevronUp, FolderHeart, ShieldCheck
 } from 'lucide-react';
 
 interface ColoringFolder {
@@ -34,8 +34,10 @@ interface FolderWithPages extends ColoringFolder {
   pages: ColoringPage[];
 }
 
-export default function FreeDownloadsPage() {
+export default function GiftPage() {
   const [email, setEmail] = useState('');
+  const [step, setStep] = useState<'email' | 'verify'>('email');
+  const [code, setCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState('');
@@ -91,33 +93,53 @@ export default function FreeDownloadsPage() {
     });
   };
 
-  const handleSubscribe = async (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStep('verify');
+      } else {
+        setError(data.error || 'Failed to send verification code');
+      }
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/subscribers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email,
-          source: 'free-downloads' 
-        }),
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ email, source: 'gift', code })
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setIsSubscribed(true);
-        setEmail('');
       } else {
-        setError(data.error || 'Something went wrong');
+        setError(data.error || 'Invalid or expired code');
       }
     } catch {
-      setError('Failed to subscribe. Please try again.');
+      setError('Failed to verify code. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -148,42 +170,6 @@ export default function FreeDownloadsPage() {
       <Header />
       
       <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="mosaic-hero py-16 lg:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="absolute -inset-2 bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] to-[var(--mosaic-teal)] rounded-full blur opacity-40" />
-                <div className="relative w-16 h-16 bg-gradient-to-br from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] rounded-full flex items-center justify-center">
-                  <Gift className="h-8 w-8 text-white" />
-                </div>
-              </div>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-neutral-900 mb-4">
-              Free Coloring Pages
-            </h1>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto mb-8">
-              Subscribe to our newsletter and get instant access to beautiful mosaic coloring pages 
-              – completely free!
-            </p>
-
-            {/* Benefits */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-8">
-              {[
-                { icon: Palette, text: `${totalPages || '...'} Free Pages` },
-                { icon: Download, text: 'Printable Quality' },
-                { icon: Sparkles, text: 'New Pages Monthly' },
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-                  <item.icon className="h-5 w-5" style={{ color: ['var(--mosaic-coral)', 'var(--mosaic-teal)', 'var(--mosaic-purple)'][index] }} />
-                  <span className="text-sm font-medium text-neutral-700">{item.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Subscription Form */}
         {!isSubscribed ? (
           <section className="py-12 bg-white">
@@ -198,53 +184,108 @@ export default function FreeDownloadsPage() {
                       <Lock className="h-8 w-8 text-neutral-400" />
                     </div>
                     <h2 className="text-2xl font-serif font-bold text-neutral-900 mb-2">
-                      Unlock Your Free Downloads
+                      Unlock Your Gift
                     </h2>
                     <p className="text-neutral-600">
-                      Enter your email to get instant access to all free coloring pages
+                      Enter your email to get instant access to your gift
                     </p>
                   </div>
 
-                  <form onSubmit={handleSubscribe} className="space-y-4">
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
-                      <Input
-                        type="email"
-                        placeholder="Enter your email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-12 h-14 text-lg rounded-xl border-2 focus:border-[var(--mosaic-purple)]"
-                        required
-                      />
-                    </div>
+                  {step === 'email' ? (
+                    <form onSubmit={handleSendCode} className="space-y-4">
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                        <Input
+                          type="email"
+                          placeholder="Enter your email address"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="pl-12 h-14 text-lg rounded-xl border-2 focus:border-[var(--mosaic-purple)]"
+                          required
+                        />
+                      </div>
 
-                    {error && (
-                      <p className="text-sm text-red-600 text-center bg-red-50 p-3 rounded-xl">{error}</p>
-                    )}
-
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full h-14 text-lg bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl shadow-lg shadow-[var(--mosaic-purple)]/20"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Subscribing...
-                        </>
-                      ) : (
-                        <>
-                          <Unlock className="mr-2 h-5 w-5" />
-                          Unlock Free Downloads
-                        </>
+                      {error && (
+                        <p className="text-sm text-red-600 text-center bg-red-50 p-3 rounded-xl">{error}</p>
                       )}
-                    </Button>
 
-                    <p className="text-xs text-center text-neutral-500">
-                      By subscribing, you agree to receive occasional emails from Noble Mosaic. 
-                      We respect your privacy.
-                    </p>
-                  </form>
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full h-14 text-lg bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl shadow-lg shadow-[var(--mosaic-purple)]/20"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Sending Code...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="mr-2 h-5 w-5" />
+                            Send Verification Code
+                          </>
+                        )}
+                      </Button>
+
+                      <p className="text-xs text-center text-neutral-500">
+                        By requesting a code, you agree to receive occasional emails from Noble Mosaic. 
+                        We respect your privacy.
+                      </p>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerify} className="space-y-4">
+                      <div className="text-center mb-6">
+                        <p className="text-sm text-neutral-600">
+                          We've sent a 6-digit code to <br />
+                          <strong className="text-neutral-900">{email}</strong>
+                        </p>
+                      </div>
+                      
+                      <div className="flex justify-center mb-2">
+                        <Input
+                          type="text"
+                          maxLength={6}
+                          placeholder="000000"
+                          value={code}
+                          onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ''))}
+                          className="w-full max-w-[240px] h-16 text-center text-3xl tracking-[0.3em] font-mono rounded-xl border-2 focus:border-[var(--mosaic-purple)] bg-white"
+                          required
+                        />
+                      </div>
+
+                      {error && (
+                        <p className="text-sm text-red-600 text-center bg-red-50 p-3 rounded-xl">{error}</p>
+                      )}
+
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting || code.length !== 6}
+                        className="w-full h-14 text-lg bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl shadow-lg shadow-[var(--mosaic-purple)]/20"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="mr-2 h-5 w-5" />
+                            Verify & Unlock Gift
+                          </>
+                        )}
+                      </Button>
+                      
+                      <div className="text-center mt-4">
+                        <button 
+                          type="button" 
+                          onClick={() => { setStep('email'); setError(''); setCode(''); }}
+                          className="text-sm text-neutral-500 hover:text-neutral-900 underline"
+                        >
+                          Change email address
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -259,7 +300,7 @@ export default function FreeDownloadsPage() {
                 You&apos;re In! 🎉
               </h2>
               <p className="text-white/90 mb-4">
-                Thank you for subscribing! Your free coloring pages are now unlocked below.
+                Thank you for subscribing! Your gift is now unlocked below.
               </p>
               <p className="text-sm text-white/70">
                 Check your inbox for a confirmation email and more free content!
@@ -273,12 +314,12 @@ export default function FreeDownloadsPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-serif font-bold text-neutral-900 mb-4">
-                {isSubscribed ? 'Download Your Free Pages' : 'Preview: Free Coloring Pages'}
+                {isSubscribed ? 'Download Your Gift' : 'Preview: Gift'}
               </h2>
               <p className="text-neutral-600">
                 {isSubscribed 
                   ? 'Click on any page to download the printable image'
-                  : 'Subscribe above to unlock all downloads'
+                  : 'Subscribe above to unlock all gifts'
                 }
               </p>
             </div>
@@ -382,7 +423,6 @@ export default function FreeDownloadsPage() {
                               </div>
                               
                               <CardContent className="p-3">
-                                <h4 className="text-sm font-medium text-neutral-900 truncate">{page.title}</h4>
                                 {isSubscribed && (
                                   <Button 
                                     className="w-full mt-2 text-white rounded-xl text-xs h-8"

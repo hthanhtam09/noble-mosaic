@@ -145,8 +145,8 @@ export default function AdminSettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-neutral-900">Free Downloads Page</p>
-              <p className="text-sm text-neutral-500">Collect emails via free coloring pages</p>
+              <p className="font-medium text-neutral-900">Gift Page</p>
+              <p className="text-sm text-neutral-500">Collect emails via the gift page</p>
             </div>
             <Switch defaultChecked />
           </div>
@@ -159,9 +159,9 @@ export default function AdminSettingsPage() {
           </div>
           <div className="pt-4 border-t border-neutral-100">
             <Button variant="outline" asChild>
-              <a href="/free-downloads" target="_blank">
+              <a href="/gift" target="_blank">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                View Free Downloads Page
+                View Gift Page
               </a>
             </Button>
           </div>

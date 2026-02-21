@@ -53,13 +53,13 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
-            {/* Free Downloads - Highlighted */}
+            {/* Gift - Highlighted */}
             <Link
-              href="/free-downloads"
+              href="/gift"
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] rounded-full hover:shadow-lg hover:shadow-[var(--mosaic-coral)]/25 transition-all"
             >
               <Gift className="h-4 w-4" />
-              Free Pages
+              Gift
             </Link>
           </div>
 
@@ -99,14 +99,14 @@ export default function Header() {
               {item.name}
             </Link>
           ))}
-          {/* Free Downloads - Mobile */}
+          {/* Gift - Mobile */}
           <Link
-            href="/free-downloads"
+            href="/gift"
             className="flex items-center gap-2 px-4 py-3 text-base font-medium text-white bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] rounded-xl mt-2"
             onClick={() => setMobileMenuOpen(false)}
           >
             <Gift className="h-5 w-5" />
-            Free Downloads
+            Gift
           </Link>
           <div className="mt-4">
             <Button asChild className="w-full bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl">

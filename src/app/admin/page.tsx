@@ -182,7 +182,7 @@ export default function AdminDashboard() {
       href: '/admin/blog',
     },
     {
-      title: 'Free Pages',
+      title: 'Gift',
       value: stats.freePages,
       icon: Palette,
       color: 'bg-pink-100 text-pink-600',
@@ -360,10 +360,10 @@ export default function AdminDashboard() {
             </Link>
           </div>
           <p className="text-sm text-neutral-500">
-            Collect emails through free downloads page. Users subscribe to access free coloring pages.
+            Collect emails through the gift page. Users subscribe to access the gift.
           </p>
           <div className="mt-4 flex gap-2">
-            <Link href="/free-downloads" target="_blank">
+            <Link href="/gift" target="_blank">
               <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
                 View Page

@@ -176,9 +176,9 @@ export default function HomePage() {
                   size="lg" 
                   className="border-2 rounded-full px-8"
                 >
-                  <Link href="/free-downloads">
+                  <Link href="/gift">
                     <Heart className="mr-2 h-5 w-5 text-[var(--mosaic-rose)]" />
-                    Get Free Pages
+                    Get Gift
                   </Link>
                 </Button>
               </div>
