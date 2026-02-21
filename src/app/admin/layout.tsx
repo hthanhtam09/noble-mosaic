@@ -134,6 +134,7 @@ export default function AdminLayout({
               alt="Noble Mosaic"
               width={44}
               height={44}
+              unoptimized
               className="h-11 w-auto"
               priority
             />

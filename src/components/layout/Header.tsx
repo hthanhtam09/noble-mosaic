@@ -25,7 +25,7 @@ export default function Header() {
       <div className="h-1 w-full bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] via-[var(--mosaic-teal)] to-[var(--mosaic-purple)]" />
       
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center group">
@@ -33,8 +33,9 @@ export default function Header() {
                 <Image
                   src="/logo.png"
                   alt="Noble Mosaic"
-                  width={180}
-                  height={180}
+                  width={500}
+                  height={100}
+                  unoptimized
                   className="h-20 w-auto md:h-28 transition-transform group-hover:scale-105"
                   priority
                 />

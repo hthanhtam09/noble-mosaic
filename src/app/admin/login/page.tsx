@@ -56,6 +56,7 @@ export default function AdminLoginPage() {
                 alt="Noble Mosaic"
                 width={80}
                 height={80}
+                unoptimized
                 className="h-20 w-auto mx-auto"
                 priority
               />
