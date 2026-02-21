@@ -41,3 +41,25 @@ export async function deleteImage(publicId: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function deleteFolder(folderPath: string): Promise<boolean> {
+  try {
+    // Delete all resources in the folder (required before deleting the folder)
+    await cloudinary.api.delete_resources_by_prefix(folderPath);
+    // Delete the now-empty folders (including nested ones like color/ and uncolor/ if they exist)
+    // We'll just try to delete the main folder, Cloudinary will error if it's not empty, but let's try
+    try {
+      await cloudinary.api.delete_folder(`${folderPath}/color`);
+    } catch(e) { /* ignore if doesn't exist */ }
+    try {
+       await cloudinary.api.delete_folder(`${folderPath}/uncolor`);
+    } catch(e) { /* ignore if doesn't exist */ }
+    try {
+      await cloudinary.api.delete_folder(folderPath);
+    } catch(e) { /* ignore */ }
+    return true;
+  } catch (error) {
+    console.error(`Error deleting folder ${folderPath}:`, error);
+    return false;
+  }
+}

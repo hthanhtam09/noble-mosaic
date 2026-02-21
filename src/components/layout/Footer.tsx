@@ -15,6 +15,7 @@ const footerLinks = {
     { name: 'Contact', href: '/contact' },
   ],
   resources: [
+    { name: 'Secret', href: '/secret', highlight: true },
     { name: 'Free Downloads', href: '/free-downloads', highlight: true },
     { name: 'FAQ', href: '/contact' },
     { name: 'Shipping', href: '/contact' },
@@ -46,16 +47,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="inline-block">
-              <Image
-                src="/logo.png"
-                alt="Noble Mosaic"
-                width={240}
-                height={240}
-                className="h-24 w-auto md:h-32 hover:scale-105 transition-transform"
-              />
-            </Link>
-            <p className="mt-4 text-sm text-neutral-400 leading-relaxed">
+            <p className="text-sm text-neutral-400 leading-relaxed">
               Premium mosaic color by number books designed 
               for mindful relaxation and creative expression.
             </p>

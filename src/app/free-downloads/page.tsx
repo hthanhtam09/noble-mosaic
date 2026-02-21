@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Download, Mail, CheckCircle, Loader2, Gift, 
   Palette, Lock, Unlock, Heart, Sparkles,
-  FolderOpen, ChevronDown, ChevronUp
+  FolderOpen, ChevronDown, ChevronUp, FolderHeart
 } from 'lucide-react';
 
 interface ColoringFolder {
@@ -123,13 +123,24 @@ export default function FreeDownloadsPage() {
     }
   };
 
-  const handleDownload = (imageUrl: string, title: string) => {
-    // Open image in new tab for download
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.target = '_blank';
-    link.download = `${title}.jpg`;
-    link.click();
+  const handleDownload = async (imageUrl: string, title: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${title}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback
+      window.open(imageUrl, '_blank');
+    }
   };
 
   return (
@@ -278,7 +289,9 @@ export default function FreeDownloadsPage() {
               </div>
             ) : folders.length === 0 ? (
               <div className="text-center py-16">
-                <FolderOpen className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-50 to-[var(--mosaic-coral)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neutral-100">
+                  <FolderHeart className="h-10 w-10 text-neutral-300" />
+                </div>
                 <p className="text-neutral-500 text-lg">No coloring pages available yet. Check back soon!</p>
               </div>
             ) : (
@@ -288,29 +301,32 @@ export default function FreeDownloadsPage() {
                     {/* Folder header */}
                     <button
                       onClick={() => toggleFolder(folder._id)}
-                      className="w-full flex items-center justify-between group mb-4"
+                      className="w-full flex items-start justify-between group mb-8 text-left gap-4"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] flex items-center justify-center">
-                          <FolderOpen className="h-5 w-5 text-white" />
+                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                        <div className="relative flex-none shrink-0 w-12 h-12 min-w-[48px] min-h-[48px] rounded-xl bg-gradient-to-br from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] flex items-center justify-center shadow-md shadow-[var(--mosaic-purple)]/20 group-hover:scale-105 transition-all duration-300 overflow-hidden">
+                          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <FolderHeart className="h-6 w-6 text-white relative z-10" />
                         </div>
-                        <div className="text-left">
-                          <h3 className="text-xl font-serif font-bold text-neutral-900 group-hover:text-purple-700 transition-colors">
-                            {folder.name}
-                          </h3>
+                        <div className="flex-1 min-w-0 pt-0.5 pr-4">
+                          <div className="flex items-center gap-3 flex-wrap mb-1.5">
+                            <h3 className="text-xl md:text-2xl font-serif font-bold text-neutral-900 group-hover:text-purple-700 transition-colors leading-tight">
+                              {folder.name}
+                            </h3>
+                            <Badge variant="secondary" className="bg-neutral-100 text-neutral-600 shrink-0 flex-none">
+                              {folder.pages.length} pages
+                            </Badge>
+                          </div>
                           {folder.description && (
-                            <p className="text-sm text-neutral-500">{folder.description}</p>
+                            <p className="text-sm md:text-base text-neutral-500 whitespace-normal leading-relaxed">{folder.description}</p>
                           )}
                         </div>
-                        <Badge variant="secondary" className="bg-neutral-100 text-neutral-600 ml-2">
-                          {folder.pages.length} pages
-                        </Badge>
                       </div>
-                      <div className="text-neutral-400">
+                      <div className="text-neutral-400 flex-none shrink-0 pt-3">
                         {expandedFolders.has(folder._id) ? (
-                          <ChevronUp className="h-5 w-5" />
+                          <ChevronUp className="h-6 w-6" />
                         ) : (
-                          <ChevronDown className="h-5 w-5" />
+                          <ChevronDown className="h-6 w-6" />
                         )}
                       </div>
                     </button>

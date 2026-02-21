@@ -6,8 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Plus, Trash2, FolderOpen, ArrowLeft, Upload, Loader2,
-  ImageIcon, X, MoreVertical, Pencil, FolderPlus
+  Trash2, ArrowLeft, Upload, Loader2,
+  ImageIcon, X, MoreVertical, Pencil, FolderPlus, FolderHeart, Images
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -485,8 +485,8 @@ export default function AdminColoringPage() {
       ) : folders.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="p-12 text-center">
-            <div className="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FolderOpen className="h-10 w-10 text-neutral-300" />
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-100">
+              <FolderHeart className="h-10 w-10 text-purple-300" />
             </div>
             <h3 className="text-lg font-medium text-neutral-900 mb-2">No folders yet</h3>
             <p className="text-neutral-500 mb-6">
@@ -510,21 +510,22 @@ export default function AdminColoringPage() {
               onClick={() => handleSelectFolder(folder)}
             >
               <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-                      <FolderOpen className="h-6 w-6 text-purple-600" />
+                <div className="flex items-start justify-between min-w-0 gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="relative flex-none shrink-0 w-12 h-12 min-w-[48px] min-h-[48px] rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-all duration-300 overflow-hidden">
+                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <FolderHeart className="h-6 w-6 text-white relative z-10" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-900 group-hover:text-purple-700 transition-colors">
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <h3 className="font-semibold text-neutral-900 group-hover:text-purple-700 transition-colors truncate">
                         {folder.name}
                       </h3>
                       {folder.description && (
-                        <p className="text-xs text-neutral-500 mt-0.5 line-clamp-1">{folder.description}</p>
+                        <p className="text-xs text-neutral-500 mt-1 line-clamp-2 whitespace-normal">{folder.description}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2 flex-none shrink-0" onClick={(e) => e.stopPropagation()}>
                     <Badge variant="secondary" className="bg-neutral-100 text-neutral-600">
                       {folder.pageCount} pages
                     </Badge>

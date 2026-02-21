@@ -7,13 +7,14 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { 
   Home, BookOpen, FileText, MessageSquare, LogOut, Menu, X, 
-  Users, ShoppingBag, Settings, Palette
+  Users, ShoppingBag, Settings, Palette, Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Products', href: '/admin/products', icon: ShoppingBag },
+  { name: 'Secrets', href: '/admin/secrets', icon: Lock },
   { name: 'Free Coloring', href: '/admin/coloring', icon: Palette },
   { name: 'Blog Posts', href: '/admin/blog', icon: BookOpen },
   { name: 'Subscribers', href: '/admin/subscribers', icon: Users },
@@ -37,6 +38,7 @@ export default function AdminLayout({
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
+  const [productCount, setProductCount] = useState<number | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -64,6 +66,24 @@ export default function AdminLayout({
 
     checkAuth();
   }, [router, pathname]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const fetchProductCount = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          setProductCount(data.products?.length || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch product count:', error);
+      }
+    };
+    
+    fetchProductCount();
+  }, [isAuthenticated, pathname]);
 
   const handleLogout = async () => {
     await fetch('/api/auth', { method: 'DELETE' });
@@ -148,8 +168,8 @@ export default function AdminLayout({
               >
                 <item.icon className="h-5 w-5" />
                 {item.name}
-                {item.name === 'Products' && (
-                  <span className="ml-auto bg-neutral-200 text-neutral-600 text-xs px-2 py-0.5 rounded-full">4</span>
+                {item.name === 'Products' && productCount !== null && (
+                  <span className="ml-auto bg-neutral-200 text-neutral-600 text-xs px-2 py-0.5 rounded-full">{productCount}</span>
                 )}
               </Link>
             );
