@@ -1,67 +1,31 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Star, ArrowRight, CheckCircle, Palette, Brain, Clock, 
-  ExternalLink, Heart, Sparkles, BookOpen, Users
+  ExternalLink, Heart, Sparkles, BookOpen, Users, Loader2
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/products/ProductCard';
 
-// Featured products data
-const featuredProducts = [
-  {
-    _id: '1',
-    title: 'Mosaic Animals Color By Number',
-    slug: 'mosaic-animals-color-by-number',
-    shortDescription: 'Discover the beauty of wildlife through intricate mosaic designs.',
-    theme: 'Animals',
-    difficulty: 'beginner',
-    coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop',
-    rating: 4.8,
-    reviewCount: 127,
-    price: '$12.99',
-  },
-  {
-    _id: '2',
-    title: 'Floral Mosaic Masterpieces',
-    slug: 'floral-mosaic-masterpieces',
-    shortDescription: 'A stunning collection of flower mosaic patterns to color.',
-    theme: 'Flowers',
-    difficulty: 'intermediate',
-    coverImage: 'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?w=400&h=600&fit=crop',
-    rating: 4.9,
-    reviewCount: 89,
-    price: '$14.99',
-  },
-  {
-    _id: '3',
-    title: 'Mandala Mosaic Journey',
-    slug: 'mandala-mosaic-journey',
-    shortDescription: 'Find inner peace with mesmerizing mandala mosaic designs.',
-    theme: 'Mandala',
-    difficulty: 'advanced',
-    coverImage: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=400&h=600&fit=crop',
-    rating: 4.7,
-    reviewCount: 156,
-    price: '$15.99',
-  },
-  {
-    _id: '4',
-    title: 'Nature Patterns Mosaic',
-    slug: 'nature-patterns-mosaic',
-    shortDescription: 'Explore the natural world through beautiful mosaic art.',
-    theme: 'Nature',
-    difficulty: 'beginner',
-    coverImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=600&fit=crop',
-    rating: 4.6,
-    reviewCount: 78,
-    price: '$11.99',
-  },
-];
+interface Product {
+  _id: string;
+  title: string;
+  slug: string;
+  shortDescription?: string;
+  description?: string;
+  theme: string;
+  difficulty: string;
+  coverImage: string;
+  rating?: number;
+  reviewCount?: number;
+  price?: string;
+}
 
 const benefits = [
   {
@@ -120,6 +84,36 @@ const colorPalette = [
 ];
 
 export default function HomePage() {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products?featured=true&limit=4');
+        if (res.ok) {
+          const data = await res.json();
+          let products = data.products || [];
+          // Fallback: if no featured products, get any products
+          if (products.length === 0) {
+            const fallbackRes = await fetch('/api/products?limit=4');
+            if (fallbackRes.ok) {
+              const fallbackData = await fallbackRes.json();
+              products = fallbackData.products || [];
+            }
+          }
+          setFeaturedProducts(products);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -225,11 +219,21 @@ export default function HomePage() {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+              </div>
+            ) : featuredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredProducts.map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-neutral-500">No products available yet. Check back soon!</p>
+              </div>
+            )}
             
             <div className="text-center mt-12">
               <Button 

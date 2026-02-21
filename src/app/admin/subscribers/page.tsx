@@ -54,50 +54,6 @@ export default function AdminSubscribersPage() {
         }
       } catch (error) {
         console.error('Error fetching subscribers:', error);
-        // Set sample data for demo
-        const sampleSubscribers: Subscriber[] = [
-          {
-            _id: '1',
-            email: 'john@example.com',
-            source: 'free-downloads',
-            downloadedPages: ['1', '2', '3'],
-            createdAt: '2024-01-15T10:30:00Z',
-          },
-          {
-            _id: '2',
-            email: 'sarah@example.com',
-            source: 'free-downloads',
-            downloadedPages: ['1'],
-            createdAt: '2024-01-14T15:45:00Z',
-          },
-          {
-            _id: '3',
-            email: 'michael@example.com',
-            source: 'newsletter',
-            downloadedPages: [],
-            createdAt: '2024-01-13T09:20:00Z',
-          },
-          {
-            _id: '4',
-            email: 'emily@example.com',
-            source: 'free-downloads',
-            downloadedPages: ['1', '2', '3', '4', '5', '6'],
-            createdAt: '2024-01-12T14:10:00Z',
-          },
-          {
-            _id: '5',
-            email: 'david@example.com',
-            source: 'free-downloads',
-            downloadedPages: ['2', '4'],
-            createdAt: '2024-01-11T11:30:00Z',
-          },
-        ];
-        setSubscribers(sampleSubscribers);
-        setStats({
-          total: 5,
-          thisWeek: 3,
-          thisMonth: 5,
-        });
       } finally {
         setIsLoading(false);
       }

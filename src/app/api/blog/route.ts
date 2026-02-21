@@ -9,8 +9,14 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
     const limit = parseInt(searchParams.get('limit') || '0');
+    const all = searchParams.get('all');
     
-    const query: Record<string, unknown> = { published: true };
+    const query: Record<string, unknown> = {};
+    
+    // Only show published posts by default (public); admin can pass all=true
+    if (all !== 'true') {
+      query.published = true;
+    }
     
     if (category) {
       query.category = category;

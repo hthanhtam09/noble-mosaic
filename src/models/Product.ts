@@ -13,7 +13,7 @@ export interface IProduct {
   amazonLink: string;
   bulletPoints: string[];
   aPlusContent: {
-    type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle' | 'previewGrid';
+    type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
     title?: string;
     content?: string;
     image?: string;

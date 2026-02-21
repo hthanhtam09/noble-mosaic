@@ -7,13 +7,14 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { 
   Home, BookOpen, FileText, MessageSquare, LogOut, Menu, X, 
-  Users, ShoppingBag, Settings
+  Users, ShoppingBag, Settings, Palette
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Products', href: '/admin/products', icon: ShoppingBag },
+  { name: 'Free Coloring', href: '/admin/coloring', icon: Palette },
   { name: 'Blog Posts', href: '/admin/blog', icon: BookOpen },
   { name: 'Subscribers', href: '/admin/subscribers', icon: Users },
   { name: 'Messages', href: '/admin/contacts', icon: MessageSquare },

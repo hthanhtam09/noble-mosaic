@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -9,71 +10,86 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Download, Mail, CheckCircle, Loader2, Gift, 
-  Palette, Lock, Unlock, Heart, Sparkles
+  Palette, Lock, Unlock, Heart, Sparkles,
+  FolderOpen, ChevronDown, ChevronUp
 } from 'lucide-react';
 
-const freePages = [
-  {
-    id: '1',
-    title: 'Mandala Sampler',
-    description: 'Beautiful beginner-friendly mandala design',
-    thumbnail: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=300&h=400&fit=crop',
-    downloadUrl: '#download-1',
-    difficulty: 'Beginner',
-    color: 'var(--mosaic-purple)',
-  },
-  {
-    id: '2',
-    title: 'Floral Pattern',
-    description: 'Elegant flower mosaic to color',
-    thumbnail: 'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?w=300&h=400&fit=crop',
-    downloadUrl: '#download-2',
-    difficulty: 'Beginner',
-    color: 'var(--mosaic-rose)',
-  },
-  {
-    id: '3',
-    title: 'Animal Kingdom',
-    description: 'Cute animal mosaic design',
-    thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&h=400&fit=crop',
-    downloadUrl: '#download-3',
-    difficulty: 'Easy',
-    color: 'var(--mosaic-coral)',
-  },
-  {
-    id: '4',
-    title: 'Geometric Shapes',
-    description: 'Modern geometric pattern',
-    thumbnail: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=300&h=400&fit=crop',
-    downloadUrl: '#download-4',
-    difficulty: 'Intermediate',
-    color: 'var(--mosaic-teal)',
-  },
-  {
-    id: '5',
-    title: 'Nature Scene',
-    description: 'Peaceful nature mosaic',
-    thumbnail: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=300&h=400&fit=crop',
-    downloadUrl: '#download-5',
-    difficulty: 'Beginner',
-    color: 'var(--mosaic-sage)',
-  },
-  {
-    id: '6',
-    title: 'Abstract Art',
-    description: 'Creative abstract design',
-    thumbnail: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=300&h=400&fit=crop',
-    downloadUrl: '#download-6',
-    difficulty: 'Intermediate',
-    color: 'var(--mosaic-gold)',
-  },
-];
+interface ColoringFolder {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  pageCount: number;
+}
+
+interface ColoringPage {
+  _id: string;
+  title: string;
+  imageUrl: string;
+  folder: string;
+  order: number;
+}
+
+interface FolderWithPages extends ColoringFolder {
+  pages: ColoringPage[];
+}
 
 export default function FreeDownloadsPage() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState('');
+  const [folders, setFolders] = useState<FolderWithPages[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+
+  // Fetch folders + pages from DB
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const foldersRes = await fetch('/api/coloring-folders');
+        if (!foldersRes.ok) return;
+        const foldersData = await foldersRes.json();
+        const foldersList = foldersData.folders || [];
+
+        // Fetch pages for each folder
+        const foldersWithPages: FolderWithPages[] = await Promise.all(
+          foldersList.map(async (folder: ColoringFolder) => {
+            const pagesRes = await fetch(`/api/coloring-folders/${folder._id}`);
+            if (pagesRes.ok) {
+              const pagesData = await pagesRes.json();
+              return { ...folder, pages: pagesData.pages || [] };
+            }
+            return { ...folder, pages: [] };
+          })
+        );
+
+        setFolders(foldersWithPages);
+        // Initialize all folders as expanded
+        setExpandedFolders(new Set(foldersWithPages.map((f: FolderWithPages) => f._id)));
+      } catch (error) {
+        console.error('Error fetching coloring data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const totalPages = folders.reduce((sum, f) => sum + f.pages.length, 0);
+
+  const toggleFolder = (folderId: string) => {
+    setExpandedFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,8 +123,13 @@ export default function FreeDownloadsPage() {
     }
   };
 
-  const handleDownload = (pageId: string, pageTitle: string) => {
-    alert(`Download started: ${pageTitle}\n\nIn production, this would download the actual coloring page PDF.`);
+  const handleDownload = (imageUrl: string, title: string) => {
+    // Open image in new tab for download
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.target = '_blank';
+    link.download = `${title}.jpg`;
+    link.click();
   };
 
   return (
@@ -139,8 +160,8 @@ export default function FreeDownloadsPage() {
             {/* Benefits */}
             <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-8">
               {[
-                { icon: Palette, text: '6 Free Pages' },
-                { icon: Download, text: 'Printable PDF' },
+                { icon: Palette, text: `${totalPages || '...'} Free Pages` },
+                { icon: Download, text: 'Printable Quality' },
                 { icon: Sparkles, text: 'New Pages Monthly' },
               ].map((item, index) => (
                 <div key={index} className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
@@ -236,7 +257,7 @@ export default function FreeDownloadsPage() {
           </section>
         )}
 
-        {/* Free Pages Grid */}
+        {/* Free Pages - Grouped by Folder */}
         <section className={`py-16 ${isSubscribed ? 'bg-white' : 'bg-neutral-50'}`}>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -245,87 +266,133 @@ export default function FreeDownloadsPage() {
               </h2>
               <p className="text-neutral-600">
                 {isSubscribed 
-                  ? 'Click on any page to download the printable PDF'
+                  ? 'Click on any page to download the printable image'
                   : 'Subscribe above to unlock all downloads'
                 }
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {freePages.map((page) => (
-                <div 
-                  key={page.id} 
-                  className={`mosaic-card group relative overflow-hidden transition-all duration-300 ${
-                    isSubscribed 
-                      ? 'cursor-pointer' 
-                      : 'opacity-70 grayscale'
-                  }`}
-                  onClick={() => isSubscribed && handleDownload(page.id, page.title)}
-                >
-                  <div className="relative aspect-[3/4]">
-                    <img
-                      src={page.thumbnail}
-                      alt={page.title}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Color overlay on hover */}
-                    <div 
-                      className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity ${
-                        isSubscribed ? '' : 'hidden'
-                      }`}
-                      style={{ background: `linear-gradient(135deg, ${page.color}40, transparent)` }}
-                    />
-                    
-                    {!isSubscribed && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                          <Lock className="h-8 w-8 text-neutral-500" />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+              </div>
+            ) : folders.length === 0 ? (
+              <div className="text-center py-16">
+                <FolderOpen className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+                <p className="text-neutral-500 text-lg">No coloring pages available yet. Check back soon!</p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {folders.map((folder) => (
+                  <div key={folder._id}>
+                    {/* Folder header */}
+                    <button
+                      onClick={() => toggleFolder(folder._id)}
+                      className="w-full flex items-center justify-between group mb-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] flex items-center justify-center">
+                          <FolderOpen className="h-5 w-5 text-white" />
                         </div>
+                        <div className="text-left">
+                          <h3 className="text-xl font-serif font-bold text-neutral-900 group-hover:text-purple-700 transition-colors">
+                            {folder.name}
+                          </h3>
+                          {folder.description && (
+                            <p className="text-sm text-neutral-500">{folder.description}</p>
+                          )}
+                        </div>
+                        <Badge variant="secondary" className="bg-neutral-100 text-neutral-600 ml-2">
+                          {folder.pages.length} pages
+                        </Badge>
+                      </div>
+                      <div className="text-neutral-400">
+                        {expandedFolders.has(folder._id) ? (
+                          <ChevronUp className="h-5 w-5" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5" />
+                        )}
+                      </div>
+                    </button>
+
+                    {/* Folder pages grid */}
+                    {expandedFolders.has(folder._id) && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {folder.pages.map((page) => {
+                          const colorVars = [
+                            'var(--mosaic-coral)',
+                            'var(--mosaic-purple)',
+                            'var(--mosaic-teal)',
+                            'var(--mosaic-gold)',
+                            'var(--mosaic-sage)',
+                            'var(--mosaic-rose)',
+                          ];
+                          const color = colorVars[page.order % colorVars.length];
+
+                          return (
+                            <div 
+                              key={page._id} 
+                              className={`mosaic-card group relative overflow-hidden transition-all duration-300 rounded-xl ${
+                                isSubscribed 
+                                  ? 'cursor-pointer hover:shadow-lg' 
+                                  : 'opacity-70 grayscale'
+                              }`}
+                              onClick={() => isSubscribed && handleDownload(page.imageUrl, page.title)}
+                            >
+                              <div className="relative aspect-[3/4] bg-neutral-100">
+                                <Image
+                                  src={page.imageUrl}
+                                  alt={page.title}
+                                  fill
+                                  className="object-cover"
+                                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                />
+                                
+                                {!isSubscribed && (
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                                      <Lock className="h-6 w-6 text-neutral-500" />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {isSubscribed && (
+                                  <div className="absolute inset-0 bg-black/0 hover:bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-all">
+                                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
+                                      <Download className="h-7 w-7" style={{ color }} />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <CardContent className="p-3">
+                                <h4 className="text-sm font-medium text-neutral-900 truncate">{page.title}</h4>
+                                {isSubscribed && (
+                                  <Button 
+                                    className="w-full mt-2 text-white rounded-xl text-xs h-8"
+                                    style={{ backgroundColor: color }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(page.imageUrl, page.title);
+                                    }}
+                                  >
+                                    <Download className="h-3 w-3 mr-1" />
+                                    Download
+                                  </Button>
+                                )}
+                              </CardContent>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
-                    
-                    {isSubscribed && (
-                      <div className="absolute inset-0 bg-black/0 hover:bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-all">
-                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
-                          <Download className="h-8 w-8" style={{ color: page.color }} />
-                        </div>
-                      </div>
-                    )}
+
+                    {/* Divider between folders */}
+                    <div className="border-b border-neutral-200 mt-6" />
                   </div>
-                  
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-neutral-900">{page.title}</h3>
-                        <p className="text-sm text-neutral-500">{page.description}</p>
-                      </div>
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs shrink-0 rounded-lg"
-                        style={{ borderColor: page.color, color: page.color }}
-                      >
-                        {page.difficulty}
-                      </Badge>
-                    </div>
-                    
-                    {isSubscribed && (
-                      <Button 
-                        className="w-full mt-3 text-white rounded-xl"
-                        style={{ backgroundColor: page.color }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownload(page.id, page.title);
-                        }}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PDF
-                      </Button>
-                    )}
-                  </CardContent>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

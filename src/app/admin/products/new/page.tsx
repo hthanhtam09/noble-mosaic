@@ -499,9 +499,7 @@ export default function NewProductPage() {
                   <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('featureHighlight')}>
                     + Features
                   </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('previewGrid')}>
-                    + Image Grid
-                  </Button>
+
                 </div>
               </TabsContent>
             </Tabs>

@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 interface APlusContentBlockProps {
   block: {
-    type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle' | 'previewGrid';
+    type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
     title?: string;
     content?: string;
     image?: string;
@@ -115,30 +115,7 @@ export function LifestyleBlock({ block }: APlusContentBlockProps) {
   );
 }
 
-export function PreviewGridBlock({ block }: APlusContentBlockProps) {
-  return (
-    <div className="py-8">
-      {block.title && (
-        <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 text-center mb-8">{block.title}</h3>
-      )}
-      {block.images && block.images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {block.images.map((image, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100">
-              <Image
-                src={image}
-                alt={`Preview ${index + 1}`}
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 640px) 50vw, 25vw"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+
 
 export default function APlusContent({ block }: APlusContentBlockProps) {
   switch (block.type) {
@@ -150,8 +127,6 @@ export default function APlusContent({ block }: APlusContentBlockProps) {
       return <FeatureHighlightBlock block={block} />;
     case 'lifestyle':
       return <LifestyleBlock block={block} />;
-    case 'previewGrid':
-      return <PreviewGridBlock block={block} />;
     default:
       return null;
   }

@@ -47,8 +47,10 @@ export async function clearAdminCookie(): Promise<void> {
   cookieStore.delete('admin_token');
 }
 
-export function withAuth(handler: (req: NextRequest) => Promise<NextResponse>) {
-  return async (req: NextRequest) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function withAuth(handler: (req: NextRequest, context?: any) => Promise<NextResponse>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (req: NextRequest, context?: any) => {
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;
     
@@ -61,6 +63,6 @@ export function withAuth(handler: (req: NextRequest) => Promise<NextResponse>) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
     
-    return handler(req);
+    return handler(req, context);
   };
 }

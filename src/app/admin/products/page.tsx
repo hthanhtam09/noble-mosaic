@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Plus, Pencil, Trash2, Search, MoreVertical, 
-  Star, ExternalLink, Eye, Copy, Filter
+  Star, ExternalLink, Eye, Copy, Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,86 +43,33 @@ interface Product {
   createdAt: string;
 }
 
-// Sample products data - in production, this would come from an API
-const initialProducts: Product[] = [
-  {
-    _id: '1',
-    title: 'Mosaic Animals Color By Number',
-    slug: 'mosaic-animals-color-by-number',
-    description: 'Discover the beauty of wildlife through intricate mosaic designs. Perfect for relaxation and creative expression.',
-    theme: 'Animals',
-    difficulty: 'beginner',
-    coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=300&fit=crop',
-    galleryImages: [],
-    amazonLink: 'https://amazon.com/dp/example1',
-    bulletPoints: ['50+ designs', 'Premium paper', 'Large 8.5x11 format'],
-    rating: 4.8,
-    reviewCount: 127,
-    price: '$12.99',
-    featured: true,
-    createdAt: '2024-01-15',
-  },
-  {
-    _id: '2',
-    title: 'Floral Mosaic Masterpieces',
-    slug: 'floral-mosaic-masterpieces',
-    description: 'A stunning collection of flower mosaic patterns to color.',
-    theme: 'Flowers',
-    difficulty: 'intermediate',
-    coverImage: 'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?w=200&h=300&fit=crop',
-    galleryImages: [],
-    amazonLink: 'https://amazon.com/dp/example2',
-    bulletPoints: ['40+ designs', 'Premium paper', 'Color guide included'],
-    rating: 4.9,
-    reviewCount: 89,
-    price: '$14.99',
-    featured: true,
-    createdAt: '2024-01-10',
-  },
-  {
-    _id: '3',
-    title: 'Mandala Mosaic Journey',
-    slug: 'mandala-mosaic-journey',
-    description: 'Find inner peace with mesmerizing mandala mosaic designs.',
-    theme: 'Mandala',
-    difficulty: 'advanced',
-    coverImage: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=200&h=300&fit=crop',
-    galleryImages: [],
-    amazonLink: 'https://amazon.com/dp/example3',
-    bulletPoints: ['60+ designs', 'Premium paper', 'Intricate patterns'],
-    rating: 4.7,
-    reviewCount: 156,
-    price: '$15.99',
-    featured: false,
-    createdAt: '2024-01-05',
-  },
-  {
-    _id: '4',
-    title: 'Nature Patterns Mosaic',
-    slug: 'nature-patterns-mosaic',
-    description: 'Explore the natural world through beautiful mosaic art.',
-    theme: 'Nature',
-    difficulty: 'beginner',
-    coverImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=200&h=300&fit=crop',
-    galleryImages: [],
-    amazonLink: 'https://amazon.com/dp/example4',
-    bulletPoints: ['35+ designs', 'Premium paper', 'Beginner friendly'],
-    rating: 4.6,
-    reviewCount: 78,
-    price: '$11.99',
-    featured: false,
-    createdAt: '2024-01-01',
-  },
-];
-
 const themes = ['All', 'Animals', 'Flowers', 'Mandala', 'Nature', 'Geometric', 'Abstract'];
 const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [themeFilter, setThemeFilter] = useState('All');
   const [difficultyFilter, setDifficultyFilter] = useState('All');
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          setProducts(data.products || []);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleDelete = async (slug: string) => {
     if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
@@ -221,20 +168,28 @@ export default function AdminProductsPage() {
       </p>
 
       {/* Products Grid */}
-      {filteredProducts.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+        </div>
+      ) : filteredProducts.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="p-12 text-center">
             <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="h-8 w-8 text-neutral-300" />
             </div>
-            <p className="text-neutral-500 mb-4">No products found matching your filters.</p>
-            <Button variant="outline" onClick={() => {
-              setSearchQuery('');
-              setThemeFilter('All');
-              setDifficultyFilter('All');
-            }}>
-              Clear Filters
-            </Button>
+            <p className="text-neutral-500 mb-4">
+              {products.length === 0 ? 'No products yet. Add your first product!' : 'No products found matching your filters.'}
+            </p>
+            {products.length > 0 && (
+              <Button variant="outline" onClick={() => {
+                setSearchQuery('');
+                setThemeFilter('All');
+                setDifficultyFilter('All');
+              }}>
+                Clear Filters
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (

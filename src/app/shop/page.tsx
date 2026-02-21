@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -8,110 +8,23 @@ import ProductCard from '@/components/products/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Grid3X3, LayoutGrid, X, Palette, Filter } from 'lucide-react';
+import { Grid3X3, LayoutGrid, X, Palette, Filter, Loader2 } from 'lucide-react';
+
+interface Product {
+  _id: string;
+  title: string;
+  slug: string;
+  shortDescription?: string;
+  theme: string;
+  difficulty: string;
+  coverImage: string;
+  rating?: number;
+  reviewCount?: number;
+  price?: string;
+}
 
 const themes = ['All', 'Animals', 'Flowers', 'Mandala', 'Nature', 'Geometric', 'Abstract'];
 const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
-
-// Sample products data
-const sampleProducts = [
-  {
-    _id: '1',
-    title: 'Mosaic Animals Color By Number',
-    slug: 'mosaic-animals-color-by-number',
-    shortDescription: 'Discover the beauty of wildlife through intricate mosaic designs.',
-    theme: 'Animals',
-    difficulty: 'beginner' as const,
-    coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop',
-    rating: 4.8,
-    reviewCount: 127,
-    price: '$12.99',
-  },
-  {
-    _id: '2',
-    title: 'Floral Mosaic Masterpieces',
-    slug: 'floral-mosaic-masterpieces',
-    shortDescription: 'A stunning collection of flower mosaic patterns to color.',
-    theme: 'Flowers',
-    difficulty: 'intermediate' as const,
-    coverImage: 'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?w=400&h=600&fit=crop',
-    rating: 4.9,
-    reviewCount: 89,
-    price: '$14.99',
-  },
-  {
-    _id: '3',
-    title: 'Mandala Mosaic Journey',
-    slug: 'mandala-mosaic-journey',
-    shortDescription: 'Find inner peace with mesmerizing mandala mosaic designs.',
-    theme: 'Mandala',
-    difficulty: 'advanced' as const,
-    coverImage: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=400&h=600&fit=crop',
-    rating: 4.7,
-    reviewCount: 156,
-    price: '$15.99',
-  },
-  {
-    _id: '4',
-    title: 'Nature Patterns Mosaic',
-    slug: 'nature-patterns-mosaic',
-    shortDescription: 'Explore the natural world through beautiful mosaic art.',
-    theme: 'Nature',
-    difficulty: 'beginner' as const,
-    coverImage: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=600&fit=crop',
-    rating: 4.6,
-    reviewCount: 78,
-    price: '$11.99',
-  },
-  {
-    _id: '5',
-    title: 'Geometric Mosaic Wonders',
-    slug: 'geometric-mosaic-wonders',
-    shortDescription: 'Challenge yourself with intricate geometric patterns.',
-    theme: 'Geometric',
-    difficulty: 'advanced' as const,
-    coverImage: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=400&h=600&fit=crop',
-    rating: 4.8,
-    reviewCount: 92,
-    price: '$16.99',
-  },
-  {
-    _id: '6',
-    title: 'Abstract Mosaic Dreams',
-    slug: 'abstract-mosaic-dreams',
-    shortDescription: 'Let your imagination run wild with abstract designs.',
-    theme: 'Abstract',
-    difficulty: 'intermediate' as const,
-    coverImage: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&h=600&fit=crop',
-    rating: 4.5,
-    reviewCount: 64,
-    price: '$13.99',
-  },
-  {
-    _id: '7',
-    title: 'Wildlife Mosaic Adventure',
-    slug: 'wildlife-mosaic-adventure',
-    shortDescription: 'Color your way through the animal kingdom.',
-    theme: 'Animals',
-    difficulty: 'intermediate' as const,
-    coverImage: 'https://images.unsplash.com/photo-1474511320723-9a56873571b7?w=400&h=600&fit=crop',
-    rating: 4.7,
-    reviewCount: 103,
-    price: '$14.99',
-  },
-  {
-    _id: '8',
-    title: 'Garden Flowers Mosaic',
-    slug: 'garden-flowers-mosaic',
-    shortDescription: 'Beautiful garden flowers in stunning mosaic patterns.',
-    theme: 'Flowers',
-    difficulty: 'beginner' as const,
-    coverImage: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=600&fit=crop',
-    rating: 4.9,
-    reviewCount: 145,
-    price: '$12.99',
-  },
-];
 
 function ShopContent() {
   const searchParams = useSearchParams();
@@ -122,11 +35,30 @@ function ShopContent() {
   const initialTheme = themeParam && themes.includes(themeParam) ? themeParam : 'All';
   const initialDifficulty = difficultyParam && difficulties.includes(difficultyParam) ? difficultyParam : 'All';
   
-  const [products] = useState(sampleProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedTheme, setSelectedTheme] = useState(initialTheme);
   const [selectedDifficulty, setSelectedDifficulty] = useState(initialDifficulty);
   const [sortBy, setSortBy] = useState('newest');
   const [gridView, setGridView] = useState<'grid' | 'list'>('grid');
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          setProducts(data.products || []);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
@@ -141,7 +73,7 @@ function ShopContent() {
 
     switch (sortBy) {
       case 'popular':
-        filtered.sort((a, b) => b.reviewCount - a.reviewCount);
+        filtered.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
         break;
       case 'rating':
         filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -303,7 +235,11 @@ function ShopContent() {
           </p>
 
           {/* Products Grid */}
-          {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className={`
               grid gap-6
               ${gridView === 'grid' 
@@ -320,10 +256,14 @@ function ShopContent() {
               <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] opacity-20 flex items-center justify-center">
                 <Palette className="h-10 w-10 text-white" />
               </div>
-              <p className="text-neutral-500 mb-4">No books found matching your filters.</p>
-              <Button variant="outline" onClick={clearFilters} className="rounded-xl">
-                Clear Filters
-              </Button>
+              <p className="text-neutral-500 mb-4">
+                {products.length === 0 ? 'No books available yet. Check back soon!' : 'No books found matching your filters.'}
+              </p>
+              {products.length > 0 && (
+                <Button variant="outline" onClick={clearFilters} className="rounded-xl">
+                  Clear Filters
+                </Button>
+              )}
             </div>
           )}
         </div>
