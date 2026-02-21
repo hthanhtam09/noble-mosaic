@@ -237,10 +237,12 @@ function SecretBookContent() {
                 )}
                 
                 <h3 className="text-2xl font-serif font-bold text-neutral-900 mb-2">Secret Key Required</h3>
-                <p className="text-neutral-500 mb-8 px-4">
+                <p className="text-neutral-500 px-4">
                   This book is locked. Please enter the 6-character secret key to view the hidden images.
                 </p>
-                
+                <p className="text-neutral-500 mb-8 px-4 font-bold text-xl">
+                 Get the secret key on page 106
+                </p>
                 <form onSubmit={handleUnlock} className="space-y-4 mb-8">
                   <div className="relative max-w-[280px] mx-auto">
                     <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
