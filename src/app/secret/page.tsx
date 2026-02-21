@@ -8,7 +8,7 @@ import Footer from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Lock, Palette } from 'lucide-react';
+import { Loader2, Lock, LockOpen, Palette } from 'lucide-react';
 
 interface SecretBook {
   _id: string;
@@ -20,6 +20,10 @@ interface SecretBook {
 export default function SecretPage() {
   const [books, setBooks] = useState<SecretBook[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [unlockedBooks, setUnlockedBooks] = useState<Record<string, boolean>>({});
+  const [displayLimit, setDisplayLimit] = useState(12);
+
+  const displayedBooks = books.slice(0, displayLimit);
 
   useEffect(() => {
     const fetchSecretBooks = async () => {
@@ -27,7 +31,17 @@ export default function SecretPage() {
         const res = await fetch('/api/secrets');
         if (res.ok) {
           const data = await res.json();
-          setBooks(data.products || []); // NOTE: API still returns {"products": []} so we just use it
+          const fetchedBooks = data.products || [];
+          setBooks(fetchedBooks);
+          
+          // Check local storage for unlocked status after fetching books
+          const unlockedStatus: Record<string, boolean> = {};
+          fetchedBooks.forEach((book: SecretBook) => {
+            if (localStorage.getItem(`secret_key_${book.slug}`)) {
+              unlockedStatus[book.slug] = true;
+            }
+          });
+          setUnlockedBooks(unlockedStatus);
         }
       } catch (error) {
         console.error('Error fetching secret books:', error);
@@ -44,27 +58,6 @@ export default function SecretPage() {
       <Header />
       
       <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="mosaic-hero py-16 lg:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="absolute -inset-2 bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] to-[var(--mosaic-teal)] rounded-full blur opacity-40" />
-                <div className="relative w-16 h-16 bg-gradient-to-br from-[var(--mosaic-teal)] to-[var(--mosaic-purple)] rounded-full flex items-center justify-center shadow-xl">
-                  <Lock className="h-8 w-8 text-white" />
-                </div>
-              </div>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-neutral-900 mb-4">
-              Secret Images
-            </h1>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto mb-8">
-              Explore the hidden mosaic designs from our coloring books. Select a book to reveal its secrets.
-            </p>
-          </div>
-        </section>
-
         {/* Books Grid */}
         <section className="py-16 bg-neutral-50/50">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -81,25 +74,31 @@ export default function SecretPage() {
                 <p className="text-neutral-500 text-lg">Check back later for hidden images from our collections!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-                {books.map((book) => (
-                  <Link href={`/secret/${book.slug}`} key={book._id} className="group block">
-                    <Card className="h-full border-0 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden bg-white/80 backdrop-blur-sm group-hover:-translate-y-1">
-                      <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
-                        {/* Overlay gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
-                        
-                        <Image
-                          src={book.coverImage}
-                          alt={book.title}
-                          fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                  {displayedBooks.map((book, index) => (
+                    <Link href={`/secret/${book.slug}`} key={book._id} className="group block">
+                      <Card className="h-full border-0 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden bg-white/80 backdrop-blur-sm group-hover:-translate-y-1">
+                        <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
+                          {/* Overlay gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
+                          
+                          <Image
+                            src={book.coverImage}
+                            alt={book.title}
+                            fill
+                            priority={index < 4}
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
                           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                         />
                         
                         <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-end items-end">
                           <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-[var(--mosaic-teal)] transition-colors">
-                            <Lock className="h-4 w-4" />
+                            {unlockedBooks[book.slug] ? (
+                              <LockOpen className="h-4 w-4" />
+                            ) : (
+                              <Lock className="h-4 w-4" />
+                            )}
                           </div>
                         </div>
                       </div>
@@ -114,7 +113,21 @@ export default function SecretPage() {
                     </Card>
                   </Link>
                 ))}
-              </div>
+                </div>
+                
+                {books.length > displayLimit && (
+                  <div className="mt-12 flex justify-center">
+                    <Button 
+                      onClick={() => setDisplayLimit(prev => prev + 12)}
+                      variant="outline"
+                      size="lg"
+                      className="rounded-full px-8 bg-white hover:bg-neutral-50"
+                    >
+                      Load More
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

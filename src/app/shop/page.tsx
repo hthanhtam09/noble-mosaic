@@ -41,6 +41,11 @@ function ShopContent() {
   const [selectedDifficulty, setSelectedDifficulty] = useState(initialDifficulty);
   const [sortBy, setSortBy] = useState('newest');
   const [gridView, setGridView] = useState<'grid' | 'list'>('grid');
+  const [displayLimit, setDisplayLimit] = useState(12);
+
+  useEffect(() => {
+    setDisplayLimit(12);
+  }, [selectedTheme, selectedDifficulty, sortBy, gridView]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -93,26 +98,13 @@ function ShopContent() {
 
   const hasActiveFilters = selectedTheme !== 'All' || selectedDifficulty !== 'All';
 
+  const displayedProducts = filteredProducts.slice(0, displayLimit);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-grow">
-        {/* Page Header */}
-        <div className="mosaic-hero border-b border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-            <div className="flex items-center gap-3 mb-4">
-              <Palette className="h-6 w-6 text-[var(--mosaic-purple)]" />
-              <h1 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900">
-                Shop All Books
-              </h1>
-            </div>
-            <p className="text-neutral-600 max-w-2xl">
-              Browse our complete collection of mosaic color by number books. Each book features unique designs for relaxation and creative joy.
-            </p>
-          </div>
-        </div>
-
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           {/* Filters Bar */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 p-4 bg-white rounded-2xl shadow-sm">
@@ -231,7 +223,7 @@ function ShopContent() {
 
           {/* Results Count */}
           <p className="text-sm text-neutral-500 mb-6">
-            Showing <span className="font-medium text-neutral-900">{filteredProducts.length}</span> book{filteredProducts.length !== 1 ? 's' : ''}
+            Showing <span className="font-medium text-neutral-900">{displayedProducts.length}</span> of <span className="font-medium text-neutral-900">{filteredProducts.length}</span> book{filteredProducts.length !== 1 ? 's' : ''}
           </p>
 
           {/* Products Grid */}
@@ -240,17 +232,32 @@ function ShopContent() {
               <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
             </div>
           ) : filteredProducts.length > 0 ? (
-            <div className={`
-              grid gap-6
-              ${gridView === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1 md:grid-cols-2'
-              }
-            `}>
-              {filteredProducts.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className={`
+                grid gap-6
+                ${gridView === 'grid' 
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                  : 'grid-cols-1 md:grid-cols-2'
+                }
+              `}>
+                {displayedProducts.map((product, index) => (
+                  <ProductCard key={product._id} product={product} priority={index < 4} />
+                ))}
+              </div>
+              
+              {filteredProducts.length > displayLimit && (
+                <div className="mt-12 flex justify-center">
+                  <Button 
+                    onClick={() => setDisplayLimit(prev => prev + 12)}
+                    variant="outline"
+                    size="lg"
+                    className="rounded-full px-8 bg-white hover:bg-neutral-50"
+                  >
+                    Load More
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-16">
               <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] opacity-20 flex items-center justify-center">

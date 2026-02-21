@@ -17,6 +17,7 @@ interface ProductCardProps {
     reviewCount?: number;
     price?: string;
   };
+  priority?: boolean;
 }
 
 const themeColors: Record<string, string> = {
@@ -28,7 +29,7 @@ const themeColors: Record<string, string> = {
   'Abstract': 'var(--mosaic-gold)',
 };
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const themeColor = themeColors[product.theme] || 'var(--mosaic-coral)';
   
   return (
@@ -44,6 +45,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           src={product.coverImage}
           alt={product.title}
           fill
+          priority={priority}
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />

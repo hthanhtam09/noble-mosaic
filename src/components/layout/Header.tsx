@@ -63,19 +63,6 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:flex md:items-center">
-            <Button 
-              asChild 
-              className="bg-gradient-to-r from-neutral-800 to-neutral-700 hover:from-neutral-700 hover:to-neutral-600 text-white rounded-full px-6 shadow-lg shadow-neutral-800/20"
-            >
-              <Link href="/shop" className="flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                Shop Books
-              </Link>
-            </Button>
-          </div>
-
           {/* Mobile menu button */}
           <div className="flex md:hidden">
             <button

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Calendar, Clock, ArrowRight, Loader2 } from 'lucide-react';
 
 interface BlogPost {
@@ -21,6 +22,19 @@ interface BlogPost {
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [displayLimit, setDisplayLimit] = useState(7); // 1 featured + 6 regular
+
+  const categories = ['All', ...new Set(posts.map(p => p.category).filter(Boolean))];
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  useEffect(() => {
+    setDisplayLimit(7);
+  }, [selectedCategory]);
+
+  const filteredPosts = posts.filter(post => 
+    selectedCategory === 'All' || post.category === selectedCategory
+  );
+  const displayedPosts = filteredPosts.slice(0, displayLimit);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -40,25 +54,11 @@ export default function BlogPage() {
     fetchPosts();
   }, []);
 
-  const categories = ['All', ...new Set(posts.map(p => p.category).filter(Boolean))];
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-grow bg-stone-50">
-        {/* Page Header */}
-        <div className="bg-white border-b border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900">
-              Blog
-            </h1>
-            <p className="mt-2 text-neutral-600">
-              Insights, tips, and inspiration for your coloring journey
-            </p>
-          </div>
-        </div>
-
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
@@ -76,8 +76,9 @@ export default function BlogPage() {
                   {categories.map((category) => (
                     <button
                       key={category}
+                      onClick={() => setSelectedCategory(category)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        category === 'All'
+                        category === selectedCategory
                           ? 'bg-neutral-900 text-white'
                           : 'bg-white text-neutral-600 hover:bg-neutral-100'
                       }`}
@@ -89,49 +90,52 @@ export default function BlogPage() {
               )}
 
               {/* Featured Post */}
-              <div className="mb-12">
-                <Link href={`/blog/${posts[0].slug}`} className="group block">
-                  <div className="grid md:grid-cols-2 gap-6 bg-white rounded-xl overflow-hidden shadow-sm">
-                    {posts[0].thumbnail && (
-                      <div className="relative aspect-[16/10] md:aspect-auto">
-                        <Image
-                          src={posts[0].thumbnail}
-                          alt={posts[0].title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                      </div>
-                    )}
-                    <div className="p-6 md:p-8 flex flex-col justify-center">
-                      <Badge variant="secondary" className="w-fit mb-4 bg-stone-100 text-neutral-700">
-                        {posts[0].category}
-                      </Badge>
-                      <h2 className="text-2xl md:text-3xl font-serif font-bold text-neutral-900 group-hover:text-neutral-700 transition-colors mb-3">
-                        {posts[0].title}
-                      </h2>
-                      <p className="text-neutral-600 mb-4">
-                        {posts[0].excerpt}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm text-neutral-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {new Date(posts[0].createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
+              {displayedPosts.length > 0 && (
+                <div className="mb-12">
+                  <Link href={`/blog/${displayedPosts[0].slug}`} className="group block">
+                    <div className="grid md:grid-cols-2 gap-6 bg-white rounded-xl overflow-hidden shadow-sm">
+                      {displayedPosts[0].thumbnail && (
+                        <div className="relative aspect-[16/10] md:aspect-auto">
+                          <Image
+                            src={displayedPosts[0].thumbnail}
+                            alt={displayedPosts[0].title}
+                            fill
+                            priority
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                          />
+                        </div>
+                      )}
+                      <div className="p-6 md:p-8 flex flex-col justify-center">
+                        <Badge variant="secondary" className="w-fit mb-4 bg-stone-100 text-neutral-700">
+                          {displayedPosts[0].category}
+                        </Badge>
+                        <h2 className="text-2xl md:text-3xl font-serif font-bold text-neutral-900 group-hover:text-neutral-700 transition-colors mb-3">
+                          {displayedPosts[0].title}
+                        </h2>
+                        <p className="text-neutral-600 mb-4">
+                          {displayedPosts[0].excerpt}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm text-neutral-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {new Date(displayedPosts[0].createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              </div>
+                  </Link>
+                </div>
+              )}
 
               {/* Posts Grid */}
-              {posts.length > 1 && (
+              {displayedPosts.length > 1 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {posts.slice(1).map((post) => (
+                  {displayedPosts.slice(1).map((post) => (
                     <Link
                       key={post._id}
                       href={`/blog/${post.slug}`}
@@ -176,6 +180,19 @@ export default function BlogPage() {
                       </div>
                     </Link>
                   ))}
+                </div>
+              )}
+              
+              {filteredPosts.length > displayLimit && (
+                <div className="mt-12 flex justify-center">
+                  <Button 
+                    onClick={() => setDisplayLimit(prev => prev + 6)}
+                    variant="outline"
+                    size="lg"
+                    className="rounded-full px-8 bg-white hover:bg-neutral-50"
+                  >
+                    Load More
+                  </Button>
                 </div>
               )}
             </>

@@ -17,6 +17,32 @@ export async function GET(
     if (!book) {
       return NextResponse.json({ error: 'Secret Book not found' }, { status: 404 });
     }
+
+    const searchParams = request.nextUrl.searchParams;
+    const providedKey = searchParams.get('key');
+
+    // Find first secret image to use as preview
+    const firstSecret = await SecretImage.findOne({ 
+      secretBook: book._id,
+      isActive: true 
+    }).sort({ order: 1 }).lean();
+
+    const computedPreviewImage = firstSecret ? firstSecret.uncolorImageUrl : undefined;
+
+    // If the book is protected by a secret key
+    if (book.secretKey && book.secretKey !== providedKey) {
+      return NextResponse.json({ 
+        error: 'Unauthorized', 
+        requiresKey: true,
+        product: {
+          title: book.title,
+          slug: book.slug,
+          coverImage: book.coverImage,
+          amazonUrl: book.amazonUrl,
+          previewImage: computedPreviewImage
+        }
+      }, { status: 403 });
+    }
     
     // Find secret images for this book
     const secrets = await SecretImage.find({ 
@@ -30,7 +56,9 @@ export async function GET(
       product: {
         title: book.title,
         slug: book.slug,
-        coverImage: book.coverImage
+        coverImage: book.coverImage,
+        amazonUrl: book.amazonUrl,
+        previewImage: computedPreviewImage
       },
       secrets 
     });

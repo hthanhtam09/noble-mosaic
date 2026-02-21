@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Trash2, ArrowLeft, Upload, Loader2,
-  ImageIcon, Plus, BookOpen
+  ImageIcon, Plus, BookOpen, KeyRound, LockOpen
 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,8 @@ interface SecretBook {
   title: string;
   slug: string;
   coverImage: string;
+  secretKey?: string;
+  amazonUrl?: string;
 }
 
 interface SecretImage {
@@ -38,6 +41,7 @@ interface SecretImage {
 }
 
 export default function AdminSecretsPage() {
+  const { toast } = useToast();
   const [books, setBooks] = useState<SecretBook[]>([]);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
 
@@ -49,6 +53,8 @@ export default function AdminSecretsPage() {
   const [showCreateBook, setShowCreateBook] = useState(false);
   const [newBookTitle, setNewBookTitle] = useState('');
   const [newBookImage, setNewBookImage] = useState<File | null>(null);
+  const [newBookKey, setNewBookKey] = useState('');
+  const [newBookAmazonUrl, setNewBookAmazonUrl] = useState('');
   const [isCreatingBook, setIsCreatingBook] = useState(false);
 
   // Upload Secrets state
@@ -67,6 +73,21 @@ export default function AdminSecretsPage() {
   // Dialog states for deletion
   const [bookToDelete, setBookToDelete] = useState<SecretBook | null>(null);
   const [secretToDelete, setSecretToDelete] = useState<string | null>(null);
+
+  // Book Settings state
+  const [showBookSettingsModal, setShowBookSettingsModal] = useState(false);
+  const [editKey, setEditKey] = useState('');
+  const [editAmazonUrl, setEditAmazonUrl] = useState('');
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+
+  const generateSecretKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+       result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
 
   const fetchBooks = useCallback(async () => {
     try {
@@ -124,7 +145,11 @@ export default function AdminSecretsPage() {
 
   const handleCreateBook = async () => {
     if (!newBookTitle || !newBookImage) {
-      alert('Please provide a title and a cover image.');
+      toast({
+        title: "Missing fields",
+        description: "Please provide a title and a cover image.",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -138,6 +163,8 @@ export default function AdminSecretsPage() {
         body: JSON.stringify({
           title: newBookTitle,
           coverImage: coverImageUrl,
+          secretKey: newBookKey || undefined,
+          amazonUrl: newBookAmazonUrl || undefined,
         })
       });
 
@@ -145,13 +172,27 @@ export default function AdminSecretsPage() {
         setShowCreateBook(false);
         setNewBookTitle('');
         setNewBookImage(null);
+        setNewBookKey('');
+        setNewBookAmazonUrl('');
         await fetchBooks();
+        toast({
+          title: "Book created",
+          description: "Your secret book has been created successfully."
+        });
       } else {
-        alert('Failed to create book');
+        toast({
+          title: "Error",
+          description: "Failed to create book.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
        console.error(error);
-       alert('Error creating book');
+       toast({
+         title: "Error",
+         description: "An unexpected error occurred while creating the book.",
+         variant: "destructive"
+       });
     } finally {
        setIsCreatingBook(false);
     }
@@ -179,6 +220,52 @@ export default function AdminSecretsPage() {
   const handleDeleteBook = (e: React.MouseEvent, book: SecretBook) => {
     e.stopPropagation();
     setBookToDelete(book);
+  };
+
+  const handleUpdateBookSettings = async () => {
+    if (!selectedBook) return;
+    setIsUpdatingSettings(true);
+    try {
+      const res = await fetch(`/api/admin/secret-books/${selectedBook._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          secretKey: editKey || undefined,
+          amazonUrl: editAmazonUrl || undefined,
+        })
+      });
+
+      if (res.ok) {
+        setShowBookSettingsModal(false);
+        const updatedBook = { 
+          ...selectedBook, 
+          secretKey: editKey || undefined,
+          amazonUrl: editAmazonUrl || undefined,
+        };
+        setSelectedBook(updatedBook);
+        setBooks(prev => prev.map(b => b._id === updatedBook._id ? updatedBook : b));
+        toast({
+          title: "Settings updated",
+          description: "Book settings have been successfully saved."
+        });
+      } else {
+        const error = await res.json();
+        toast({
+          title: "Update failed",
+          description: error.error || 'Unknown error occurred.',
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+       console.error(error);
+       toast({
+         title: "Error",
+         description: "Failed to update settings.",
+         variant: "destructive"
+       });
+    } finally {
+       setIsUpdatingSettings(false);
+    }
   };
 
   // Extract number from filename, assuming filenames are like "1.png", "image 10.jpg" etc
@@ -211,12 +298,20 @@ export default function AdminSecretsPage() {
   const handleAddSecretsBulk = async () => {
     if (!selectedBook) return;
     if (colorImages.length === 0 || uncolorImages.length === 0) {
-      alert('Please select both color and uncolor folders.');
+      toast({
+        title: "Missing folders",
+        description: "Please select both color and uncolor folders.",
+        variant: "destructive"
+      });
       return;
     }
 
     if (colorImages.length !== uncolorImages.length) {
-      alert(`Mismatched file counts! You selected ${colorImages.length} color images and ${uncolorImages.length} uncolor images. They must contain the exact same amount of images.`);
+      toast({
+        title: "Mismatched counts",
+        description: `You selected ${colorImages.length} color images and ${uncolorImages.length} uncolor images. They must contain the exact same amount.`,
+        variant: "destructive"
+      });
       return; 
     }
     
@@ -269,15 +364,26 @@ export default function AdminSecretsPage() {
         if (colorInputRef.current) colorInputRef.current.value = '';
         if (uncolorInputRef.current) uncolorInputRef.current.value = '';
         await fetchSecrets(selectedBook._id);
-      }
-      
-      if (successCount < colorImages.length) {
-         alert(`Completed. Successfully added ${successCount} out of ${colorImages.length} pairs.`);
+        
+        toast({
+          title: "Upload complete",
+          description: `Successfully added ${successCount} out of ${colorImages.length} pairs.`
+        });
+      } else if (successCount < colorImages.length) {
+        toast({
+          title: "Upload partial/failed",
+          description: `Only added ${successCount} out of ${colorImages.length} pairs. Check console for details.`,
+          variant: "destructive"
+        });
       }
 
     } catch (error) {
       console.error(error);
-      alert('Fatal error during batch upload process');
+      toast({
+        title: "Fatal Error",
+        description: "A fatal error occurred during the batch upload process.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -313,7 +419,32 @@ export default function AdminSecretsPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-serif font-bold text-neutral-900">{selectedBook.title} - Secrets</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-serif font-bold text-neutral-900">{selectedBook.title} - Secrets</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  {selectedBook.secretKey ? (
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
+                      <KeyRound className="h-3 w-3 mr-1" /> Key: {selectedBook.secretKey}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-neutral-100 text-neutral-500 border-neutral-200">
+                      <LockOpen className="h-3 w-3 mr-1" /> Public
+                    </Badge>
+                  )}
+                  <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     className="h-6 text-xs px-2 text-neutral-500 hover:text-neutral-900"
+                     onClick={() => {
+                       setEditKey(selectedBook.secretKey || '');
+                       setEditAmazonUrl(selectedBook.amazonUrl || '');
+                       setShowBookSettingsModal(true);
+                     }}
+                  >
+                    Edit Settings
+                  </Button>
+                </div>
+              </div>
               <p className="text-neutral-500 text-sm mt-0.5">Manage secret images for this book</p>
             </div>
           </div>
@@ -451,6 +582,59 @@ export default function AdminSecretsPage() {
           </AlertDialogContent>
         </AlertDialog>
 
+        {/* Book Settings Modal */}
+        <AlertDialog open={showBookSettingsModal} onOpenChange={setShowBookSettingsModal}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader className="pb-4 border-b border-neutral-100 mb-2">
+              <AlertDialogTitle>Book Settings</AlertDialogTitle>
+              <AlertDialogDescription>
+                Configure the secret key, Amazon product link, and the preview image displayed on the lock screen.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-2 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 line-clamp-1">Secret Key (6 Characters)</label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="text" 
+                    placeholder="e.g. SECRET"
+                    value={editKey}
+                    onChange={(e) => setEditKey(e.target.value.toUpperCase().slice(0, 6))}
+                    className="uppercase"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setEditKey(generateSecretKey())}
+                    className="whitespace-nowrap"
+                  >
+                    Generate
+                  </Button>
+                </div>
+                <p className="text-[11px] text-neutral-500 mt-1">Leave blank for a public book, or enter exactly 6 characters.</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Amazon Buy Link</label>
+                <Input 
+                  type="url" 
+                  placeholder="https://amazon.com/dp/XXXXXX"
+                  value={editAmazonUrl}
+                  onChange={(e) => setEditAmazonUrl(e.target.value)}
+                />
+                <p className="text-[11px] text-neutral-500 mt-1">Link visitors to purchase to obtain the key.</p>
+              </div>
+
+            </div>
+            <AlertDialogFooter className="border-t border-neutral-100 pt-4 mt-2">
+              <AlertDialogCancel disabled={isUpdatingSettings}>Cancel</AlertDialogCancel>
+              <Button onClick={handleUpdateBookSettings} disabled={isUpdatingSettings} className="bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white">
+                {isUpdatingSettings ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Save Settings
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
       </div>
     );
   }
@@ -473,7 +657,7 @@ export default function AdminSecretsPage() {
             <h3 className="text-lg font-medium mb-4">Create New Secret Book</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label className="block text-sm font-medium mb-1">Book Title</label>
+                <label className="block text-sm font-medium mb-1">Book Title <span className="text-red-500">*</span></label>
                 <Input 
                   type="text" 
                   placeholder="e.g. Animals Volume 1"
@@ -482,11 +666,40 @@ export default function AdminSecretsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Cover Image</label>
+                <label className="block text-sm font-medium mb-1">Cover Image <span className="text-red-500">*</span></label>
                 <Input 
                   type="file" 
                   accept="image/*" 
                   onChange={(e) => setNewBookImage(e.target.files?.[0] || null)} 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Secret Key (Optional)</label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="text" 
+                    placeholder="Enter up to 6 characters"
+                    value={newBookKey}
+                    onChange={(e) => setNewBookKey(e.target.value.toUpperCase().slice(0, 6))}
+                    className="uppercase"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setNewBookKey(generateSecretKey())}
+                    className="whitespace-nowrap"
+                  >
+                    Generate
+                  </Button>
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">Leave blank for a public book, or enter exactly 6 characters to lock it.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Amazon Buy Link (Optional)</label>
+                <Input 
+                  type="url" 
+                  placeholder="https://amazon.com/dp/XXXXXX"
+                  value={newBookAmazonUrl}
+                  onChange={(e) => setNewBookAmazonUrl(e.target.value)}
                 />
               </div>
             </div>
@@ -545,9 +758,16 @@ export default function AdminSecretsPage() {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
+                {book.secretKey && (
+                  <div className="absolute top-2 left-2 bg-neutral-900/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded shadow-sm flex items-center font-mono font-medium gap-1.5 border border-white/10">
+                    <KeyRound className="h-3 w-3 text-amber-400" />
+                    {book.secretKey}
+                  </div>
+                )}
               </div>
-              <CardContent className="p-3 bg-white">
+              <CardContent className="p-3 bg-white flex items-center justify-between">
                 <p className="text-sm font-semibold text-neutral-900 line-clamp-2">{book.title}</p>
+                {!book.secretKey && <LockOpen className="h-4 w-4 text-neutral-300 flex-none ml-2" />}
               </CardContent>
             </Card>
           ))}

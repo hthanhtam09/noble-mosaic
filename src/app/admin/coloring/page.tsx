@@ -9,6 +9,7 @@ import {
   Trash2, ArrowLeft, Upload, Loader2,
   ImageIcon, X, MoreVertical, Pencil, FolderPlus, FolderHeart, Images
 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ColoringFolder {
   _id: string;
@@ -40,6 +51,7 @@ interface ColoringPage {
 }
 
 export default function AdminColoringPage() {
+  const { toast } = useToast();
   // Folder list state
   const [folders, setFolders] = useState<ColoringFolder[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
@@ -68,6 +80,8 @@ export default function AdminColoringPage() {
 
   // Deleting state
   const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<{ id: string, name: string } | null>(null);
+  const [pageToDelete, setPageToDelete] = useState<string | null>(null);
 
   // Fetch folders
   const fetchFolders = useCallback(async () => {
@@ -120,13 +134,25 @@ export default function AdminColoringPage() {
         setNewFolderName('');
         setNewFolderDesc('');
         await fetchFolders();
+        toast({
+          title: "Folder created",
+          description: "Your coloring folder was successfully created."
+        });
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to create folder');
+        toast({
+          title: "Error",
+          description: data.error || 'Failed to create folder',
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error creating folder:', error);
-      alert('Failed to create folder');
+      toast({
+        title: "Error",
+        description: "Failed to create folder",
+        variant: "destructive"
+      });
     } finally {
       setIsCreating(false);
     }
@@ -149,6 +175,16 @@ export default function AdminColoringPage() {
         if (selectedFolder?._id === editingFolder._id) {
           setSelectedFolder(prev => prev ? { ...prev, name: editFolderName.trim(), description: editFolderDesc.trim() } : null);
         }
+        toast({
+          title: "Folder updated",
+          description: "Folder details have been saved."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update folder details.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error editing folder:', error);
@@ -158,19 +194,40 @@ export default function AdminColoringPage() {
   };
 
   // Delete folder
-  const handleDeleteFolder = async (folderId: string, folderName: string) => {
-    if (!confirm(`Delete folder "${folderName}" and ALL its images? This cannot be undone.`)) return;
+  const handleDeleteFolder = (folderId: string, folderName: string) => {
+    setFolderToDelete({ id: folderId, name: folderName });
+  };
+
+  const confirmDeleteFolder = async () => {
+    if (!folderToDelete) return;
     try {
-      const res = await fetch(`/api/coloring-folders/${folderId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/coloring-folders/${folderToDelete.id}`, { method: 'DELETE' });
       if (res.ok) {
-        if (selectedFolder?._id === folderId) {
+        if (selectedFolder?._id === folderToDelete.id) {
           setSelectedFolder(null);
           setPages([]);
         }
         await fetchFolders();
+        toast({
+          title: "Folder deleted",
+          description: `The folder "${folderToDelete.name}" was successfully deleted.`
+        });
+      } else {
+         toast({
+           title: "Error",
+           description: "Failed to delete folder",
+           variant: "destructive"
+         });
       }
     } catch (error) {
       console.error('Error deleting folder:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting the folder.",
+        variant: "destructive"
+      });
+    } finally {
+      setFolderToDelete(null);
     }
   };
 
@@ -204,16 +261,33 @@ export default function AdminColoringPage() {
         const data = await res.json();
         setUploadProgress({ uploaded: data.uploaded, total: files.length });
         if (data.errors?.length) {
-          alert(`Uploaded ${data.uploaded}/${files.length}. Failed: ${data.errors.join(', ')}`);
+          toast({
+            title: "Upload partial/failed",
+            description: `Uploaded ${data.uploaded}/${files.length}. Failed: ${data.errors.join(', ')}`,
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Upload complete",
+            description: `Successfully uploaded ${data.uploaded} images.`
+          });
         }
         await fetchPages(selectedFolder._id);
         await fetchFolders(); // refresh counts
       } else {
-        alert('Upload failed');
+        toast({
+          title: "Upload failed",
+          description: "An error occurred while uploading images.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Upload failed');
+      toast({
+        title: "Upload failed",
+        description: "A fatal error occurred during the upload process.",
+        variant: "destructive"
+      });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -221,19 +295,39 @@ export default function AdminColoringPage() {
   };
 
   // Delete page
-  const handleDeletePage = async (pageId: string) => {
-    if (!confirm('Delete this coloring page? This cannot be undone.')) return;
-    setDeletingPageId(pageId);
+  const handleDeletePage = (pageId: string) => {
+    setPageToDelete(pageId);
+  };
+
+  const confirmDeletePage = async () => {
+    if (!pageToDelete) return;
+    setDeletingPageId(pageToDelete);
     try {
-      const res = await fetch(`/api/coloring-pages/${pageId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/coloring-pages/${pageToDelete}`, { method: 'DELETE' });
       if (res.ok) {
-        setPages(prev => prev.filter(p => p._id !== pageId));
+        setPages(prev => prev.filter(p => p._id !== pageToDelete));
         await fetchFolders(); // refresh counts
+        toast({
+          title: "Page deleted",
+          description: "The coloring page was successfully removed."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete the coloring page.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error deleting page:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting the page.",
+        variant: "destructive"
+      });
     } finally {
       setDeletingPageId(null);
+      setPageToDelete(null);
     }
   };
 

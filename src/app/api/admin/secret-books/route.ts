@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+
+    if (body.secretKey && body.secretKey.length > 6) {
+      return NextResponse.json({ error: 'Secret Key must be exactly 6 characters or less' }, { status: 400 });
+    }
     
     const book = await SecretBook.create({
       ...body,
