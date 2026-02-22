@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useAdminColoringFolders, useAdminColoringPages } from '@/hooks/api/useAdmin';
+import { useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,14 +54,15 @@ interface ColoringPage {
 
 export default function AdminColoringPage() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   // Folder list state
-  const [folders, setFolders] = useState<ColoringFolder[]>([]);
-  const [isLoadingFolders, setIsLoadingFolders] = useState(true);
+  const { data: folders = [], isLoading: isLoadingFolders } = useAdminColoringFolders();
 
   // Selected folder state
   const [selectedFolder, setSelectedFolder] = useState<ColoringFolder | null>(null);
-  const [pages, setPages] = useState<ColoringPage[]>([]);
-  const [isLoadingPages, setIsLoadingPages] = useState(false);
+
+  const { data: pages = [], isLoading: isLoadingPages } = useAdminColoringPages(selectedFolder?._id);
 
   // Create folder dialog
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -83,41 +86,7 @@ export default function AdminColoringPage() {
   const [folderToDelete, setFolderToDelete] = useState<{ id: string, name: string } | null>(null);
   const [pageToDelete, setPageToDelete] = useState<string | null>(null);
 
-  // Fetch folders
-  const fetchFolders = useCallback(async () => {
-    try {
-      setIsLoadingFolders(true);
-      const res = await fetch('/api/coloring-folders');
-      if (res.ok) {
-        const data = await res.json();
-        setFolders(data.folders || []);
-      }
-    } catch (error) {
-      console.error('Error fetching folders:', error);
-    } finally {
-      setIsLoadingFolders(false);
-    }
-  }, []);
 
-  // Fetch pages for selected folder
-  const fetchPages = useCallback(async (folderId: string) => {
-    try {
-      setIsLoadingPages(true);
-      const res = await fetch(`/api/coloring-folders/${folderId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setPages(data.pages || []);
-      }
-    } catch (error) {
-      console.error('Error fetching pages:', error);
-    } finally {
-      setIsLoadingPages(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFolders();
-  }, [fetchFolders]);
 
   // Create folder
   const handleCreateFolder = async () => {
@@ -133,7 +102,7 @@ export default function AdminColoringPage() {
         setShowCreateDialog(false);
         setNewFolderName('');
         setNewFolderDesc('');
-        await fetchFolders();
+        queryClient.invalidateQueries({ queryKey: ['admin-coloring-folders'] });
         toast({
           title: "Folder created",
           description: "Your coloring folder was successfully created."
@@ -170,7 +139,7 @@ export default function AdminColoringPage() {
       });
       if (res.ok) {
         setEditingFolder(null);
-        await fetchFolders();
+        queryClient.invalidateQueries({ queryKey: ['admin-coloring-folders'] });
         // Update selected folder name if editing the currently selected one
         if (selectedFolder?._id === editingFolder._id) {
           setSelectedFolder(prev => prev ? { ...prev, name: editFolderName.trim(), description: editFolderDesc.trim() } : null);
@@ -205,9 +174,8 @@ export default function AdminColoringPage() {
       if (res.ok) {
         if (selectedFolder?._id === folderToDelete.id) {
           setSelectedFolder(null);
-          setPages([]);
         }
-        await fetchFolders();
+        queryClient.invalidateQueries({ queryKey: ['admin-coloring-folders'] });
         toast({
           title: "Folder deleted",
           description: `The folder "${folderToDelete.name}" was successfully deleted.`
@@ -231,10 +199,8 @@ export default function AdminColoringPage() {
     }
   };
 
-  // Select folder
-  const handleSelectFolder = async (folder: ColoringFolder) => {
+  const handleSelectFolder = (folder: ColoringFolder) => {
     setSelectedFolder(folder);
-    await fetchPages(folder._id);
   };
 
   // Upload images
@@ -272,8 +238,8 @@ export default function AdminColoringPage() {
             description: `Successfully uploaded ${data.uploaded} images.`
           });
         }
-        await fetchPages(selectedFolder._id);
-        await fetchFolders(); // refresh counts
+        queryClient.invalidateQueries({ queryKey: ['admin-coloring-pages', selectedFolder._id] });
+        queryClient.invalidateQueries({ queryKey: ['admin-coloring-folders'] }); // refresh counts
       } else {
         toast({
           title: "Upload failed",
@@ -305,8 +271,11 @@ export default function AdminColoringPage() {
     try {
       const res = await fetch(`/api/coloring-pages/${pageToDelete}`, { method: 'DELETE' });
       if (res.ok) {
-        setPages(prev => prev.filter(p => p._id !== pageToDelete));
-        await fetchFolders(); // refresh counts
+        queryClient.setQueryData(['admin-coloring-pages', selectedFolder?._id], (old: ColoringPage[] | undefined) => {
+          if (!old) return [];
+          return old.filter(p => p._id !== pageToDelete);
+        });
+        queryClient.invalidateQueries({ queryKey: ['admin-coloring-folders'] }); // refresh counts
         toast({
           title: "Page deleted",
           description: "The coloring page was successfully removed."
@@ -331,10 +300,8 @@ export default function AdminColoringPage() {
     }
   };
 
-  // Go back to folder list
   const handleBack = () => {
     setSelectedFolder(null);
-    setPages([]);
   };
 
   // ===== RENDER =====

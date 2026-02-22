@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key');
 
-export async function signToken(payload: object): Promise<string> {
+export async function signToken(payload: Record<string, unknown>): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -12,7 +12,7 @@ export async function signToken(payload: object): Promise<string> {
     .sign(SECRET_KEY);
 }
 
-export async function verifyToken(token: string): Promise<object | null> {
+export async function verifyToken(token: string): Promise<Record<string, unknown> | null> {
   try {
     const { payload } = await jwtVerify(token, SECRET_KEY);
     return payload;

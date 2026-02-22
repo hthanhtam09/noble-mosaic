@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { useSecretBookDetails } from '@/hooks/api/useSecrets';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
@@ -32,72 +33,32 @@ function SecretBookContent() {
   const searchParams = useSearchParams();
   const slug = params.slug as string;
 
-  const [book, setBook] = useState<SecretBookInfo | null>(null);
-  const [secrets, setSecrets] = useState<SecretImage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [storedKey, setStoredKey] = useState<string | null>(null);
   
-  const [isLocked, setIsLocked] = useState(false);
+  // Only read localStorage on the client side
+  useEffect(() => {
+    setStoredKey(localStorage.getItem(`secret_key_${slug}`));
+  }, [slug]);
+
+  const { data, isLoading, refetch } = useSecretBookDetails(slug, !!storedKey);
+
   const [inputKey, setInputKey] = useState('');
   const [isCheckingKey, setIsCheckingKey] = useState(false);
   const [keyError, setKeyError] = useState('');
-  
   const [selectedSecret, setSelectedSecret] = useState<SecretImage | null>(null);
 
+  const isLocked = !data?.secrets || data.secrets.length === 0;
+  const book = (data?.book as SecretBookInfo) || null;
+  const secrets = data?.secrets || [];
+
   useEffect(() => {
-    if (!slug) return;
-
-    const fetchSecrets = async (keyToTry?: string) => {
-      try {
-        let url = `/api/secrets/${slug}`;
-        if (keyToTry) {
-          url += `?key=${encodeURIComponent(keyToTry)}`;
-        }
-        
-        const res = await fetch(url);
-        
-        if (res.status === 403) {
-          setIsLocked(true);
-          const data = await res.json();
-          // The API returns basic product info even when locked so we can show the cover
-          if (data.product) {
-            setBook(data.product);
-          }
-          if (keyToTry) {
-            setKeyError('Incorrect Secret Key');
-          }
-          return;
-        }
-
-        if (res.ok) {
-          const data = await res.json();
-          setBook(data.product);
-          setSecrets(data.secrets || []);
-          setIsLocked(false);
-          setKeyError('');
-          if (keyToTry) {
-            localStorage.setItem(`secret_key_${slug}`, keyToTry);
-          }
-        } else {
-          router.push('/secret');
-        }
-      } catch (error) {
-        console.error('Error fetching secret details:', error);
-      } finally {
-        setIsLoading(false);
-        setIsCheckingKey(false);
-      }
-    };
-
-    // Check local storage first
-    const storedKey = localStorage.getItem(`secret_key_${slug}`);
-    if (storedKey) {
-       fetchSecrets(storedKey);
-    } else {
-       fetchSecrets();
+    // Basic catch if no data returns from hook
+    if (!isLoading && !data?.book) {
+      router.push('/secret');
     }
-  }, [slug, router]);
+  }, [data, isLoading, router]);
 
-  const handleUnlock = (e: React.FormEvent) => {
+  const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputKey || inputKey.length !== 6) {
       setKeyError('Key must be exactly 6 characters');
@@ -107,31 +68,22 @@ function SecretBookContent() {
     setIsCheckingKey(true);
     setKeyError('');
     
-    // Trigger the effect by just re-running fetch... wait, useEffect handles mount.
-    // We need a way to manually trigger fetch. Let's extract the fetch logic out of useEffect or just do it here.
-    const verifyKey = async () => {
-      try {
-        const res = await fetch(`/api/secrets/${slug}?key=${encodeURIComponent(inputKey.toUpperCase())}`);
-        if (res.status === 403) {
-          setKeyError('Incorrect Secret Key');
-        } else if (res.ok) {
-          const data = await res.json();
-          setBook(data.product);
-          setSecrets(data.secrets || []);
-          setIsLocked(false);
-          localStorage.setItem(`secret_key_${slug}`, inputKey.toUpperCase());
-        } else {
-          setKeyError('An error occurred. Please try again.');
-        }
-      } catch (err) {
-        console.error(err);
-        setKeyError('Connection error');
-      } finally {
-        setIsCheckingKey(false);
+    try {
+      const res = await fetch(`/api/secrets/${slug}?key=${encodeURIComponent(inputKey.toUpperCase())}`);
+      if (res.status === 403) {
+        setKeyError('Incorrect Secret Key');
+      } else if (res.ok) {
+        localStorage.setItem(`secret_key_${slug}`, inputKey.toUpperCase());
+        await refetch();
+      } else {
+        setKeyError('An error occurred. Please try again.');
       }
-    };
-    
-    verifyKey();
+    } catch (err) {
+      console.error(err);
+      setKeyError('Connection error');
+    } finally {
+      setIsCheckingKey(false);
+    }
   };
 
   // Synchronize modal state with URL `?num=` parameter
@@ -165,7 +117,7 @@ function SecretBookContent() {
       <main className="flex-grow pb-24">
         {/* Header Section */}
         <section className="bg-white border-b border-neutral-200 py-10 shadow-sm">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             <Button 
               variant="ghost" 
               onClick={() => router.push('/secret')}
@@ -293,7 +245,7 @@ function SecretBookContent() {
           </section>
         ) : (
           <section className="py-12 md:py-16">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
               {isLoading ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="h-8 w-8 animate-spin text-[var(--mosaic-teal)]" />

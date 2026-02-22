@@ -82,7 +82,7 @@ export default function AboutPage() {
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-b from-stone-50 to-white py-16 lg:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             <div className="max-w-3xl mx-auto text-center">
               <Badge variant="outline" className="mb-6 text-neutral-600 border-neutral-300">
                 Our Story
@@ -100,7 +100,7 @@ export default function AboutPage() {
 
         {/* Mission Section */}
         <section className="py-16 lg:py-24 bg-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
                 <Image
@@ -132,7 +132,7 @@ export default function AboutPage() {
 
         {/* Values Section */}
         <section className="py-16 lg:py-24 bg-stone-50">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900 mb-4">
                 What We Stand For
@@ -160,7 +160,7 @@ export default function AboutPage() {
 
         {/* Benefits Section */}
         <section className="py-16 lg:py-24 bg-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900 mb-4">
                 The Power of Coloring
@@ -188,7 +188,7 @@ export default function AboutPage() {
 
         {/* Timeline Section */}
         <section className="py-16 lg:py-24 bg-neutral-900 text-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
                 Our Journey

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAdminBlogPosts } from '@/hooks/api/useAdmin';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -25,27 +27,11 @@ interface BlogPost {
 }
 
 export default function AdminBlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: posts = [], isLoading } = useAdminBlogPosts();
+
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await fetch('/api/blog?all=true');
-        if (res.ok) {
-          const data = await res.json();
-          setPosts(data.posts || []);
-        }
-      } catch (error) {
-        console.error('Error fetching blog posts:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []);
 
   const handleDelete = async (slug: string) => {
     if (confirm('Are you sure you want to delete this post?')) {
@@ -55,7 +41,10 @@ export default function AdminBlogPage() {
         });
         
         if (response.ok) {
-          setPosts(posts.filter(p => p.slug !== slug));
+          queryClient.setQueryData(['admin-blog-posts'], (old: BlogPost[] | undefined) => {
+            if (!old) return [];
+            return old.filter(p => p.slug !== slug);
+          });
         }
       } catch (error) {
         console.error('Error deleting post:', error);

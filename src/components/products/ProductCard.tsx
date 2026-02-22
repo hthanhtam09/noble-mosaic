@@ -15,7 +15,7 @@ interface ProductCardProps {
     coverImage: string;
     rating?: number;
     reviewCount?: number;
-    price?: string;
+    price?: string | number;
   };
   priority?: boolean;
 }

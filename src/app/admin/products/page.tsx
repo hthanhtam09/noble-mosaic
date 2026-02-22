@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAdminProducts } from '@/hooks/api/useAdmin';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -47,29 +49,13 @@ const themes = ['All', 'Animals', 'Flowers', 'Mandala', 'Nature', 'Geometric', '
 const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: products = [], isLoading } = useAdminProducts();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [themeFilter, setThemeFilter] = useState('All');
   const [difficultyFilter, setDifficultyFilter] = useState('All');
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch('/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          setProducts(data.products || []);
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
 
   const handleDelete = async (slug: string) => {
     if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
@@ -79,7 +65,10 @@ export default function AdminProductsPage() {
         });
         
         if (response.ok) {
-          setProducts(products.filter(p => p.slug !== slug));
+          queryClient.setQueryData(['admin-products'], (old: Product[] | undefined) => {
+            if (!old) return [];
+            return old.filter(p => p.slug !== slug);
+          });
         }
       } catch (error) {
         console.error('Error deleting product:', error);
@@ -95,7 +84,10 @@ export default function AdminProductsPage() {
       title: `${product.title} (Copy)`,
       createdAt: new Date().toISOString(),
     };
-    setProducts([newProduct, ...products]);
+    queryClient.setQueryData(['admin-products'], (old: Product[] | undefined) => {
+      if (!old) return [newProduct];
+      return [newProduct, ...old];
+    });
   };
 
   const filteredProducts = useMemo(() => {

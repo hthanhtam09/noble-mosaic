@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useBlogPost } from '@/hooks/api/useBlog';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -33,42 +33,9 @@ export default function BlogPostPage() {
   const params = useParams();
   const slug = params.slug as string;
   
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [relatedPosts, setRelatedPosts] = useState<RelatedPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const res = await fetch(`/api/blog/${slug}`);
-        if (res.ok) {
-          const data = await res.json();
-          setPost(data.post);
-          
-          // Fetch related posts
-          const relRes = await fetch('/api/blog?limit=4');
-          if (relRes.ok) {
-            const relData = await relRes.json();
-            setRelatedPosts(
-              (relData.posts || [])
-                .filter((p: RelatedPost) => p.slug !== slug)
-                .slice(0, 3)
-            );
-          }
-        } else {
-          setNotFound(true);
-        }
-      } catch (error) {
-        console.error('Error fetching blog post:', error);
-        setNotFound(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (slug) fetchPost();
-  }, [slug]);
+  const { data, isLoading, isError: notFound } = useBlogPost(slug);
+  const post = data?.post || null;
+  const relatedPosts = data?.relatedPosts || [];
 
   // Estimate read time from content
   const readTime = post ? `${Math.max(1, Math.ceil((post.content || '').split(/\s+/).length / 200))} min read` : '';
@@ -108,7 +75,7 @@ export default function BlogPostPage() {
       <main className="flex-grow bg-white">
         {/* Breadcrumb */}
         <div className="border-b border-neutral-100">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-3">
+          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 py-3">
             <nav className="flex items-center gap-2 text-sm text-neutral-500">
               <Link href="/" className="hover:text-neutral-700">Home</Link>
               <span>/</span>
@@ -120,7 +87,7 @@ export default function BlogPostPage() {
         </div>
 
         {/* Article Header */}
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 py-8">
           <Link 
             href="/blog" 
             className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 mb-6"
@@ -161,7 +128,7 @@ export default function BlogPostPage() {
 
         {/* Featured Image */}
         {post.thumbnail && (
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 mb-8">
             <div className="relative aspect-[21/9] rounded-xl overflow-hidden">
               <Image
                 src={post.thumbnail}
@@ -176,11 +143,11 @@ export default function BlogPostPage() {
         )}
 
         {/* Article Content */}
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16">
           <article className="prose prose-lg prose-neutral max-w-none">
             <div 
               dangerouslySetInnerHTML={{ 
-                __html: post.content
+                __html: (post.content || '')
                   .replace(/## (.*)/g, '<h2 class="text-2xl font-serif font-bold text-neutral-900 mt-8 mb-4">$1</h2>')
                   .replace(/### (.*)/g, '<h3 class="text-xl font-semibold text-neutral-900 mt-6 mb-3">$1</h3>')
                   .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -220,7 +187,7 @@ export default function BlogPostPage() {
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
           <div className="bg-stone-50 mt-12">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12">
               <h2 className="text-2xl font-serif font-bold text-neutral-900 mb-6">
                 Related Articles
               </h2>

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useAdminSecretBooks, useAdminSecrets } from '@/hooks/api/useAdmin';
+import { useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,12 +44,12 @@ interface SecretImage {
 
 export default function AdminSecretsPage() {
   const { toast } = useToast();
-  const [books, setBooks] = useState<SecretBook[]>([]);
-  const [isLoadingBooks, setIsLoadingBooks] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: books = [], isLoading: isLoadingBooks } = useAdminSecretBooks();
 
   const [selectedBook, setSelectedBook] = useState<SecretBook | null>(null);
-  const [secrets, setSecrets] = useState<SecretImage[]>([]);
-  const [isLoadingSecrets, setIsLoadingSecrets] = useState(false);
+  
+  const { data: secrets = [], isLoading: isLoadingSecrets } = useAdminSecrets(selectedBook?._id);
 
   // Create Book state
   const [showCreateBook, setShowCreateBook] = useState(false);
@@ -89,43 +91,8 @@ export default function AdminSecretsPage() {
     return result;
   };
 
-  const fetchBooks = useCallback(async () => {
-    try {
-      setIsLoadingBooks(true);
-      const res = await fetch('/api/admin/secret-books');
-      if (res.ok) {
-        const data = await res.json();
-        setBooks(data.books || []);
-      }
-    } catch (error) {
-      console.error('Error fetching secret books:', error);
-    } finally {
-      setIsLoadingBooks(false);
-    }
-  }, []);
-
-  const fetchSecrets = useCallback(async (bookId: string) => {
-    try {
-      setIsLoadingSecrets(true);
-      const res = await fetch(`/api/admin/secrets?book=${bookId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSecrets(data.secrets || []);
-      }
-    } catch (error) {
-      console.error('Error fetching secrets:', error);
-    } finally {
-      setIsLoadingSecrets(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBooks();
-  }, [fetchBooks]);
-
-  const handleSelectBook = async (book: SecretBook) => {
+  const handleSelectBook = (book: SecretBook) => {
     setSelectedBook(book);
-    await fetchSecrets(book._id);
   };
 
   const uploadFile = async (file: File, folderName: string) => {
@@ -174,7 +141,7 @@ export default function AdminSecretsPage() {
         setNewBookImage(null);
         setNewBookKey('');
         setNewBookAmazonUrl('');
-        await fetchBooks();
+        queryClient.invalidateQueries({ queryKey: ['admin-secret-books'] });
         toast({
           title: "Book created",
           description: "Your secret book has been created successfully."
@@ -205,7 +172,10 @@ export default function AdminSecretsPage() {
     try {
       const res = await fetch(`/api/admin/secret-books/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setBooks(prev => prev.filter(b => b._id !== id));
+        queryClient.setQueryData(['admin-secret-books'], (old: SecretBook[] | undefined) => {
+          if (!old) return [];
+          return old.filter(b => b._id !== id);
+        });
         if (selectedBook?._id === id) {
           setSelectedBook(null);
         }
@@ -243,7 +213,10 @@ export default function AdminSecretsPage() {
           amazonUrl: editAmazonUrl || undefined,
         };
         setSelectedBook(updatedBook);
-        setBooks(prev => prev.map(b => b._id === updatedBook._id ? updatedBook : b));
+        queryClient.setQueryData(['admin-secret-books'], (old: SecretBook[] | undefined) => {
+          if (!old) return [];
+          return old.map(b => b._id === updatedBook._id ? updatedBook : b);
+        });
         toast({
           title: "Settings updated",
           description: "Book settings have been successfully saved."
@@ -363,7 +336,7 @@ export default function AdminSecretsPage() {
         setUncolorImages([]);
         if (colorInputRef.current) colorInputRef.current.value = '';
         if (uncolorInputRef.current) uncolorInputRef.current.value = '';
-        await fetchSecrets(selectedBook._id);
+        queryClient.invalidateQueries({ queryKey: ['admin-secrets', selectedBook._id] });
         
         toast({
           title: "Upload complete",
@@ -396,7 +369,10 @@ export default function AdminSecretsPage() {
     try {
       const res = await fetch(`/api/admin/secrets/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setSecrets(prev => prev.filter(s => s._id !== id));
+        queryClient.setQueryData(['admin-secrets', selectedBook?._id], (old: SecretImage[] | undefined) => {
+          if (!old) return [];
+          return old.filter(s => s._id !== id);
+        });
       }
     } catch (error) {
       console.error(error);

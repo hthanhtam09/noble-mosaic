@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSecretBooks } from '@/hooks/api/useSecrets';
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
@@ -18,40 +19,24 @@ interface SecretBook {
 }
 
 export default function SecretPage() {
-  const [books, setBooks] = useState<SecretBook[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: books = [], isLoading } = useSecretBooks();
+
   const [unlockedBooks, setUnlockedBooks] = useState<Record<string, boolean>>({});
   const [displayLimit, setDisplayLimit] = useState(12);
 
   const displayedBooks = books.slice(0, displayLimit);
 
   useEffect(() => {
-    const fetchSecretBooks = async () => {
-      try {
-        const res = await fetch('/api/secrets');
-        if (res.ok) {
-          const data = await res.json();
-          const fetchedBooks = data.products || [];
-          setBooks(fetchedBooks);
-          
-          // Check local storage for unlocked status after fetching books
-          const unlockedStatus: Record<string, boolean> = {};
-          fetchedBooks.forEach((book: SecretBook) => {
-            if (localStorage.getItem(`secret_key_${book.slug}`)) {
-              unlockedStatus[book.slug] = true;
-            }
-          });
-          setUnlockedBooks(unlockedStatus);
+    if (books.length > 0) {
+      const unlockedStatus: Record<string, boolean> = {};
+      books.forEach((book: SecretBook) => {
+        if (localStorage.getItem(`secret_key_${book.slug}`)) {
+          unlockedStatus[book.slug] = true;
         }
-      } catch (error) {
-        console.error('Error fetching secret books:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSecretBooks();
-  }, []);
+      });
+      setUnlockedBooks(unlockedStatus);
+    }
+  }, [books]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -60,7 +45,7 @@ export default function SecretPage() {
       <main className="flex-grow">
         {/* Books Grid */}
         <section className="py-16 bg-neutral-50/50">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
@@ -134,7 +119,7 @@ export default function SecretPage() {
 
         {/* CTA Section */}
         <section className="py-16 bg-white">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 text-center">
             <h2 className="text-3xl font-serif font-bold mb-4">
               Discover All Our Books
             </h2>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useProducts } from '@/hooks/api/useProducts';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -9,19 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Grid3X3, LayoutGrid, X, Palette, Filter, Loader2 } from 'lucide-react';
-
-interface Product {
-  _id: string;
-  title: string;
-  slug: string;
-  shortDescription?: string;
-  theme: string;
-  difficulty: string;
-  coverImage: string;
-  rating?: number;
-  reviewCount?: number;
-  price?: string;
-}
 
 const themes = ['All', 'Animals', 'Flowers', 'Mandala', 'Nature', 'Geometric', 'Abstract'];
 const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
@@ -35,8 +23,8 @@ function ShopContent() {
   const initialTheme = themeParam && themes.includes(themeParam) ? themeParam : 'All';
   const initialDifficulty = difficultyParam && difficulties.includes(difficultyParam) ? difficultyParam : 'All';
   
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: products = [], isLoading } = useProducts();
+
   const [selectedTheme, setSelectedTheme] = useState(initialTheme);
   const [selectedDifficulty, setSelectedDifficulty] = useState(initialDifficulty);
   const [sortBy, setSortBy] = useState('newest');
@@ -46,24 +34,6 @@ function ShopContent() {
   useEffect(() => {
     setDisplayLimit(12);
   }, [selectedTheme, selectedDifficulty, sortBy, gridView]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch('/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          setProducts(data.products || []);
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
@@ -105,7 +75,7 @@ function ShopContent() {
       <Header />
       
       <main className="flex-grow">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
           {/* Filters Bar */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 p-4 bg-white rounded-2xl shadow-sm">
             <div className="flex flex-wrap items-center gap-3">

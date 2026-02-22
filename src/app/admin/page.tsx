@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,29 +43,27 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({
-    products: 0,
-    blogPosts: 0,
-    subscribers: 0,
-    messages: 0,
-    unreadMessages: 0,
-    newSubscribersThisWeek: 0,
-    freePages: 0,
-  });
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['admin-dashboard'],
+    queryFn: async () => {
+      let currentStats: Stats = {
+        products: 0,
+        blogPosts: 0,
+        subscribers: 0,
+        messages: 0,
+        unreadMessages: 0,
+        newSubscribersThisWeek: 0,
+        freePages: 0,
+      };
+      const activity: RecentActivity[] = [];
 
-  useEffect(() => {
-    const fetchStats = async () => {
       try {
-        const activity: RecentActivity[] = [];
-
         // Fetch products
         const prodRes = await fetch('/api/products');
         if (prodRes.ok) {
           const prodData = await prodRes.json();
           const products = prodData.products || [];
-          setStats(prev => ({ ...prev, products: products.length }));
+          currentStats.products = products.length;
           // Add recent products to activity
           products.slice(0, 2).forEach((p: { _id: string; title: string; createdAt: string }) => {
             activity.push({
@@ -81,7 +80,7 @@ export default function AdminDashboard() {
         const blogRes = await fetch('/api/blog?all=true');
         if (blogRes.ok) {
           const blogData = await blogRes.json();
-          setStats(prev => ({ ...prev, blogPosts: (blogData.posts || []).length }));
+          currentStats.blogPosts = (blogData.posts || []).length;
         }
 
         // Fetch subscribers
@@ -95,11 +94,9 @@ export default function AdminDashboard() {
             new Date(s.createdAt) >= weekAgo
           ).length;
           
-          setStats(prev => ({
-            ...prev,
-            subscribers: subs.length,
-            newSubscribersThisWeek: thisWeek,
-          }));
+          currentStats.subscribers = subs.length;
+          currentStats.newSubscribersThisWeek = thisWeek;
+          
           // Add recent subscribers to activity
           subs.slice(0, 2).forEach((s: { _id: string; email: string; source: string; createdAt: string }) => {
             activity.push({
@@ -118,11 +115,9 @@ export default function AdminDashboard() {
           const msgData = await msgRes.json();
           const contacts = msgData.contacts || [];
           const unread = contacts.filter((c: { read: boolean }) => !c.read).length;
-          setStats(prev => ({
-            ...prev,
-            messages: contacts.length,
-            unreadMessages: unread,
-          }));
+          currentStats.messages = contacts.length;
+          currentStats.unreadMessages = unread;
+          
           // Add recent messages to activity
           contacts.slice(0, 2).forEach((c: { _id: string; name: string; email: string; createdAt: string }) => {
             activity.push({
@@ -142,20 +137,29 @@ export default function AdminDashboard() {
           const totalPages = (coloringData.folders || []).reduce(
             (sum: number, f: { pageCount: number }) => sum + f.pageCount, 0
           );
-          setStats(prev => ({ ...prev, freePages: totalPages }));
+          currentStats.freePages = totalPages;
         }
-
-        // Sort activity by time and take top 5
-        setRecentActivity(activity.slice(0, 6));
       } catch (error) {
         console.error('Error fetching stats:', error);
-      } finally {
-        setIsLoading(false);
       }
-    };
 
-    fetchStats();
-  }, []);
+      return {
+        stats: currentStats,
+        recentActivity: activity.slice(0, 6)
+      };
+    }
+  });
+
+  const stats = dashboardData?.stats || {
+    products: 0,
+    blogPosts: 0,
+    subscribers: 0,
+    messages: 0,
+    unreadMessages: 0,
+    newSubscribersThisWeek: 0,
+    freePages: 0,
+  };
+  const recentActivity = dashboardData?.recentActivity || [];
 
   const statCards = [
     {

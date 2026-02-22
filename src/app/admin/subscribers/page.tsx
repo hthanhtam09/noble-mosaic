@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,52 +16,46 @@ interface Subscriber {
 }
 
 export default function AdminSubscribersPage() {
-  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [stats, setStats] = useState({
-    total: 0,
-    thisWeek: 0,
-    thisMonth: 0,
-  });
-
-  useEffect(() => {
-    const fetchSubscribers = async () => {
-      try {
-        const response = await fetch('/api/subscribers');
-        const data = await response.json();
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-subscribers'],
+    queryFn: async () => {
+      const response = await fetch('/api/subscribers');
+      const data = await response.json();
+      
+      if (response.ok) {
+        const now = new Date();
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         
-        if (response.ok) {
-          setSubscribers(data.subscribers || []);
-          
-          // Calculate stats
-          const now = new Date();
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          
-          const thisWeek = (data.subscribers || []).filter((s: Subscriber) => 
-            new Date(s.createdAt) >= weekAgo
-          ).length;
-          
-          const thisMonth = (data.subscribers || []).filter((s: Subscriber) => 
-            new Date(s.createdAt) >= monthAgo
-          ).length;
-          
-          setStats({
+        const thisWeek = (data.subscribers || []).filter((s: Subscriber) => 
+          new Date(s.createdAt) >= weekAgo
+        ).length;
+        
+        const thisMonth = (data.subscribers || []).filter((s: Subscriber) => 
+          new Date(s.createdAt) >= monthAgo
+        ).length;
+        
+        return {
+          subscribers: data.subscribers || [],
+          stats: {
             total: data.subscribers?.length || 0,
             thisWeek,
             thisMonth,
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching subscribers:', error);
-      } finally {
-        setIsLoading(false);
+          }
+        };
       }
-    };
+      return { subscribers: [], stats: { total: 0, thisWeek: 0, thisMonth: 0 } };
+    }
+  });
 
-    fetchSubscribers();
-  }, []);
+  const subscribers = data?.subscribers || [];
+  const stats = data?.stats || {
+    total: 0,
+    thisWeek: 0,
+    thisMonth: 0,
+  };
+  
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredSubscribers = subscribers.filter(subscriber =>
     subscriber.email.toLowerCase().includes(searchQuery.toLowerCase())

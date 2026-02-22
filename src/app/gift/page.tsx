@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useGiftFolders } from '@/hooks/api/useGift';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -8,31 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  Download, Mail, CheckCircle, Loader2, Gift, 
-  Palette, Lock, Unlock, Heart, Sparkles,
-  FolderOpen, ChevronDown, ChevronUp, FolderHeart, ShieldCheck
+  Download, Mail, Loader2, 
+  Palette, Lock,
+  ChevronDown, ChevronUp, FolderHeart, ShieldCheck
 } from 'lucide-react';
 
-interface ColoringFolder {
-  _id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  pageCount: number;
-}
 
-interface ColoringPage {
-  _id: string;
-  title: string;
-  imageUrl: string;
-  folder: string;
-  order: number;
-}
-
-interface FolderWithPages extends ColoringFolder {
-  pages: ColoringPage[];
-}
 
 export default function GiftPage() {
   const [email, setEmail] = useState('');
@@ -41,53 +25,22 @@ export default function GiftPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState('');
-  const [folders, setFolders] = useState<FolderWithPages[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  const { data: folders = [], isLoading } = useGiftFolders();
+
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  // Check local storage for verified state
   useEffect(() => {
-    const isVerified = localStorage.getItem('gift_verified') === 'true';
-    if (isVerified) {
+    if (localStorage.getItem('gift_verified') === 'true') {
       setIsSubscribed(true);
     }
   }, []);
 
-  // Fetch folders + pages from DB
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const foldersRes = await fetch('/api/coloring-folders');
-        if (!foldersRes.ok) return;
-        const foldersData = await foldersRes.json();
-        const foldersList = foldersData.folders || [];
-
-        // Fetch pages for each folder
-        const foldersWithPages: FolderWithPages[] = await Promise.all(
-          foldersList.map(async (folder: ColoringFolder) => {
-            const pagesRes = await fetch(`/api/coloring-folders/${folder._id}`);
-            if (pagesRes.ok) {
-              const pagesData = await pagesRes.json();
-              return { ...folder, pages: pagesData.pages || [] };
-            }
-            return { ...folder, pages: [] };
-          })
-        );
-
-        setFolders(foldersWithPages);
-        // Initialize all folders as expanded
-        setExpandedFolders(new Set(foldersWithPages.map((f: FolderWithPages) => f._id)));
-      } catch (error) {
-        console.error('Error fetching coloring data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const totalPages = folders.reduce((sum, f) => sum + f.pages.length, 0);
+    if (folders.length > 0 && expandedFolders.size === 0) {
+      setExpandedFolders(new Set(folders.map(f => f._id)));
+    }
+  }, [folders]);
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => {
@@ -144,6 +97,10 @@ export default function GiftPage() {
       if (response.ok) {
         setIsSubscribed(true);
         localStorage.setItem('gift_verified', 'true');
+        toast({
+          title: "You're In! 🎉",
+          description: 'Your gift is now unlocked. Enjoy your free coloring pages!',
+        });
       } else {
         setError(data.error || 'Invalid or expired code');
       }
@@ -179,10 +136,10 @@ export default function GiftPage() {
       <Header />
       
       <main className="flex-grow">
-        {/* Subscription Form */}
-        {!isSubscribed ? (
+        {/* Subscription Form — only shown if not subscribed */}
+        {!isSubscribed && (
           <section className="py-12 bg-white">
-            <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-xl px-4 md:px-8 lg:px-16">
               <Card className="border-2 border-neutral-100 shadow-xl overflow-hidden">
                 {/* Color accent bar */}
                 <div className="h-2 bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] via-[var(--mosaic-teal)] to-[var(--mosaic-purple)]" />
@@ -299,28 +256,11 @@ export default function GiftPage() {
               </Card>
             </div>
           </section>
-        ) : (
-          <section className="py-12 bg-gradient-to-r from-[var(--mosaic-teal)] to-[var(--mosaic-purple)]">
-            <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 text-center text-white">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-10 w-10 text-white" />
-              </div>
-              <h2 className="text-2xl font-serif font-bold mb-2">
-                You&apos;re In! 🎉
-              </h2>
-              <p className="text-white/90 mb-4">
-                Thank you for subscribing! Your gift is now unlocked below.
-              </p>
-              <p className="text-sm text-white/70">
-                Check your inbox for a confirmation email and more free content!
-              </p>
-            </div>
-          </section>
         )}
 
         {/* Free Pages - Grouped by Folder */}
         <section className={`py-16 ${isSubscribed ? 'bg-white' : 'bg-neutral-50'}`}>
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-serif font-bold text-neutral-900 mb-4">
                 {isSubscribed ? 'Download Your Gift' : 'Preview: Gift'}
@@ -364,7 +304,7 @@ export default function GiftPage() {
                               {folder.name}
                             </h3>
                             <Badge variant="secondary" className="bg-neutral-100 text-neutral-600 shrink-0 flex-none">
-                              {folder.pages.length} pages
+                              {folder.pages?.length || 0} pages
                             </Badge>
                           </div>
                           {folder.description && (
@@ -384,7 +324,7 @@ export default function GiftPage() {
                     {/* Folder pages grid */}
                     {expandedFolders.has(folder._id) && (
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {folder.pages.map((page) => {
+                        {(folder.pages || []).map((page) => {
                           const colorVars = [
                             'var(--mosaic-coral)',
                             'var(--mosaic-purple)',
@@ -463,7 +403,7 @@ export default function GiftPage() {
 
         {/* CTA Section */}
         <section className="py-16 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 text-center">
             <div className="flex justify-center gap-2 mb-6">
               {['var(--mosaic-coral)', 'var(--mosaic-gold)', 'var(--mosaic-teal)'].map((color, i) => (
                 <div key={i} className="w-6 h-6 rounded-lg" style={{ backgroundColor: color }} />

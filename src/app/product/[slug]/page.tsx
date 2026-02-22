@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useProduct } from '@/hooks/api/useProducts';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
@@ -70,44 +71,13 @@ export default function ProductDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const { data, isLoading, isError: notFound } = useProduct(slug);
+
   const [selectedImage, setSelectedImage] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await fetch(`/api/products/${slug}`);
-        if (res.ok) {
-          const data = await res.json();
-          setProduct(data.product);
-
-          // Fetch related products
-          const relRes = await fetch(`/api/products?limit=10`);
-          if (relRes.ok) {
-            const relData = await relRes.json();
-            setRelatedProducts(
-              (relData.products || [])
-                .filter((p: RelatedProduct) => p.slug !== slug)
-                .slice(0, 8)
-            );
-          }
-        } else {
-          setNotFound(true);
-        }
-      } catch (error) {
-        console.error('Error fetching product:', error);
-        setNotFound(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (slug) fetchProduct();
-  }, [slug]);
+  const product = data?.product || null;
+  const relatedProducts = data?.relatedProducts || [];
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -161,7 +131,7 @@ export default function ProductDetailPage() {
       <main className="flex-grow">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-3">
             <nav className="flex items-center gap-2 text-sm text-neutral-500">
               <Link href="/" className="hover:text-neutral-700 transition-colors">Home</Link>
               <span>/</span>
@@ -176,7 +146,7 @@ export default function ProductDetailPage() {
         {/* SECTION 1: Hero — Product Images + Info                       */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8 lg:py-12">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
               {/* Left: Image Gallery */}
               <div className="space-y-4">
@@ -338,7 +308,7 @@ export default function ProductDetailPage() {
         {/* SECTION 2: Feature Icons Row                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white border-t border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
             <div className="flex flex-wrap justify-center gap-8 md:gap-16">
               {featureIcons.map((feature, index) => (
                 <div key={index} className="flex flex-col items-center text-center">
@@ -357,7 +327,7 @@ export default function ProductDetailPage() {
         {/* SECTION 3: "What's inside?" — Specs + Preview Grid            */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-stone-50">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-16">
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900 text-center mb-12">
               What&apos;s inside?
             </h2>
@@ -439,7 +409,7 @@ export default function ProductDetailPage() {
         {/* SECTION 4: Simple A+ Content Layout                           */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
-          <div className="mx-auto max-w-[970px] px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+          <div className="mx-auto max-w-[970px] px-4 md:px-8 lg:px-16 py-16 space-y-12">
             {/* Three 970x300 Banners */}
             <div className="space-y-6">
               {[1, 2, 3].map((i) => (
@@ -498,7 +468,7 @@ export default function ProductDetailPage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {relatedProducts.length > 0 && (
           <section className="bg-white border-t border-neutral-100">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-serif font-bold text-neutral-900">
                   Part of the series

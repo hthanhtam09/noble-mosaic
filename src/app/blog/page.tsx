@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useBlogPosts } from '@/hooks/api/useBlog';
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
@@ -9,19 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, ArrowRight, Loader2 } from 'lucide-react';
 
-interface BlogPost {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  thumbnail: string;
-  category: string;
-  createdAt: string;
-}
-
 export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: posts = [], isLoading } = useBlogPosts();
+
   const [displayLimit, setDisplayLimit] = useState(7); // 1 featured + 6 regular
 
   const categories = ['All', ...new Set(posts.map(p => p.category).filter(Boolean))];
@@ -36,30 +27,12 @@ export default function BlogPage() {
   );
   const displayedPosts = filteredPosts.slice(0, displayLimit);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await fetch('/api/blog');
-        if (res.ok) {
-          const data = await res.json();
-          setPosts(data.posts || []);
-        }
-      } catch (error) {
-        console.error('Error fetching blog posts:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-grow bg-stone-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />

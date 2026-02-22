@@ -50,7 +50,7 @@ export default function ContactPage() {
       <main className="flex-grow bg-stone-50">
         {/* Page Header */}
         <div className="bg-white border-b border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900">
               Contact Us
             </h1>
@@ -60,7 +60,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Contact Info Cards */}
             <div className="space-y-6">

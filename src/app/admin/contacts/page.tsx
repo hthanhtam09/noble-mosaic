@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAdminContacts } from '@/hooks/api/useAdmin';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,35 +18,19 @@ interface Contact {
 }
 
 export default function AdminContactsPage() {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: contacts = [], isLoading } = useAdminContacts();
+
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const res = await fetch('/api/contact');
-        if (res.ok) {
-          const data = await res.json();
-          setContacts(data.contacts || []);
-        }
-      } catch (error) {
-        console.error('Error fetching contacts:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchContacts();
-  }, []);
 
   const unreadCount = contacts.filter(c => !c.read).length;
 
   const markAsRead = async (id: string) => {
-    // Update locally first for instant UI feedback
-    setContacts(contacts.map(c => 
-      c._id === id ? { ...c, read: true } : c
-    ));
+    queryClient.setQueryData(['admin-contacts'], (old: Contact[] | undefined) => {
+      if (!old) return [];
+      return old.map(c => c._id === id ? { ...c, read: true } : c);
+    });
     // TODO: Add API endpoint for marking as read when needed
   };
 
