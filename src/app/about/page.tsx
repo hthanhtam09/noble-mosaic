@@ -1,9 +1,27 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Target, Sparkles, Users, BookOpen, Brain, Palette, Leaf } from 'lucide-react';
+import { FaqJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
+
+export const metadata: Metadata = {
+  title: 'About Us - Our Story & Mission',
+  description:
+    'Learn about Noble Mosaic — we create premium mosaic color by number books designed for mindful relaxation and creative expression. Discover our mission, values, and the therapeutic benefits of coloring.',
+  alternates: {
+    canonical: 'https://noblemosaic.com/about',
+  },
+  openGraph: {
+    title: 'About Noble Mosaic - Our Story & Mission',
+    description:
+      'We create premium mosaic color by number books designed for mindful relaxation and creative expression.',
+    url: 'https://noblemosaic.com/about',
+    type: 'website',
+  },
+};
 
 const values = [
   {
@@ -77,6 +95,36 @@ const benefits = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen flex flex-col">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://noblemosaic.com' },
+          { name: 'About', url: 'https://noblemosaic.com/about' },
+        ]}
+      />
+      <FaqJsonLd
+        items={[
+          {
+            question: 'What is Noble Mosaic?',
+            answer:
+              'Noble Mosaic creates premium mosaic color by number books designed for mindful relaxation and creative expression.',
+          },
+          {
+            question: 'What are the benefits of mosaic coloring?',
+            answer:
+              'Mosaic coloring provides stress relief, enhances focus and patience, promotes creative expression, and offers a digital detox from screens.',
+          },
+          {
+            question: 'Where can I buy Noble Mosaic books?',
+            answer:
+              'All Noble Mosaic books are available on Amazon with fast, reliable delivery.',
+          },
+          {
+            question: 'What makes Noble Mosaic coloring books different?',
+            answer:
+              'Our books feature original mosaic patterns with hidden images that are revealed as you color, premium paper quality, bold easy-to-read numbers, and large 8.5x11 inch format.',
+          },
+        ]}
+      />
       <Header />
       
       <main className="flex-grow">
