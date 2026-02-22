@@ -14,7 +14,7 @@ export async function GET() {
       .sort({ createdAt: -1 })
       .lean();
     
-    return NextResponse.json({ products: books }); // return as 'products' to maintain compatibility, or change frontend
+    return NextResponse.json({ books });
   } catch (error) {
     console.error('Error fetching secret books:', error);
     return NextResponse.json({ error: 'Failed to fetch secret books' }, { status: 500 });

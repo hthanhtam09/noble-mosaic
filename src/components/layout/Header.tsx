@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, Gift } from "lucide-react";
+import { Menu, X, Gift, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -10,6 +10,7 @@ import Image from "next/image";
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Shop", href: "/shop" },
+  { name: "Secret", href: "/secret" },
   { name: "About", href: "/about" },
   { name: "Blog", href: "/blog" },
   { name: "Contact", href: "/contact" },

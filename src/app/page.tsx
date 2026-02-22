@@ -3,6 +3,7 @@ import Footer from "@/components/layout/Footer";
 import HeroBanner from "@/components/home/HeroBanner";
 import NewRelease from "@/components/home/NewRelease";
 import BestSeller from "@/components/home/BestSeller";
+import SecretSection from "@/components/home/SecretSection";
 import GiftSection from "@/components/home/GiftSection";
 import BlogPosts from "@/components/home/BlogPosts";
 
@@ -15,6 +16,7 @@ export default function HomePage() {
         <HeroBanner />
         <NewRelease />
         <BestSeller />
+        <SecretSection />
         <GiftSection />
         <BlogPosts />
       </main>
