@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ContactPageClient from './ContactPageClient';
+import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -18,5 +19,15 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  return <ContactPageClient />;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://noblemosaic.com' },
+          { name: 'Contact', url: 'https://noblemosaic.com/contact' },
+        ]}
+      />
+      <ContactPageClient />
+    </>
+  );
 }

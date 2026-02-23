@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import connectDB from '@/lib/mongodb';
 import { BlogPost } from '@/models/BlogPost';
 import BlogPostClient from './BlogPostClient';
+import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -38,13 +39,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         section: post.category || 'General',
         images: post.thumbnail
           ? [
-              {
-                url: post.thumbnail,
-                width: 1200,
-                height: 630,
-                alt: post.title,
-              },
-            ]
+            {
+              url: post.thumbnail,
+              width: 1200,
+              height: 630,
+              alt: post.title,
+            },
+          ]
           : undefined,
       },
       twitter: {
@@ -62,6 +63,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default function BlogPostPage({ params }: PageProps) {
-  return <BlogPostClient />;
+export default async function BlogPostPage({ params }: PageProps) {
+  const { slug } = await params;
+  let postTitle = 'Blog Post';
+
+  try {
+    await connectDB();
+    const post = await BlogPost.findOne({ slug, published: true }, { title: 1 }).lean();
+    if (post) postTitle = post.title;
+  } catch { }
+
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://noblemosaic.com' },
+          { name: 'Blog', url: 'https://noblemosaic.com/blog' },
+          { name: postTitle, url: `https://noblemosaic.com/blog/${slug}` },
+        ]}
+      />
+      <BlogPostClient />
+    </>
+  );
 }
