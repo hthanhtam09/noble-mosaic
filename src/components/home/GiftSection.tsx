@@ -95,7 +95,7 @@ export default function GiftSection() {
       <div className="absolute top-10 left-10 w-32 h-32 bg-[var(--mosaic-gold)]/10 rounded-full blur-3xl" />
       <div className="absolute bottom-10 right-10 w-40 h-40 bg-[var(--mosaic-teal)]/10 rounded-full blur-3xl" />
 
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 relative z-10">
+      <div className="layout-inner relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* Left: Content */}
           <div className="order-2 lg:order-1">

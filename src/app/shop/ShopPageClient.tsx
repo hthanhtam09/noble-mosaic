@@ -89,7 +89,7 @@ function ShopContent() {
       <Header />
       
       <main className="flex-grow">
-        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
+        <div className="layout-inner py-8">
           {/* SEO-friendly heading */}
           <h1 className="sr-only">Shop Mosaic Color By Number Books</h1>
 

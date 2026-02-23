@@ -43,7 +43,7 @@ export default function Footer() {
       {/* Color accent bar */}
       <div className="h-1 w-full bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] via-[var(--mosaic-teal)] to-[var(--mosaic-purple)]" />
       
-      <div className="relative mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12 lg:py-16">
+      <div className="relative layout-inner py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">

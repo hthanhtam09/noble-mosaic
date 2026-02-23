@@ -150,7 +150,7 @@ export default function GiftPageClient() {
         {/* Subscription Form — only shown if not subscribed */}
         {!isSubscribed && (
           <section className="py-12 bg-white">
-            <div className="mx-auto max-w-xl px-4 md:px-8 lg:px-16">
+            <div className="mx-auto max-w-xl">
               <Card className="border-2 border-neutral-100 shadow-xl overflow-hidden">
                 {/* Color accent bar */}
                 <div className="h-2 bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] via-[var(--mosaic-teal)] to-[var(--mosaic-purple)]" />
@@ -271,7 +271,7 @@ export default function GiftPageClient() {
 
         {/* Free Pages - Grouped by Folder */}
         <section className={`py-16 ${isSubscribed ? 'bg-white' : 'bg-neutral-50'}`}>
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
+          <div className="layout-inner">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-serif font-bold text-neutral-900 mb-4">
                 {isSubscribed ? 'Download Your Gift' : 'Preview: Gift'}
@@ -414,7 +414,7 @@ export default function GiftPageClient() {
 
         {/* CTA Section */}
         <section className="py-16 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white">
-          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 text-center">
+          <div className="mx-auto max-w-4xl text-center">
             <div className="flex justify-center gap-2 mb-6">
               {['var(--mosaic-coral)', 'var(--mosaic-gold)', 'var(--mosaic-teal)'].map((color, i) => (
                 <div key={i} className="w-6 h-6 rounded-lg" style={{ backgroundColor: color }} />

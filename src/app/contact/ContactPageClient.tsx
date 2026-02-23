@@ -78,7 +78,7 @@ export default function ContactPageClient() {
       <main className="flex-grow bg-stone-50">
         {/* Page Header */}
         <div className="bg-white border-b border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
+          <div className="layout-inner py-8">
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900">
               Contact Us
             </h1>
@@ -88,7 +88,7 @@ export default function ContactPageClient() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12">
+        <div className="layout-inner py-12">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Contact Info Cards */}
             <div className="space-y-6">

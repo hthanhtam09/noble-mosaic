@@ -38,7 +38,7 @@ export default function BlogPosts() {
 
   return (
     <section className="py-12 md:py-16">
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
+      <div className="layout-inner">
         <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800 mb-6 font-nunito">
           Blog Posts
         </h2>

@@ -11,7 +11,7 @@ export default function BestSeller() {
 
   return (
     <section className="py-12 md:py-16">
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
+      <div className="layout-inner">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800 font-nunito">
             Best Seller

@@ -117,7 +117,7 @@ function SecretBookContent() {
       <main className="flex-grow pb-24">
         {/* Header Section */}
         <section className="bg-white border-b border-neutral-200 py-10 shadow-sm">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
+          <div className="layout-inner">
             <Button 
               variant="ghost" 
               onClick={() => router.push('/secret')}
@@ -245,7 +245,7 @@ function SecretBookContent() {
           </section>
         ) : (
           <section className="py-12 md:py-16">
-            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
+            <div className="layout-inner">
               {isLoading ? (
                 <div className="flex items-center justify-center py-20">
                   <Loader2 className="h-8 w-8 animate-spin text-[var(--mosaic-teal)]" />
