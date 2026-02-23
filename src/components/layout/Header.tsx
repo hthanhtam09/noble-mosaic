@@ -22,7 +22,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-neutral-200/60">
       <nav
-        className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16"
+        className="layout-inner"
         aria-label="Main navigation"
       >
         <div className="flex items-center justify-between h-16 md:h-20">

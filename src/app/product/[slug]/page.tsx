@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import connectDB from '@/lib/mongodb';
 import { Product } from '@/models/Product';
 import ProductDetailClient from './ProductDetailClient';
+import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -39,13 +40,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         type: 'website',
         images: product.coverImage
           ? [
-              {
-                url: product.coverImage,
-                width: 600,
-                height: 800,
-                alt: product.title,
-              },
-            ]
+            {
+              url: product.coverImage,
+              width: 600,
+              height: 800,
+              alt: product.title,
+            },
+          ]
           : undefined,
       },
       twitter: {
@@ -63,6 +64,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default function ProductDetailPage({ params }: PageProps) {
-  return <ProductDetailClient />;
+export default async function ProductDetailPage({ params }: PageProps) {
+  const { slug } = await params;
+  let productName = 'Product';
+
+  try {
+    await connectDB();
+    const product = await Product.findOne({ slug }, { title: 1 }).lean();
+    if (product) productName = product.title;
+  } catch { }
+
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://noblemosaic.com' },
+          { name: 'Shop', url: 'https://noblemosaic.com/shop' },
+          { name: productName, url: `https://noblemosaic.com/product/${slug}` },
+        ]}
+      />
+      <ProductDetailClient />
+    </>
+  );
 }

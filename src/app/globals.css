@@ -124,13 +124,40 @@
   --sidebar-ring: oklch(0.5 0.15 250);
 }
 
+@utility layout-inner {
+  @apply mx-auto max-w-screen px-4 md:px-8 lg:px-12 xl:px-16 w-full;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
   }
+}
+
+body {
+  background-image: url('/bg.png') !important;
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  z-index: 0;
+  pointer-events: none;
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Mosaic Pattern Background */

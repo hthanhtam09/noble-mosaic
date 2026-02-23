@@ -41,11 +41,11 @@ export default function SecretPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-grow">
         {/* Books Grid */}
-        <section className="py-16 bg-neutral-50/50">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16">
+        <section className="py-16">
+          <div className="layout-inner">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
@@ -67,42 +67,42 @@ export default function SecretPage() {
                         <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
                           {/* Overlay gradient */}
                           <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
-                          
+
                           <Image
                             src={book.coverImage}
                             alt={book.title}
                             fill
                             priority={index < 4}
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        />
-                        
-                        <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-end items-end">
-                          <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-[var(--mosaic-teal)] transition-colors">
-                            {unlockedBooks[book.slug] ? (
-                              <LockOpen className="h-4 w-4" />
-                            ) : (
-                              <Lock className="h-4 w-4" />
-                            )}
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                          />
+
+                          <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-end items-end">
+                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-[var(--mosaic-teal)] transition-colors">
+                              {unlockedBooks[book.slug] ? (
+                                <LockOpen className="h-4 w-4" />
+                              ) : (
+                                <Lock className="h-4 w-4" />
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <CardContent className="p-5">
-                        <h3 className="text-lg font-bold text-neutral-900 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-2 mb-2">
-                          {book.title}
-                        </h3>
-                        <p className="text-sm text-neutral-500 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-y-2 group-hover:translate-y-0">
-                          Click to reveal secrets <span className="text-[var(--mosaic-coral)]">→</span>
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                        <CardContent className="p-5">
+                          <h3 className="text-lg font-bold text-neutral-900 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-2 mb-2">
+                            {book.title}
+                          </h3>
+                          <p className="text-sm text-neutral-500 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-y-2 group-hover:translate-y-0">
+                            Click to reveal secrets <span className="text-[var(--mosaic-coral)]">→</span>
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
                 </div>
-                
+
                 {books.length > displayLimit && (
                   <div className="mt-12 flex justify-center">
-                    <Button 
+                    <Button
                       onClick={() => setDisplayLimit(prev => prev + 12)}
                       variant="outline"
                       size="lg"
@@ -118,17 +118,17 @@ export default function SecretPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-white">
-          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 text-center">
+        <section className="py-16">
+          <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-serif font-bold mb-4">
               Discover All Our Books
             </h2>
             <p className="text-lg text-neutral-500 mb-8">
               Want to see the full collection? Browse our shop for all mosaic color by number books.
             </p>
-            <Button 
-              asChild 
-              size="lg" 
+            <Button
+              asChild
+              size="lg"
               className="bg-gradient-to-r from-neutral-800 to-neutral-700 text-white hover:opacity-90 rounded-full px-8 shadow-xl shadow-neutral-200"
             >
               <Link href="/shop">
@@ -139,7 +139,7 @@ export default function SecretPage() {
           </div>
         </section>
       </main>
-      
+
       <Footer />
     </div>
   );

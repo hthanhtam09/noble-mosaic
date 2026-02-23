@@ -46,7 +46,7 @@ export default function BlogPageClient() {
       <Header />
       
       <main className="flex-grow bg-stone-50">
-        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
+        <div className="layout-inner py-8">
           {/* SEO heading */}
           <h1 className="sr-only">Noble Mosaic Blog - Coloring Tips & Inspiration</h1>
 

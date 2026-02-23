@@ -156,7 +156,7 @@ export default function ProductDetailClient() {
       <main className="flex-grow">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-3">
+          <div className="layout-inner py-3">
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-neutral-500">
               <Link href="/" className="hover:text-neutral-700 transition-colors">Home</Link>
               <span>/</span>
@@ -171,7 +171,7 @@ export default function ProductDetailClient() {
         {/* SECTION 1: Hero — Product Images + Info                       */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8 lg:py-12">
+          <div className="layout-inner py-8 lg:py-12">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
               {/* Left: Image Gallery */}
               <div className="space-y-4">
@@ -333,7 +333,7 @@ export default function ProductDetailClient() {
         {/* SECTION 2: Feature Icons Row                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white border-t border-neutral-100">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-8">
+          <div className="layout-inner py-8">
             <div className="flex flex-wrap justify-center gap-8 md:gap-16">
               {featureIcons.map((feature, index) => (
                 <div key={index} className="flex flex-col items-center text-center">
@@ -352,7 +352,7 @@ export default function ProductDetailClient() {
         {/* SECTION 3: "What's inside?" — Specs + Preview Grid            */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-stone-50">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-16">
+          <div className="layout-inner py-16">
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900 text-center mb-12">
               What&apos;s inside?
             </h2>
@@ -434,7 +434,7 @@ export default function ProductDetailClient() {
         {/* SECTION 4: Simple A+ Content Layout                           */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
-          <div className="mx-auto max-w-[970px] px-4 md:px-8 lg:px-16 py-16 space-y-12">
+          <div className="mx-auto max-w-[970px] py-16 space-y-12">
             {/* Three 970x300 Banners */}
             <div className="space-y-6">
               {[1, 2, 3].map((i) => (
@@ -493,7 +493,7 @@ export default function ProductDetailClient() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {relatedProducts.length > 0 && (
           <section className="bg-white border-t border-neutral-100">
-            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12">
+            <div className="layout-inner py-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-serif font-bold text-neutral-900">
                   Part of the series

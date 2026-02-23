@@ -4,12 +4,12 @@ import HeroBanner from "@/components/home/HeroBanner";
 import NewRelease from "@/components/home/NewRelease";
 import BestSeller from "@/components/home/BestSeller";
 import SecretSection from "@/components/home/SecretSection";
-import GiftSection from "@/components/home/GiftSection";
+import GiftFloatingWidget from "@/components/home/GiftFloatingWidget";
 import BlogPosts from "@/components/home/BlogPosts";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
+    <div className="min-h-screen flex flex-col">
       <Header />
 
       <main className="flex-grow">
@@ -17,11 +17,11 @@ export default function HomePage() {
         <NewRelease />
         <BestSeller />
         <SecretSection />
-        <GiftSection />
         <BlogPosts />
       </main>
 
       <Footer />
+      <GiftFloatingWidget />
     </div>
   );
 }

@@ -32,9 +32,16 @@ export function useSecretBookDetails(slug: string, isUnlocked: boolean) {
   return useQuery({
     queryKey: [QUERY_KEYS.secretBookDetails, slug, isUnlocked],
     queryFn: async () => {
-      const url = isUnlocked ? `/secrets/${slug}?unlocked=true` : `/secrets/${slug}`;
-      const data = await api.get<any, { book: SecretBook, secrets?: SecretImage[] }>(url);
-      return data;
+      try {
+        const url = isUnlocked ? `/secrets/${slug}?unlocked=true` : `/secrets/${slug}`;
+        const data = await api.get<any, any>(url);
+        return data;
+      } catch (error: any) {
+        if (error.response && error.response.status === 403 && error.response.data) {
+           return error.response.data;
+        }
+        throw error;
+      }
     },
     enabled: !!slug,
   });

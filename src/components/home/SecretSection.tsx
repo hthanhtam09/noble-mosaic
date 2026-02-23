@@ -36,13 +36,13 @@ export default function SecretSection() {
   const unlockedCount = Object.values(unlockedBooks).filter(Boolean).length;
 
   return (
-    <section className="py-12 md:py-16 relative overflow-hidden">
+    <section className="py-12 md:py-16 relative overflow-hidden bg-neutral-50">
       {/* Decorative background */}
       <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/[0.02] via-transparent to-[var(--mosaic-teal)]/5" />
       <div className="absolute top-20 right-20 w-48 h-48 bg-[var(--mosaic-teal)]/8 rounded-full blur-3xl" />
       <div className="absolute bottom-10 left-10 w-36 h-36 bg-[var(--mosaic-purple)]/6 rounded-full blur-3xl" />
 
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 relative z-10">
+      <div className="layout-inner relative z-10">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">

@@ -95,7 +95,7 @@ export default function BlogPostClient() {
       <main className="flex-grow bg-white">
         {/* Breadcrumb */}
         <div className="border-b border-neutral-100">
-          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 py-3">
+          <div className="mx-auto max-w-4xl py-3">
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-neutral-500">
               <Link href="/" className="hover:text-neutral-700">Home</Link>
               <span>/</span>
@@ -107,7 +107,7 @@ export default function BlogPostClient() {
         </div>
 
         {/* Article Header */}
-        <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 py-8">
+        <div className="mx-auto max-w-4xl py-8">
           <Link 
             href="/blog" 
             className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 mb-6"
@@ -148,7 +148,7 @@ export default function BlogPostClient() {
 
         {/* Featured Image */}
         {post.thumbnail && (
-          <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16 mb-8">
+          <div className="mx-auto max-w-4xl mb-8">
             <div className="relative aspect-[21/9] rounded-xl overflow-hidden">
               <Image
                 src={post.thumbnail}
@@ -163,7 +163,7 @@ export default function BlogPostClient() {
         )}
 
         {/* Article Content */}
-        <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16">
+        <div className="mx-auto max-w-4xl">
           <article className="prose prose-lg prose-neutral max-w-none">
             <div 
               dangerouslySetInnerHTML={{ 
@@ -225,7 +225,7 @@ export default function BlogPostClient() {
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
           <div className="bg-stone-50 mt-12">
-            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12">
+            <div className="layout-inner py-12">
               <h2 className="text-2xl font-serif font-bold text-neutral-900 mb-6">
                 Related Articles
               </h2>

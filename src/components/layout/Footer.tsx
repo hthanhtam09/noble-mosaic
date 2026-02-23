@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Facebook, Instagram, Twitter, Gift, Heart, Palette } from 'lucide-react';
 
 const footerLinks = {
@@ -39,21 +38,12 @@ export default function Footer() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-[var(--mosaic-teal)]" />
         <div className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full bg-[var(--mosaic-purple)]" />
       </div>
-      
-      {/* Color accent bar */}
-      <div className="h-1 w-full bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] via-[var(--mosaic-teal)] to-[var(--mosaic-purple)]" />
-      
-      <div className="relative mx-auto max-w-7xl px-4 md:px-8 lg:px-16 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {/* Brand */}
+
+      <div className="relative layout-inner py-12 lg:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
           <div className="lg:col-span-1">
-            <p className="text-sm text-neutral-400 leading-relaxed">
-              Premium mosaic color by number books designed 
-              for mindful relaxation and creative expression.
-            </p>
-            
             {/* Color palette */}
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2">
               {colorDots.map((dot, index) => (
                 <div
                   key={index}
@@ -62,7 +52,7 @@ export default function Footer() {
                 />
               ))}
             </div>
-            
+
             <div className="mt-6 flex gap-4">
               <a href="#" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-coral)] flex items-center justify-center transition-colors">
                 <Facebook className="h-5 w-5" />
@@ -111,19 +101,20 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-            
+          </div>
+
+          <div>
             {/* Resources Links */}
-            <h3 className="text-sm font-semibold uppercase tracking-wider mt-6">Resources</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider">Resources</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.resources.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className={`text-sm transition-all flex items-center gap-2 ${
-                      link.highlight 
-                        ? 'text-[var(--mosaic-gold)] hover:text-[var(--mosaic-coral)]' 
-                        : 'text-neutral-400 hover:text-white hover:translate-x-1'
-                    }`}
+                    className={`text-sm transition-all flex items-center gap-2 ${link.highlight
+                      ? 'text-[var(--mosaic-gold)] hover:text-[var(--mosaic-coral)]'
+                      : 'text-neutral-400 hover:text-white hover:translate-x-1'
+                      }`}
                   >
                     {link.highlight && <Gift className="h-4 w-4" />}
                     {link.name}
@@ -157,7 +148,7 @@ export default function Footer() {
                 </button>
               </div>
             </form>
-            
+
             {/* Gift Promo */}
             <div className="mt-6 p-4 bg-gradient-to-br from-neutral-800 to-neutral-800/50 rounded-xl border border-neutral-700">
               <div className="flex items-center gap-2 text-[var(--mosaic-gold)] mb-2">

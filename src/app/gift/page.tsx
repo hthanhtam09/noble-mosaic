@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import GiftPageClient from './GiftPageClient';
+import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Free Coloring Pages - Gift',
@@ -18,5 +19,15 @@ export const metadata: Metadata = {
 };
 
 export default function GiftPage() {
-  return <GiftPageClient />;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://noblemosaic.com' },
+          { name: 'Gift', url: 'https://noblemosaic.com/gift' },
+        ]}
+      />
+      <GiftPageClient />
+    </>
+  );
 }

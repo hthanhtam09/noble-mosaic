@@ -38,8 +38,8 @@ const heroBanners = [
 
 export default function HeroBanner() {
   return (
-    <section className="hero-banner relative w-full pt-8 pb-10 md:pt-12 md:pb-16 bg-[#FAFAFA]">
-      <div className="mx-auto max-w-6xl">
+    <section className="layout-inner hero-banner relative w-full pt-8 pb-10 md:pt-12 md:pb-16">
+      <div className="mx-auto max-w-screen">
         <Swiper
           modules={[Autoplay, Pagination]}
           spaceBetween={20}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ShopPageClient from './ShopPageClient';
+import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Shop All Coloring Books',
@@ -24,5 +25,15 @@ export const metadata: Metadata = {
 };
 
 export default function ShopPage() {
-  return <ShopPageClient />;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://noblemosaic.com' },
+          { name: 'Shop', url: 'https://noblemosaic.com/shop' },
+        ]}
+      />
+      <ShopPageClient />
+    </>
+  );
 }
