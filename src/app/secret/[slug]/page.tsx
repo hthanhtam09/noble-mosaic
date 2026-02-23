@@ -34,7 +34,7 @@ function SecretBookContent() {
   const slug = params.slug as string;
 
   const [storedKey, setStoredKey] = useState<string | null>(null);
-  
+
   // Only read localStorage on the client side
   useEffect(() => {
     setStoredKey(localStorage.getItem(`secret_key_${slug}`));
@@ -48,12 +48,12 @@ function SecretBookContent() {
   const [selectedSecret, setSelectedSecret] = useState<SecretImage | null>(null);
 
   const isLocked = !data?.secrets || data.secrets.length === 0;
-  const book = (data?.book as SecretBookInfo) || null;
+  const book = ((data?.product || data?.book) as SecretBookInfo) || null;
   const secrets = data?.secrets || [];
 
   useEffect(() => {
     // Basic catch if no data returns from hook
-    if (!isLoading && !data?.book) {
+    if (!isLoading && !data?.product && !data?.book) {
       router.push('/secret');
     }
   }, [data, isLoading, router]);
@@ -64,10 +64,10 @@ function SecretBookContent() {
       setKeyError('Key must be exactly 6 characters');
       return;
     }
-    
+
     setIsCheckingKey(true);
     setKeyError('');
-    
+
     try {
       const res = await fetch(`/api/secrets/${slug}?key=${encodeURIComponent(inputKey.toUpperCase())}`);
       if (res.status === 403) {
@@ -96,7 +96,7 @@ function SecretBookContent() {
         setSelectedSecret(targetSecret);
       }
     } else if (selectedSecret) {
-       setSelectedSecret(null);
+      setSelectedSecret(null);
     }
   }, [secrets, searchParams, selectedSecret]);
 
@@ -113,20 +113,20 @@ function SecretBookContent() {
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
       <Header />
-      
+
       <main className="flex-grow pb-24">
         {/* Header Section */}
         <section className="bg-white border-b border-neutral-200 py-10 shadow-sm">
           <div className="layout-inner">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => router.push('/secret')}
               className="mb-8 hover:bg-neutral-100 text-neutral-600 rounded-full"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Secrets
             </Button>
-            
+
             {isLoading ? (
               <div className="flex animate-pulse gap-6">
                 <div className="w-24 h-32 bg-neutral-200 rounded-md"></div>
@@ -168,18 +168,18 @@ function SecretBookContent() {
             <div className="mx-auto max-w-lg px-4 sm:px-6">
               <Card className="p-8 md:p-10 border-0 shadow-xl rounded-2xl bg-white text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-[var(--mosaic-teal)]" />
-                
+
                 {book && (book.previewImage || book.coverImage) ? (
                   <div className="w-24 h-24 mx-auto mb-6 relative rounded-lg overflow-hidden shadow-sm border border-neutral-100">
-                    <Image 
-                      src={book.previewImage || book.coverImage} 
-                      alt="Preview" 
-                      fill 
-                      className="object-cover" 
-                      unoptimized 
+                    <Image
+                      src={book.previewImage || book.coverImage}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                      unoptimized
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-blur-[1px]">
-                       <Lock className="h-8 w-8 text-white drop-shadow-md" />
+                      <Lock className="h-8 w-8 text-white drop-shadow-md" />
                     </div>
                   </div>
                 ) : (
@@ -187,19 +187,19 @@ function SecretBookContent() {
                     <Lock className="h-8 w-8 text-neutral-600" />
                   </div>
                 )}
-                
+
                 <h3 className="text-2xl font-serif font-bold text-neutral-900 mb-2">Secret Key Required</h3>
                 <p className="text-neutral-500 px-4">
                   This book is locked. Please enter the 6-character secret key to view the hidden images.
                 </p>
                 <p className="text-neutral-500 mb-8 px-4 font-bold text-xl">
-                 Get the secret key on page 106
+                  Get the secret key on page 106
                 </p>
                 <form onSubmit={handleUnlock} className="space-y-4 mb-8">
                   <div className="relative max-w-[280px] mx-auto">
                     <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
-                    <Input 
-                      type="text" 
+                    <Input
+                      type="text"
                       placeholder="ENTER KEY"
                       value={inputKey}
                       onChange={(e) => {
@@ -210,15 +210,15 @@ function SecretBookContent() {
                       disabled={isCheckingKey}
                     />
                   </div>
-                  
+
                   {keyError && (
                     <div className="text-red-500 text-sm font-medium animate-in slide-in-from-top-1">
                       {keyError}
                     </div>
                   )}
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full max-w-[280px] py-6 text-base rounded-full bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white shadow-md hover:shadow-lg transition-all"
                     disabled={isCheckingKey || inputKey.length !== 6}
                   >
@@ -230,9 +230,9 @@ function SecretBookContent() {
                 {book?.amazonUrl && (
                   <div className="pt-6 border-t border-neutral-100">
                     <p className="text-sm font-medium text-neutral-900 mb-3">Don't have the key yet?</p>
-                    <a 
-                      href={book.amazonUrl} 
-                      target="_blank" 
+                    <a
+                      href={book.amazonUrl}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center w-full max-w-[280px] py-4 px-6 text-sm font-bold rounded-full bg-[#FF9900] hover:bg-[#FF9900]/90 text-neutral-900 shadow-sm transition-all shadow-[#FF9900]/20 hover:shadow-[#FF9900]/40"
                     >
@@ -259,7 +259,7 @@ function SecretBookContent() {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                   {secrets.map((secret, index) => (
-                    <Card 
+                    <Card
                       key={secret._id}
                       className="border-0 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group rounded-xl overflow-hidden bg-white"
                       onClick={() => handleOpenSecret(secret)}
@@ -274,10 +274,10 @@ function SecretBookContent() {
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                           unoptimized={true}
                         />
-                        
+
                         <div className="absolute inset-0 bg-neutral-900/0 group-hover:bg-neutral-900/10 transition-colors duration-300 flex items-center justify-center">
-                          <Button 
-                            variant="secondary" 
+                          <Button
+                            variant="secondary"
                             className="opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white/90 hover:bg-white text-neutral-900 rounded-full font-medium"
                           >
                             View Secret
