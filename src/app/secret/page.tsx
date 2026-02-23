@@ -44,7 +44,7 @@ export default function SecretPage() {
 
       <main className="flex-grow">
         {/* Books Grid */}
-        <section className="py-16 bg-neutral-50/50">
+        <section className="py-16">
           <div className="layout-inner">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
@@ -118,7 +118,7 @@ export default function SecretPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-white">
+        <section className="py-16">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-serif font-bold mb-4">
               Discover All Our Books

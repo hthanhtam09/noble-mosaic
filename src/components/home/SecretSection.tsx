@@ -36,7 +36,7 @@ export default function SecretSection() {
   const unlockedCount = Object.values(unlockedBooks).filter(Boolean).length;
 
   return (
-    <section className="py-12 md:py-16 relative overflow-hidden">
+    <section className="py-12 md:py-16 relative overflow-hidden bg-neutral-50">
       {/* Decorative background */}
       <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/[0.02] via-transparent to-[var(--mosaic-teal)]/5" />
       <div className="absolute top-20 right-20 w-48 h-48 bg-[var(--mosaic-teal)]/8 rounded-full blur-3xl" />
