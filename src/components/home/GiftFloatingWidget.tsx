@@ -144,7 +144,7 @@ export default function GiftFloatingWidget() {
                                             Your Gift is Ready!
                                         </h3>
                                         <p className="text-neutral-500 mt-2">
-                                            Head over to the Gift page to download your free coloring pages.
+                                            Head over to the Gift page to download your free coloring books.
                                         </p>
                                     </div>
                                     <Button
@@ -163,10 +163,10 @@ export default function GiftFloatingWidget() {
                                 <div className="space-y-5">
                                     <div className="text-center">
                                         <h3 className="font-bold text-neutral-900 text-xl font-nunito">
-                                            🎁 Free Coloring Pages
+                                            🎁 Free Coloring Books
                                         </h3>
                                         <p className="text-neutral-500 mt-2">
-                                            Subscribe to unlock beautiful free coloring pages!
+                                            Subscribe to unlock free coloring book downloads!
                                         </p>
                                     </div>
 

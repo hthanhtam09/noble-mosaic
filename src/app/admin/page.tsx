@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   ShoppingBag, FileText, MessageSquare, Users, 
-  ArrowUpRight, ArrowRight, Mail, Eye, Clock, Download, Palette, Loader2
+  ArrowUpRight, ArrowRight, Mail, Eye, Clock, Download, Gift, Loader2
 } from 'lucide-react';
 
 interface Stats {
@@ -18,7 +18,7 @@ interface Stats {
   messages: number;
   unreadMessages: number;
   newSubscribersThisWeek: number;
-  freePages: number;
+  giftLinks: number;
 }
 
 interface RecentActivity {
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
         messages: 0,
         unreadMessages: 0,
         newSubscribersThisWeek: 0,
-        freePages: 0,
+        giftLinks: 0,
       };
       const activity: RecentActivity[] = [];
 
@@ -130,14 +130,11 @@ export default function AdminDashboard() {
           });
         }
 
-        // Fetch coloring pages count
-        const coloringRes = await fetch('/api/coloring-folders');
-        if (coloringRes.ok) {
-          const coloringData = await coloringRes.json();
-          const totalPages = (coloringData.folders || []).reduce(
-            (sum: number, f: { pageCount: number }) => sum + f.pageCount, 0
-          );
-          currentStats.freePages = totalPages;
+        // Fetch gift links count
+        const giftRes = await fetch('/api/gift-links');
+        if (giftRes.ok) {
+          const giftData = await giftRes.json();
+          currentStats.giftLinks = (giftData.links || []).length;
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -157,7 +154,7 @@ export default function AdminDashboard() {
     messages: 0,
     unreadMessages: 0,
     newSubscribersThisWeek: 0,
-    freePages: 0,
+    giftLinks: 0,
   };
   const recentActivity = dashboardData?.recentActivity || [];
 
@@ -186,11 +183,11 @@ export default function AdminDashboard() {
       href: '/admin/blog',
     },
     {
-      title: 'Gift',
-      value: stats.freePages,
-      icon: Palette,
+      title: 'Gift Links',
+      value: stats.giftLinks,
+      icon: Gift,
       color: 'bg-pink-100 text-pink-600',
-      href: '/admin/coloring',
+      href: '/admin/gift-links',
     },
     {
       title: 'Messages',
@@ -219,10 +216,10 @@ export default function AdminDashboard() {
       color: 'bg-green-600 hover:bg-green-700 text-white',
     },
     {
-      name: 'Manage Coloring',
-      href: '/admin/coloring',
-      icon: Palette,
-      description: 'Add free coloring pages',
+      name: 'Gift Links',
+      href: '/admin/gift-links',
+      icon: Gift,
+      description: 'Manage gift download links',
       color: 'bg-pink-600 hover:bg-pink-700 text-white',
     },
     {

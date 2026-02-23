@@ -42,25 +42,13 @@ export function useAdminContacts() {
   });
 }
 
-export function useAdminColoringFolders() {
+export function useAdminGiftLinks() {
   return useQuery({
-    queryKey: [QUERY_KEYS.adminColoringFolders],
+    queryKey: [QUERY_KEYS.adminGiftLinks],
     queryFn: async () => {
-      const data = await api.get<any, { folders: any[] }>('/coloring-folders');
-      return data.folders || [];
+      const data = await api.get<any, { links: any[] }>('/gift-links');
+      return data.links || [];
     }
-  });
-}
-
-export function useAdminColoringPages(folderId: string | undefined) {
-  return useQuery({
-    queryKey: [QUERY_KEYS.adminColoringPages, folderId],
-    queryFn: async () => {
-      if (!folderId) return [];
-      const data = await api.get<any, { pages: any[] }>(`/coloring-folders/${folderId}`);
-      return data.pages || [];
-    },
-    enabled: !!folderId,
   });
 }
 

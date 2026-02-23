@@ -7,15 +7,14 @@ export const QUERY_KEYS = {
   blogPost: 'blog-post',
   secretBooks: 'secret-books',
   secretBookDetails: 'secret-book',
-  giftFolders: 'coloring-folders',
+  giftLinks: 'gift-links',
   
   // Admin
   adminDashboard: 'admin-dashboard',
   adminProducts: 'admin-products',
   adminSubscribers: 'admin-subscribers',
   adminContacts: 'admin-contacts',
-  adminColoringFolders: 'admin-coloring-folders',
-  adminColoringPages: 'admin-coloring-pages',
+  adminGiftLinks: 'admin-gift-links',
   adminSecretBooks: 'admin-secret-books',
   adminSecrets: 'admin-secrets',
 } as const;
