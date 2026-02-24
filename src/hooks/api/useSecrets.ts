@@ -28,12 +28,12 @@ export function useSecretBooks() {
   });
 }
 
-export function useSecretBookDetails(slug: string, isUnlocked: boolean) {
+export function useSecretBookDetails(slug: string, storedKey: string | null) {
   return useQuery({
-    queryKey: [QUERY_KEYS.secretBookDetails, slug, isUnlocked],
+    queryKey: [QUERY_KEYS.secretBookDetails, slug, storedKey],
     queryFn: async () => {
       try {
-        const url = isUnlocked ? `/secrets/${slug}?unlocked=true` : `/secrets/${slug}`;
+        const url = storedKey ? `/secrets/${slug}?key=${encodeURIComponent(storedKey)}` : `/secrets/${slug}`;
         const data = await api.get<any, any>(url);
         return data;
       } catch (error: any) {

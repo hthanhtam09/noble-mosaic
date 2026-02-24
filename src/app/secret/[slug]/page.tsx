@@ -40,7 +40,7 @@ function SecretBookContent() {
     setStoredKey(localStorage.getItem(`secret_key_${slug}`));
   }, [slug]);
 
-  const { data, isLoading, refetch } = useSecretBookDetails(slug, !!storedKey);
+  const { data, isLoading, refetch } = useSecretBookDetails(slug, storedKey);
 
   const [inputKey, setInputKey] = useState('');
   const [isCheckingKey, setIsCheckingKey] = useState(false);
@@ -74,7 +74,7 @@ function SecretBookContent() {
         setKeyError('Incorrect Secret Key');
       } else if (res.ok) {
         localStorage.setItem(`secret_key_${slug}`, inputKey.toUpperCase());
-        await refetch();
+        setStoredKey(inputKey.toUpperCase());
       } else {
         setKeyError('An error occurred. Please try again.');
       }
