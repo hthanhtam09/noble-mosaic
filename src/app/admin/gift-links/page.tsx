@@ -67,18 +67,19 @@ export default function AdminGiftLinksPage() {
 
   // Delete state
   const [linkToDelete, setLinkToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Upload helper
   const uploadFile = async (file: File, folderName: string) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('folder', folderName);
-    
+
     const res = await fetch('/api/upload', {
       method: 'POST',
       body: formData,
     });
-    
+
     if (!res.ok) throw new Error('Upload failed');
     const data = await res.json();
     return data.url;
@@ -182,6 +183,7 @@ export default function AdminGiftLinksPage() {
   // Delete gift link
   const confirmDelete = async () => {
     if (!linkToDelete) return;
+    setIsDeleting(true);
     try {
       const res = await fetch(`/api/gift-links/${linkToDelete.id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -205,6 +207,7 @@ export default function AdminGiftLinksPage() {
         variant: "destructive"
       });
     } finally {
+      setIsDeleting(false);
       setLinkToDelete(null);
     }
   };
@@ -410,8 +413,8 @@ export default function AdminGiftLinksPage() {
 
                 {/* Status badge */}
                 <div className="absolute top-2 left-2">
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className={`text-[10px] shadow-sm ${link.isActive ? 'bg-green-500 text-white' : 'bg-neutral-600 text-white'}`}
                   >
                     {link.isActive ? 'Active' : 'Inactive'}
@@ -511,7 +514,7 @@ export default function AdminGiftLinksPage() {
       )}
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!linkToDelete} onOpenChange={(open) => !open && setLinkToDelete(null)}>
+      <AlertDialog open={!!linkToDelete} onOpenChange={(open) => !open && !isDeleting && setLinkToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Gift Link</AlertDialogTitle>
@@ -520,13 +523,15 @@ export default function AdminGiftLinksPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <Button
               onClick={confirmDelete}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
+              {isDeleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Delete
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

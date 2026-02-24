@@ -8,8 +8,8 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, Pencil, Trash2, Search, MoreVertical, 
+import {
+  Plus, Pencil, Trash2, Search, MoreVertical,
   Star, ExternalLink, Eye, Copy, Loader2
 } from 'lucide-react';
 import {
@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useToast } from "@/hooks/use-toast";
 
 interface Product {
   _id: string;
@@ -50,44 +51,82 @@ const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
 
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: products = [], isLoading } = useAdminProducts();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [themeFilter, setThemeFilter] = useState('All');
   const [difficultyFilter, setDifficultyFilter] = useState('All');
+  const [processingSlug, setProcessingSlug] = useState<string | null>(null);
 
   const handleDelete = async (slug: string) => {
     if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      setProcessingSlug(slug);
       try {
         const response = await fetch(`/api/products/${slug}`, {
           method: 'DELETE',
         });
-        
+
         if (response.ok) {
           queryClient.setQueryData(['admin-products'], (old: Product[] | undefined) => {
             if (!old) return [];
             return old.filter(p => p.slug !== slug);
           });
+          toast({
+            title: "Product Deleted",
+            description: "The product has been successfully deleted."
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete the product.",
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error('Error deleting product:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while deleting the product.",
+          variant: "destructive"
+        });
+      } finally {
+        setProcessingSlug(null);
       }
     }
   };
 
-  const handleDuplicate = (product: Product) => {
-    const newProduct: Product = {
-      ...product,
-      _id: Date.now().toString(),
-      slug: `${product.slug}-copy`,
-      title: `${product.title} (Copy)`,
-      createdAt: new Date().toISOString(),
-    };
-    queryClient.setQueryData(['admin-products'], (old: Product[] | undefined) => {
-      if (!old) return [newProduct];
-      return [newProduct, ...old];
-    });
+  const handleDuplicate = async (product: Product) => {
+    setProcessingSlug(product.slug);
+    try {
+      // Simulate API call for now since duplicate logic is client-side in the original code,
+      // but we should still show feedback.
+      const newProduct: Product = {
+        ...product,
+        _id: Date.now().toString(),
+        slug: `${product.slug}-copy`,
+        title: `${product.title} (Copy)`,
+        createdAt: new Date().toISOString(),
+      };
+      queryClient.setQueryData(['admin-products'], (old: Product[] | undefined) => {
+        if (!old) return [newProduct];
+        return [newProduct, ...old];
+      });
+      toast({
+        title: "Product Duplicated",
+        description: "A copy of the product has been created."
+      });
+    } catch (error) {
+      console.error('Error duplicating product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate the product.",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessingSlug(null);
+    }
   };
 
   const filteredProducts = useMemo(() => {
@@ -220,7 +259,7 @@ export default function AdminProductsPage() {
                         <p className="text-xs text-neutral-500">{product.reviewCount} reviews</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-2 mt-3">
                       <Badge variant="outline" className="text-xs">{product.theme}</Badge>
                       <Badge variant="outline" className="text-xs capitalize">{product.difficulty}</Badge>
@@ -254,8 +293,12 @@ export default function AdminProductsPage() {
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" disabled={processingSlug === product.slug}>
+                          {processingSlug === product.slug ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+                          ) : (
+                            <MoreVertical className="h-4 w-4" />
+                          )}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
@@ -265,14 +308,15 @@ export default function AdminProductsPage() {
                             Edit Product
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicate(product)}>
+                        <DropdownMenuItem onClick={() => handleDuplicate(product)} disabled={processingSlug === product.slug}>
                           <Copy className="h-4 w-4 mr-2" />
                           Duplicate
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="text-red-600 focus:text-red-600"
                           onClick={() => handleDelete(product.slug)}
+                          disabled={processingSlug === product.slug}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete

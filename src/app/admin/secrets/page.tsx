@@ -23,6 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface SecretBook {
   _id: string;
@@ -48,7 +55,7 @@ export default function AdminSecretsPage() {
   const { data: books = [], isLoading: isLoadingBooks } = useAdminSecretBooks();
 
   const [selectedBook, setSelectedBook] = useState<SecretBook | null>(null);
-  
+
   const { data: secrets = [], isLoading: isLoadingSecrets } = useAdminSecrets(selectedBook?._id);
 
   // Create Book state
@@ -82,11 +89,15 @@ export default function AdminSecretsPage() {
   const [editAmazonUrl, setEditAmazonUrl] = useState('');
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
+  // Delete All state
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+
   const generateSecretKey = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     for (let i = 0; i < 6; i++) {
-       result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
   };
@@ -99,12 +110,12 @@ export default function AdminSecretsPage() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('folder', folderName);
-    
+
     const res = await fetch('/api/upload', {
       method: 'POST',
       body: formData,
     });
-    
+
     if (!res.ok) throw new Error('Upload failed');
     const data = await res.json();
     return data.url;
@@ -123,7 +134,7 @@ export default function AdminSecretsPage() {
     setIsCreatingBook(true);
     try {
       const coverImageUrl = await uploadFile(newBookImage, 'secrets/covers');
-      
+
       const res = await fetch('/api/admin/secret-books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -154,21 +165,24 @@ export default function AdminSecretsPage() {
         });
       }
     } catch (error) {
-       console.error(error);
-       toast({
-         title: "Error",
-         description: "An unexpected error occurred while creating the book.",
-         variant: "destructive"
-       });
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while creating the book.",
+        variant: "destructive"
+      });
     } finally {
-       setIsCreatingBook(false);
+      setIsCreatingBook(false);
     }
   };
+
+  const [isDeletingBook, setIsDeletingBook] = useState(false);
 
   const confirmDeleteBook = async () => {
     if (!bookToDelete) return;
     const id = bookToDelete._id;
-    
+    setIsDeletingBook(true);
+
     try {
       const res = await fetch(`/api/admin/secret-books/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -179,10 +193,26 @@ export default function AdminSecretsPage() {
         if (selectedBook?._id === id) {
           setSelectedBook(null);
         }
+        toast({
+          title: "Book Deleted",
+          description: "The secret book has been deleted successfully."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete the book.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error deleting book:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting the book.",
+        variant: "destructive"
+      });
     } finally {
+      setIsDeletingBook(false);
       setBookToDelete(null);
     }
   };
@@ -199,7 +229,7 @@ export default function AdminSecretsPage() {
       const res = await fetch(`/api/admin/secret-books/${selectedBook._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           secretKey: editKey || undefined,
           amazonUrl: editAmazonUrl || undefined,
         })
@@ -207,8 +237,8 @@ export default function AdminSecretsPage() {
 
       if (res.ok) {
         setShowBookSettingsModal(false);
-        const updatedBook = { 
-          ...selectedBook, 
+        const updatedBook = {
+          ...selectedBook,
           secretKey: editKey || undefined,
           amazonUrl: editAmazonUrl || undefined,
         };
@@ -230,21 +260,21 @@ export default function AdminSecretsPage() {
         });
       }
     } catch (error) {
-       console.error(error);
-       toast({
-         title: "Error",
-         description: "Failed to update settings.",
-         variant: "destructive"
-       });
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to update settings.",
+        variant: "destructive"
+      });
     } finally {
-       setIsUpdatingSettings(false);
+      setIsUpdatingSettings(false);
     }
   };
 
   // Extract number from filename, assuming filenames are like "1.png", "image 10.jpg" etc
   const getNumberFromFilename = (filename: string): number => {
     const match = filename.match(/\d+/);
-    return match ? parseInt(match[0], 10) : 999999; 
+    return match ? parseInt(match[0], 10) : 999999;
   };
 
   const handleColorFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,9 +315,9 @@ export default function AdminSecretsPage() {
         description: `You selected ${colorImages.length} color images and ${uncolorImages.length} uncolor images. They must contain the exact same amount.`,
         variant: "destructive"
       });
-      return; 
+      return;
     }
-    
+
     setIsSubmitting(true);
     setTotalUploads(colorImages.length);
     setUploadProgress(0);
@@ -322,7 +352,7 @@ export default function AdminSecretsPage() {
             successCount++;
             existingMaxOrder++;
           } else {
-             console.error(`Failed to save pair index ${i} to database`);
+            console.error(`Failed to save pair index ${i} to database`);
           }
         } catch (err) {
           console.error(`Failed to upload pair index ${i}`, err);
@@ -337,7 +367,7 @@ export default function AdminSecretsPage() {
         if (colorInputRef.current) colorInputRef.current.value = '';
         if (uncolorInputRef.current) uncolorInputRef.current.value = '';
         queryClient.invalidateQueries({ queryKey: ['admin-secrets', selectedBook._id] });
-        
+
         toast({
           title: "Upload complete",
           description: `Successfully added ${successCount} out of ${colorImages.length} pairs.`
@@ -373,9 +403,24 @@ export default function AdminSecretsPage() {
           if (!old) return [];
           return old.filter(s => s._id !== id);
         });
+        toast({
+          title: "Secret Deleted",
+          description: "The secret image pair has been deleted successfully."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete the secret.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error(error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting.",
+        variant: "destructive"
+      });
     } finally {
       setDeletingId(null);
       setSecretToDelete(null);
@@ -384,6 +429,37 @@ export default function AdminSecretsPage() {
 
   const handleDeleteSecret = (id: string) => {
     setSecretToDelete(id);
+  };
+
+  const handleDeleteAllSecrets = async () => {
+    if (!selectedBook) return;
+    setIsDeletingAll(true);
+    try {
+      const res = await fetch(`/api/admin/secrets?bookId=${selectedBook._id}`, { method: 'DELETE' });
+      if (res.ok) {
+        queryClient.setQueryData(['admin-secrets', selectedBook._id], []);
+        setShowDeleteAllModal(false);
+        toast({
+          title: "Deleted All",
+          description: "All images in this folder have been deleted."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete all images.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting all secrets:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeletingAll(false);
+    }
   };
 
   if (selectedBook) {
@@ -407,15 +483,15 @@ export default function AdminSecretsPage() {
                       <LockOpen className="h-3 w-3 mr-1" /> Public
                     </Badge>
                   )}
-                  <Button 
-                     variant="ghost" 
-                     size="sm" 
-                     className="h-6 text-xs px-2 text-neutral-500 hover:text-neutral-900"
-                     onClick={() => {
-                       setEditKey(selectedBook.secretKey || '');
-                       setEditAmazonUrl(selectedBook.amazonUrl || '');
-                       setShowBookSettingsModal(true);
-                     }}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs px-2 text-neutral-500 hover:text-neutral-900"
+                    onClick={() => {
+                      setEditKey(selectedBook.secretKey || '');
+                      setEditAmazonUrl(selectedBook.amazonUrl || '');
+                      setShowBookSettingsModal(true);
+                    }}
                   >
                     Edit Settings
                   </Button>
@@ -424,87 +500,98 @@ export default function AdminSecretsPage() {
               <p className="text-neutral-500 text-sm mt-0.5">Manage secret images for this book</p>
             </div>
           </div>
-          <Button onClick={() => setShowAddForm(!showAddForm)} className="bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white">
-            {showAddForm ? 'Cancel' : <><Plus className="h-4 w-4 mr-2" /> Upload Folders</>}
-          </Button>
+          <div className="flex items-center gap-2">
+            {secrets.length > 0 && (
+              <Button onClick={() => setShowDeleteAllModal(true)} variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+                <Trash2 className="h-4 w-4 mr-2" /> Delete All
+              </Button>
+            )}
+            <Button onClick={() => setShowAddForm(!showAddForm)} className="bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white">
+              {showAddForm ? 'Cancel' : <><Plus className="h-4 w-4 mr-2" /> Upload Folders</>}
+            </Button>
+          </div>
         </div>
 
-        {showAddForm && (
-          <Card className="bg-neutral-50 shadow-sm border-dashed">
-            <CardContent className="p-6">
-              <div className="mb-4 text-sm text-neutral-500 bg-neutral-100 p-4 border border-neutral-200 rounded-md">
-                <strong>Important:</strong> Please select the <strong>entire folder</strong> containing your color images, and the <strong>entire folder</strong> containing your uncolor images. Make sure both folders contain the exact same amount of images (e.g. 50). The system will automatically sort them from 1 to 50 based on their filenames and pair them together. 
+        <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Upload Folders</DialogTitle>
+              <DialogDescription>
+                Please select the <strong>entire folder</strong> containing your color images, and the <strong>entire folder</strong> containing your uncolor images. Make sure both folders contain the exact same amount of images (e.g. 50). The system will automatically sort them from 1 to 50 based on their filenames and pair them together.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2 mt-4">
+              <div className="border border-neutral-200 p-4 rounded-md bg-neutral-50">
+                <label className="block text-sm font-semibold mb-2">1. Select Color Folder</label>
+                <p className="text-xs text-neutral-500 mb-3">Contains colored versions (e.g., 1.jpg, 2.jpg...)</p>
+                <Input
+                  ref={colorInputRef}
+                  type="file"
+                  // @ts-expect-error - webkitdirectory is standard in most modern browsers but missing from generic React types
+                  webkitdirectory="true"
+                  directory="true"
+                  multiple
+                  onChange={handleColorFolderSelect}
+                  className="cursor-pointer bg-white"
+                />
+                {colorImages.length > 0 && (
+                  <p className="text-sm mt-3 font-medium text-[var(--mosaic-teal)]">✓ Found {colorImages.length} color images</p>
+                )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="border border-neutral-200 p-4 rounded-md bg-white">
-                  <label className="block text-sm font-semibold mb-2">1. Select Color Folder</label>
-                  <p className="text-xs text-neutral-500 mb-3">Contains colored versions (e.g., 1.jpg, 2.jpg...)</p>
-                  <Input 
-                    ref={colorInputRef} 
-                    type="file" 
-                    // @ts-expect-error - webkitdirectory is standard in most modern browsers but missing from generic React types
-                    webkitdirectory="true" 
-                    directory="true"
-                    multiple 
-                    onChange={handleColorFolderSelect} 
-                    className="cursor-pointer"
-                  />
-                  {colorImages.length > 0 && (
-                    <p className="text-sm mt-3 font-medium text-[var(--mosaic-teal)]">✓ Found {colorImages.length} color images</p>
-                  )}
-                </div>
-                <div className="border border-neutral-200 p-4 rounded-md bg-white">
-                  <label className="block text-sm font-semibold mb-2">2. Select Uncolor Folder</label>
-                  <p className="text-xs text-neutral-500 mb-3">Contains uncolored versions (e.g., 1.jpg, 2.jpg...)</p>
-                  <Input 
-                    ref={uncolorInputRef} 
-                    type="file" 
-                    // @ts-expect-error - webkitdirectory is standard in most modern browsers but missing from generic React types
-                    webkitdirectory="true" 
-                    directory="true"
-                    multiple 
-                    onChange={handleUncolorFolderSelect}
-                    className="cursor-pointer" 
-                  />
-                  {uncolorImages.length > 0 && (
-                     <p className="text-sm mt-3 font-medium text-[var(--mosaic-teal)]">✓ Found {uncolorImages.length} uncolor images</p>
-                  )}
-                </div>
+              <div className="border border-neutral-200 p-4 rounded-md bg-neutral-50">
+                <label className="block text-sm font-semibold mb-2">2. Select Uncolor Folder</label>
+                <p className="text-xs text-neutral-500 mb-3">Contains uncolored versions (e.g., 1.jpg, 2.jpg...)</p>
+                <Input
+                  ref={uncolorInputRef}
+                  type="file"
+                  // @ts-expect-error - webkitdirectory is standard in most modern browsers but missing from generic React types
+                  webkitdirectory="true"
+                  directory="true"
+                  multiple
+                  onChange={handleUncolorFolderSelect}
+                  className="cursor-pointer bg-white"
+                />
+                {uncolorImages.length > 0 && (
+                  <p className="text-sm mt-3 font-medium text-[var(--mosaic-teal)]">✓ Found {uncolorImages.length} uncolor images</p>
+                )}
               </div>
-              
-              {isSubmitting && (
-                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <div className="flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-blue-900">
-                        Uploading secret pairs... Please wait.
-                      </p>
-                      <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                          style={{ width: `${totalUploads > 0 ? (uploadProgress / totalUploads) * 100 : 0}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-blue-800 mt-1">{uploadProgress} of {totalUploads} completed</p>
+            </div>
+
+            {isSubmitting && (
+              <div className="mb-2 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-blue-900">
+                      Uploading secret pairs... Please wait.
+                    </p>
+                    <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                        style={{ width: `${totalUploads > 0 ? (uploadProgress / totalUploads) * 100 : 0}%` }}
+                      />
                     </div>
+                    <p className="text-xs text-blue-800 mt-1">{uploadProgress} of {totalUploads} completed</p>
                   </div>
                 </div>
-              )}
-
-              <div className="flex justify-end pr-1">
-                <Button 
-                  onClick={handleAddSecretsBulk} 
-                  disabled={colorImages.length === 0 || uncolorImages.length === 0 || colorImages.length !== uncolorImages.length || isSubmitting}
-                  className="bg-neutral-900 text-white whitespace-nowrap"
-                >
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-                  {isSubmitting ? 'Uploading & Saving Folders...' : `Upload ${colorImages.length} Pairs`}
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            )}
+
+            <div className="flex justify-end pt-4 mt-2 border-t border-neutral-100">
+              <Button onClick={() => setShowAddForm(false)} variant="outline" className="mr-2" disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddSecretsBulk}
+                disabled={colorImages.length === 0 || uncolorImages.length === 0 || colorImages.length !== uncolorImages.length || isSubmitting}
+                className="bg-neutral-900 text-white whitespace-nowrap"
+              >
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                {isSubmitting ? 'Uploading & Saving Folders...' : `Upload ${colorImages.length} Pairs`}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {isLoadingSecrets ? (
           <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-neutral-400" /></div>
@@ -541,7 +628,7 @@ export default function AdminSecretsPage() {
           </div>
         )}
 
-        <AlertDialog open={!!secretToDelete} onOpenChange={(open) => !open && setSecretToDelete(null)}>
+        <AlertDialog open={!!secretToDelete} onOpenChange={(open) => !open && !deletingId && setSecretToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -550,10 +637,11 @@ export default function AdminSecretsPage() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDeleteSecret} className="bg-red-600 hover:bg-red-700 text-white">
+              <AlertDialogCancel disabled={!!deletingId}>Cancel</AlertDialogCancel>
+              <Button onClick={confirmDeleteSecret} disabled={!!deletingId} className="bg-red-600 hover:bg-red-700 text-white">
+                {deletingId ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                 Delete
-              </AlertDialogAction>
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -571,15 +659,15 @@ export default function AdminSecretsPage() {
               <div>
                 <label className="block text-sm font-medium mb-1 line-clamp-1">Secret Key (6 Characters)</label>
                 <div className="flex gap-2">
-                  <Input 
-                    type="text" 
+                  <Input
+                    type="text"
                     placeholder="e.g. SECRET"
                     value={editKey}
                     onChange={(e) => setEditKey(e.target.value.toUpperCase().slice(0, 6))}
                     className="uppercase"
                   />
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setEditKey(generateSecretKey())}
                     className="whitespace-nowrap"
                   >
@@ -588,11 +676,11 @@ export default function AdminSecretsPage() {
                 </div>
                 <p className="text-[11px] text-neutral-500 mt-1">Leave blank for a public book, or enter exactly 6 characters.</p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium mb-1">Amazon Buy Link</label>
-                <Input 
-                  type="url" 
+                <Input
+                  type="url"
                   placeholder="https://amazon.com/dp/XXXXXX"
                   value={editAmazonUrl}
                   onChange={(e) => setEditAmazonUrl(e.target.value)}
@@ -606,6 +694,25 @@ export default function AdminSecretsPage() {
               <Button onClick={handleUpdateBookSettings} disabled={isUpdatingSettings} className="bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white">
                 {isUpdatingSettings ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Save Settings
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete All Modal */}
+        <AlertDialog open={showDeleteAllModal} onOpenChange={setShowDeleteAllModal}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete All Images?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete all {secrets.length} images in this folder? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeletingAll}>Cancel</AlertDialogCancel>
+              <Button onClick={handleDeleteAllSecrets} disabled={isDeletingAll} className="bg-red-600 hover:bg-red-700 text-white">
+                {isDeletingAll ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                Yes, Delete All
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -627,71 +734,77 @@ export default function AdminSecretsPage() {
         </Button>
       </div>
 
-      {showCreateBook && (
-        <Card className="bg-neutral-50 shadow-sm border-dashed">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">Create New Secret Book</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-medium mb-1">Book Title <span className="text-red-500">*</span></label>
-                <Input 
-                  type="text" 
-                  placeholder="e.g. Animals Volume 1"
-                  value={newBookTitle}
-                  onChange={(e) => setNewBookTitle(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Cover Image <span className="text-red-500">*</span></label>
-                <Input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => setNewBookImage(e.target.files?.[0] || null)} 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Secret Key (Optional)</label>
-                <div className="flex gap-2">
-                  <Input 
-                    type="text" 
-                    placeholder="Enter up to 6 characters"
-                    value={newBookKey}
-                    onChange={(e) => setNewBookKey(e.target.value.toUpperCase().slice(0, 6))}
-                    className="uppercase"
-                  />
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setNewBookKey(generateSecretKey())}
-                    className="whitespace-nowrap"
-                  >
-                    Generate
-                  </Button>
-                </div>
-                <p className="text-xs text-neutral-500 mt-1">Leave blank for a public book, or enter exactly 6 characters to lock it.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Amazon Buy Link (Optional)</label>
-                <Input 
-                  type="url" 
-                  placeholder="https://amazon.com/dp/XXXXXX"
-                  value={newBookAmazonUrl}
-                  onChange={(e) => setNewBookAmazonUrl(e.target.value)}
-                />
-              </div>
+      <Dialog open={showCreateBook} onOpenChange={setShowCreateBook}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Create New Secret Book</DialogTitle>
+            <DialogDescription>
+              Add a new coloring book for users to explore. Include the Amazon link and a secret key if it requires purchase.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+            <div>
+              <label className="block text-sm font-medium mb-1">Book Title <span className="text-red-500">*</span></label>
+              <Input
+                type="text"
+                placeholder="e.g. Animals Volume 1"
+                value={newBookTitle}
+                onChange={(e) => setNewBookTitle(e.target.value)}
+              />
             </div>
-            <div className="flex justify-end">
-              <Button 
-                onClick={handleCreateBook} 
-                disabled={!newBookTitle || !newBookImage || isCreatingBook}
-                className="bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white"
-              >
-                {isCreatingBook ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                {isCreatingBook ? 'Creating...' : 'Create Secret Book'}
-              </Button>
+            <div>
+              <label className="block text-sm font-medium mb-1">Cover Image <span className="text-red-500">*</span></label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setNewBookImage(e.target.files?.[0] || null)}
+              />
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div>
+              <label className="block text-sm font-medium mb-1">Secret Key (Optional)</label>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="e.g. SECRET"
+                  value={newBookKey}
+                  onChange={(e) => setNewBookKey(e.target.value.toUpperCase().slice(0, 6))}
+                  className="uppercase"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => setNewBookKey(generateSecretKey())}
+                  className="whitespace-nowrap px-3"
+                >
+                  Gen
+                </Button>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-1">Leave blank for public, or enter 6 chars.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Amazon Link (Optional)</label>
+              <Input
+                type="url"
+                placeholder="https://amazon.com/..."
+                value={newBookAmazonUrl}
+                onChange={(e) => setNewBookAmazonUrl(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end pt-4 mt-2 border-t border-neutral-100">
+            <Button onClick={() => setShowCreateBook(false)} variant="outline" className="mr-2" disabled={isCreatingBook}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateBook}
+              disabled={!newBookTitle || !newBookImage || isCreatingBook}
+              className="bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white"
+            >
+              {isCreatingBook ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+              {isCreatingBook ? 'Creating...' : 'Create Book'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {isLoadingBooks ? (
         <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-neutral-400" /></div>
@@ -723,7 +836,7 @@ export default function AdminSecretsPage() {
                     <BookOpen className="h-10 w-10 text-neutral-300" />
                   </div>
                 )}
-                
+
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
                     variant="destructive"
@@ -750,7 +863,7 @@ export default function AdminSecretsPage() {
         </div>
       )}
 
-      <AlertDialog open={!!bookToDelete} onOpenChange={(open) => !open && setBookToDelete(null)}>
+      <AlertDialog open={!!bookToDelete} onOpenChange={(open) => !open && !isDeletingBook && setBookToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Secret Book?</AlertDialogTitle>
@@ -759,10 +872,11 @@ export default function AdminSecretsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteBook} className="bg-red-600 hover:bg-red-700 text-white">
+            <AlertDialogCancel disabled={isDeletingBook}>Cancel</AlertDialogCancel>
+            <Button onClick={confirmDeleteBook} disabled={isDeletingBook} className="bg-red-600 hover:bg-red-700 text-white">
+              {isDeletingBook ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Delete
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

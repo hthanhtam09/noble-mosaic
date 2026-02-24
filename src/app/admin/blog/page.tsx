@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+import { useToast } from "@/hooks/use-toast";
+
 interface BlogPost {
   _id: string;
   title: string;
@@ -28,26 +30,46 @@ interface BlogPost {
 
 export default function AdminBlogPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: posts = [], isLoading } = useAdminBlogPosts();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [processingSlug, setProcessingSlug] = useState<string | null>(null);
 
   const handleDelete = async (slug: string) => {
     if (confirm('Are you sure you want to delete this post?')) {
+      setProcessingSlug(slug);
       try {
         const response = await fetch(`/api/blog/${slug}`, {
           method: 'DELETE',
         });
-        
+
         if (response.ok) {
           queryClient.setQueryData(['admin-blog-posts'], (old: BlogPost[] | undefined) => {
             if (!old) return [];
             return old.filter(p => p.slug !== slug);
           });
+          toast({
+            title: "Post Deleted",
+            description: "The blog post has been successfully deleted."
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete the blog post.",
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error('Error deleting post:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while deleting the post.",
+          variant: "destructive"
+        });
+      } finally {
+        setProcessingSlug(null);
       }
     }
   };
@@ -123,7 +145,7 @@ export default function AdminBlogPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-medium text-neutral-900 truncate">{post.title}</h3>
-                      <Badge 
+                      <Badge
                         variant={post.published ? 'default' : 'secondary'}
                         className={post.published ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500'}
                       >
@@ -147,8 +169,12 @@ export default function AdminBlogPage() {
                   <div className="flex items-center gap-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" disabled={processingSlug === post.slug}>
+                          {processingSlug === post.slug ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+                          ) : (
+                            <MoreVertical className="h-4 w-4" />
+                          )}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -158,9 +184,10 @@ export default function AdminBlogPage() {
                             Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
+                        <DropdownMenuItem
+                          className="text-red-600 focus:text-red-600"
                           onClick={() => handleDelete(post.slug)}
+                          disabled={processingSlug === post.slug}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete

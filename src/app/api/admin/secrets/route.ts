@@ -47,3 +47,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create secret' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await connectDB();
+    const searchParams = request.nextUrl.searchParams;
+    const bookId = searchParams.get('bookId');
+    
+    if (!bookId) {
+      return NextResponse.json({ error: 'bookId is required' }, { status: 400 });
+    }
+    
+    await SecretImage.deleteMany({ secretBook: bookId });
+    
+    return NextResponse.json({ message: 'All secrets deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting secrets:', error);
+    return NextResponse.json({ error: 'Failed to delete secrets' }, { status: 500 });
+  }
+}
