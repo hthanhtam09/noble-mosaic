@@ -90,9 +90,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Replace with your actual verification codes
-    // google: 'your-google-verification-code',
-    // yandex: 'your-yandex-verification-code',
+    yandex: '812de3219658eb7e',
   },
 };
 

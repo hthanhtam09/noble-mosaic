@@ -1,19 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useGiftFolders } from '@/hooks/api/useGift';
+import { useGiftLinks } from '@/hooks/api/useGift';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Download, Mail, Loader2, 
   Palette, Lock,
-  ChevronDown, ChevronUp, FolderHeart, ShieldCheck
+  ShieldCheck, ExternalLink, Gift
 } from 'lucide-react';
 import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
@@ -27,33 +26,13 @@ export default function GiftPageClient() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState('');
   const { toast } = useToast();
-  const { data: folders = [], isLoading } = useGiftFolders();
-
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const { data: giftLinks = [], isLoading } = useGiftLinks();
 
   useEffect(() => {
     if (localStorage.getItem('gift_verified') === 'true') {
       setIsSubscribed(true);
     }
   }, []);
-
-  useEffect(() => {
-    if (folders.length > 0 && expandedFolders.size === 0) {
-      setExpandedFolders(new Set(folders.map(f => f._id)));
-    }
-  }, [folders]);
-
-  const toggleFolder = (folderId: string) => {
-    setExpandedFolders(prev => {
-      const next = new Set(prev);
-      if (next.has(folderId)) {
-        next.delete(folderId);
-      } else {
-        next.add(folderId);
-      }
-      return next;
-    });
-  };
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +79,7 @@ export default function GiftPageClient() {
         localStorage.setItem('gift_verified', 'true');
         toast({
           title: "You're In! 🎉",
-          description: 'Your gift is now unlocked. Enjoy your free coloring pages!',
+          description: 'Your gift is now unlocked. Enjoy your free downloads!',
         });
       } else {
         setError(data.error || 'Invalid or expired code');
@@ -112,25 +91,18 @@ export default function GiftPageClient() {
     }
   };
 
-  const handleDownload = async (imageUrl: string, title: string) => {
-    try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) throw new Error('Network response was not ok');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${title}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download failed:', error);
-      // Fallback
-      window.open(imageUrl, '_blank');
-    }
+  const handleOpenLink = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
+
+  const colorVars = [
+    'var(--mosaic-coral)',
+    'var(--mosaic-purple)',
+    'var(--mosaic-teal)',
+    'var(--mosaic-gold)',
+    'var(--mosaic-sage)',
+    'var(--mosaic-rose)',
+  ];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -145,7 +117,7 @@ export default function GiftPageClient() {
       
       <main className="flex-grow">
         {/* SEO heading */}
-        <h1 className="sr-only">Free Mosaic Coloring Pages - Download Your Gift</h1>
+        <h1 className="sr-only">Free Mosaic Coloring Books - Download Your Gift</h1>
 
         {/* Subscription Form — only shown if not subscribed */}
         {!isSubscribed && (
@@ -269,7 +241,7 @@ export default function GiftPageClient() {
           </section>
         )}
 
-        {/* Free Pages - Grouped by Folder */}
+        {/* Gift Links Section */}
         <section className={`py-16 ${isSubscribed ? 'bg-white' : 'bg-neutral-50'}`}>
           <div className="layout-inner">
             <div className="text-center mb-12">
@@ -278,7 +250,7 @@ export default function GiftPageClient() {
               </h2>
               <p className="text-neutral-600">
                 {isSubscribed 
-                  ? 'Click on any page to download the printable image'
+                  ? 'Click on any item to download your free coloring book'
                   : 'Subscribe above to unlock all gifts'
                 }
               </p>
@@ -288,125 +260,91 @@ export default function GiftPageClient() {
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
               </div>
-            ) : folders.length === 0 ? (
+            ) : giftLinks.length === 0 ? (
               <div className="text-center py-16">
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-50 to-[var(--mosaic-coral)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neutral-100">
-                  <FolderHeart className="h-10 w-10 text-neutral-300" />
+                  <Gift className="h-10 w-10 text-neutral-300" />
                 </div>
-                <p className="text-neutral-500 text-lg">No coloring pages available yet. Check back soon!</p>
+                <p className="text-neutral-500 text-lg">No gifts available yet. Check back soon!</p>
               </div>
             ) : (
-              <div className="space-y-8">
-                {folders.map((folder) => (
-                  <div key={folder._id}>
-                    {/* Folder header */}
-                    <button
-                      onClick={() => toggleFolder(folder._id)}
-                      className="w-full flex items-start justify-between group mb-8 text-left gap-4"
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {giftLinks.map((link, index) => {
+                  const color = colorVars[index % colorVars.length];
+
+                  return (
+                    <div 
+                      key={link._id} 
+                      className={`mosaic-card group relative overflow-hidden transition-all duration-300 rounded-xl ${
+                        isSubscribed 
+                          ? 'cursor-pointer hover:shadow-lg' 
+                          : 'opacity-70 grayscale'
+                      }`}
+                      onClick={() => isSubscribed && handleOpenLink(link.url)}
                     >
-                      <div className="flex items-start gap-4 flex-1 min-w-0">
-                        <div className="relative flex-none shrink-0 w-12 h-12 min-w-[48px] min-h-[48px] rounded-xl bg-gradient-to-br from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] flex items-center justify-center shadow-md shadow-[var(--mosaic-purple)]/20 group-hover:scale-105 transition-all duration-300 overflow-hidden">
-                          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          <FolderHeart className="h-6 w-6 text-white relative z-10" />
-                        </div>
-                        <div className="flex-1 min-w-0 pt-0.5 pr-4">
-                          <div className="flex items-center gap-3 flex-wrap mb-1.5">
-                            <h3 className="text-xl md:text-2xl font-serif font-bold text-neutral-900 group-hover:text-purple-700 transition-colors leading-tight">
-                              {folder.name}
-                            </h3>
-                            <Badge variant="secondary" className="bg-neutral-100 text-neutral-600 shrink-0 flex-none">
-                              {folder.pages?.length || 0} pages
-                            </Badge>
-                          </div>
-                          {folder.description && (
-                            <p className="text-sm md:text-base text-neutral-500 whitespace-normal leading-relaxed">{folder.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-neutral-400 flex-none shrink-0 pt-3">
-                        {expandedFolders.has(folder._id) ? (
-                          <ChevronUp className="h-6 w-6" />
+                      {/* Thumbnail */}
+                      <div className="relative aspect-[3/4] bg-neutral-100">
+                        {link.thumbnail ? (
+                          <Image
+                            src={link.thumbnail}
+                            alt={link.title}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                          />
                         ) : (
-                          <ChevronDown className="h-6 w-6" />
+                          <div className="flex items-center justify-center h-full bg-gradient-to-br from-neutral-100 to-neutral-50">
+                            <Gift className="h-12 w-12 text-neutral-300" />
+                          </div>
+                        )}
+                        
+                        {/* Lock overlay when not subscribed */}
+                        {!isSubscribed && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
+                              <Lock className="h-6 w-6 text-neutral-500" />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Download overlay on hover when subscribed */}
+                        {isSubscribed && (
+                          <div className="absolute inset-0 bg-black/0 hover:bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-all">
+                            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
+                              <Download className="h-7 w-7" style={{ color }} />
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </button>
-
-                    {/* Folder pages grid */}
-                    {expandedFolders.has(folder._id) && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {(folder.pages || []).map((page) => {
-                          const colorVars = [
-                            'var(--mosaic-coral)',
-                            'var(--mosaic-purple)',
-                            'var(--mosaic-teal)',
-                            'var(--mosaic-gold)',
-                            'var(--mosaic-sage)',
-                            'var(--mosaic-rose)',
-                          ];
-                          const color = colorVars[page.order % colorVars.length];
-
-                          return (
-                            <div 
-                              key={page._id} 
-                              className={`mosaic-card group relative overflow-hidden transition-all duration-300 rounded-xl ${
-                                isSubscribed 
-                                  ? 'cursor-pointer hover:shadow-lg' 
-                                  : 'opacity-70 grayscale'
-                              }`}
-                              onClick={() => isSubscribed && handleDownload(page.imageUrl, page.title)}
-                            >
-                              <div className="relative aspect-[3/4] bg-neutral-100">
-                                <Image
-                                  src={page.imageUrl}
-                                  alt={page.title}
-                                  fill
-                                  className="object-cover"
-                                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                                />
-                                
-                                {!isSubscribed && (
-                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                    <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                                      <Lock className="h-6 w-6 text-neutral-500" />
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {isSubscribed && (
-                                  <div className="absolute inset-0 bg-black/0 hover:bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-all">
-                                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
-                                      <Download className="h-7 w-7" style={{ color }} />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              <CardContent className="p-3">
-                                {isSubscribed && (
-                                  <Button 
-                                    className="w-full mt-2 text-white rounded-xl text-xs h-8"
-                                    style={{ backgroundColor: color }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDownload(page.imageUrl, page.title);
-                                    }}
-                                  >
-                                    <Download className="h-3 w-3 mr-1" />
-                                    Download
-                                  </Button>
-                                )}
-                              </CardContent>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Divider between folders */}
-                    <div className="border-b border-neutral-200 mt-6" />
-                  </div>
-                ))}
+                      
+                      {/* Info + Download button */}
+                      <CardContent className="p-3">
+                        <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 mb-1">
+                          {link.title}
+                        </h3>
+                        {link.description && (
+                          <p className="text-xs text-neutral-500 line-clamp-1 mb-2">
+                            {link.description}
+                          </p>
+                        )}
+                        {isSubscribed && (
+                          <Button 
+                            className="w-full mt-1 text-white rounded-xl text-xs h-8 group/btn"
+                            style={{ backgroundColor: color }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenLink(link.url);
+                            }}
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
+                            <ExternalLink className="h-2.5 w-2.5 ml-1 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                          </Button>
+                        )}
+                      </CardContent>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
