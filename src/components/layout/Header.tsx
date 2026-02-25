@@ -9,7 +9,7 @@ import Image from "next/image";
 
 const navigation = [
   { name: "Home", href: "/" },
-  { name: "Shop", href: "/shop" },
+  { name: "Books", href: "/books" },
   { name: "Secret", href: "/secret" },
   { name: "About", href: "/about" },
   { name: "Blog", href: "/blog" },
@@ -110,8 +110,8 @@ export default function Header() {
               asChild
               className="w-full bg-neutral-900 hover:bg-neutral-800 text-white rounded-full font-extrabold font-nunito"
             >
-              <Link href="/shop" onClick={() => setMobileMenuOpen(false)}>
-                Shop Now
+              <Link href="/books" onClick={() => setMobileMenuOpen(false)}>
+                Browse Books
               </Link>
             </Button>
           </div>

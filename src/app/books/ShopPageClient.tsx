@@ -78,12 +78,12 @@ function ShopContent() {
       <CollectionPageJsonLd
         name="Shop All Coloring Books"
         description="Browse our complete collection of premium mosaic color by number books for adults."
-        url="https://noblemosaic.com/shop"
+        url="https://noblemosaic.com/books"
       />
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
-          { name: 'Shop', url: 'https://noblemosaic.com/shop' },
+          { name: 'Books', url: 'https://noblemosaic.com/books' },
         ]}
       />
 

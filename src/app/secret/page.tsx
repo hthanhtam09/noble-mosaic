@@ -132,16 +132,16 @@ export default function SecretPage() {
               Discover All Our Books
             </h2>
             <p className="text-lg text-neutral-500 mb-8">
-              Want to see the full collection? Browse our shop for all mosaic color by number books.
+              Want to see the full collection? Browse our books for all mosaic color by number books.
             </p>
             <Button
               asChild
               size="lg"
               className="bg-gradient-to-r from-neutral-800 to-neutral-700 text-white hover:opacity-90 rounded-full px-8 shadow-xl shadow-neutral-200"
             >
-              <Link href="/shop">
+              <Link href="/books">
                 <Palette className="mr-2 h-5 w-5" />
-                Explore Shop
+                Explore Books
               </Link>
             </Button>
           </div>

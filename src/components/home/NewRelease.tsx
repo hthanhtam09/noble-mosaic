@@ -17,7 +17,7 @@ export default function NewRelease() {
             New Release
           </h2>
           <Link
-            href="/shop"
+            href="/books"
             className="text-base font-medium text-neutral-600 hover:text-neutral-900 border-b border-neutral-600 pb-0.5 transition-colors"
             aria-label="View more New Release"
           >

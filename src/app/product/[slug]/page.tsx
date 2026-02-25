@@ -79,7 +79,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
-          { name: 'Shop', url: 'https://noblemosaic.com/shop' },
+          { name: 'Books', url: 'https://noblemosaic.com/books' },
           { name: productName, url: `https://noblemosaic.com/product/${slug}` },
         ]}
       />

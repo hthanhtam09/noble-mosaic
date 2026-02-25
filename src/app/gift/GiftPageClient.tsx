@@ -369,9 +369,9 @@ export default function GiftPageClient() {
               size="lg" 
               className="bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] text-white hover:opacity-90 rounded-full px-8"
             >
-              <a href="/shop">
+              <a href="/books">
                 <Palette className="mr-2 h-5 w-5" />
-                Shop All Books
+                Browse All Books
               </a>
             </Button>
           </div>

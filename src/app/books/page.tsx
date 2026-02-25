@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   description:
     'Browse our complete collection of premium mosaic color by number books. Filter by theme, difficulty, and find the perfect coloring book for relaxation and creative expression.',
   alternates: {
-    canonical: 'https://noblemosaic.com/shop',
+    canonical: 'https://noblemosaic.com/books',
   },
   openGraph: {
     title: 'Shop All Coloring Books | Noble Mosaic',
     description:
       'Browse our complete collection of premium mosaic color by number books for adults. Animals, flowers, mandalas, and more.',
-    url: 'https://noblemosaic.com/shop',
+    url: 'https://noblemosaic.com/books',
     type: 'website',
   },
   twitter: {
@@ -30,7 +30,7 @@ export default function ShopPage() {
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
-          { name: 'Shop', url: 'https://noblemosaic.com/shop' },
+          { name: 'Books', url: 'https://noblemosaic.com/books' },
         ]}
       />
       <ShopPageClient />

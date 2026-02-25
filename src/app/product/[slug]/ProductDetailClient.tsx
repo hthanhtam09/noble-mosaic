@@ -107,7 +107,7 @@ export default function ProductDetailClient() {
           <h1 className="text-2xl font-serif font-bold text-neutral-900 mb-4">Product Not Found</h1>
           <p className="text-neutral-500 mb-6">The product you&apos;re looking for doesn&apos;t exist.</p>
           <Button asChild variant="outline">
-            <Link href="/shop">Back to Shop</Link>
+            <Link href="/books">Back to Books</Link>
           </Button>
         </div>
         <Footer />
@@ -132,7 +132,7 @@ export default function ProductDetailClient() {
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
-          { name: 'Shop', url: 'https://noblemosaic.com/shop' },
+          { name: 'Books', url: 'https://noblemosaic.com/books' },
           {
             name: product.title,
             url: `https://noblemosaic.com/product/${product.slug}`,
@@ -149,7 +149,7 @@ export default function ProductDetailClient() {
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-neutral-500">
               <Link href="/" className="hover:text-neutral-700 transition-colors">Home</Link>
               <span>/</span>
-              <Link href="/shop" className="hover:text-neutral-700 transition-colors">Shop</Link>
+              <Link href="/books" className="hover:text-neutral-700 transition-colors">Books</Link>
               <span>/</span>
               <span className="text-neutral-900 font-medium">{product.title}</span>
             </nav>

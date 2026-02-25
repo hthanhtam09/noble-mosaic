@@ -216,7 +216,7 @@ export default function BlogPostClient() {
                 </div>
               </div>
               <Button asChild variant="outline">
-                <Link href="/shop">Explore Our Books</Link>
+                <Link href="/books">Explore Our Books</Link>
               </Button>
             </div>
           </div>

@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Gift, Heart, Palette } from 'lucide-react';
 
 const footerLinks = {
-  shop: [
-    { name: 'All Books', href: '/shop' },
-    { name: 'Animals', href: '/shop?theme=Animals' },
-    { name: 'Flowers', href: '/shop?theme=Flowers' },
-    { name: 'Mandala', href: '/shop?theme=Mandala' },
+  books: [
+    { name: 'All Books', href: '/books' },
+    { name: 'Animals', href: '/books?theme=Animals' },
+    { name: 'Flowers', href: '/books?theme=Flowers' },
+    { name: 'Mandala', href: '/books?theme=Mandala' },
   ],
   company: [
     { name: 'About Us', href: '/about' },
@@ -66,14 +66,14 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Shop Links */}
+          {/* Books Links */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
               <Palette className="h-4 w-4 text-[var(--mosaic-gold)]" />
-              Shop
+              Books
             </h3>
             <ul className="mt-4 space-y-3">
-              {footerLinks.shop.map((link) => (
+              {footerLinks.books.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
