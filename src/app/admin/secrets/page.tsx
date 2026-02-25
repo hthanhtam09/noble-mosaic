@@ -37,7 +37,8 @@ interface SecretBook {
   slug: string;
   coverImage: string;
   secretKey?: string;
-  amazonUrl?: string;
+  amazonUrlStandard?: string;
+  amazonUrlPremium?: string;
 }
 
 interface SecretImage {
@@ -63,7 +64,8 @@ export default function AdminSecretsPage() {
   const [newBookTitle, setNewBookTitle] = useState('');
   const [newBookImage, setNewBookImage] = useState<File | null>(null);
   const [newBookKey, setNewBookKey] = useState('');
-  const [newBookAmazonUrl, setNewBookAmazonUrl] = useState('');
+  const [newBookAmazonUrlStandard, setNewBookAmazonUrlStandard] = useState('');
+  const [newBookAmazonUrlPremium, setNewBookAmazonUrlPremium] = useState('');
   const [isCreatingBook, setIsCreatingBook] = useState(false);
 
   // Upload Secrets state
@@ -85,8 +87,11 @@ export default function AdminSecretsPage() {
 
   // Book Settings state
   const [showBookSettingsModal, setShowBookSettingsModal] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCoverImage, setEditCoverImage] = useState<File | null>(null);
   const [editKey, setEditKey] = useState('');
-  const [editAmazonUrl, setEditAmazonUrl] = useState('');
+  const [editAmazonUrlStandard, setEditAmazonUrlStandard] = useState('');
+  const [editAmazonUrlPremium, setEditAmazonUrlPremium] = useState('');
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
   // Delete All state
@@ -142,7 +147,8 @@ export default function AdminSecretsPage() {
           title: newBookTitle,
           coverImage: coverImageUrl,
           secretKey: newBookKey || undefined,
-          amazonUrl: newBookAmazonUrl || undefined,
+          amazonUrlStandard: newBookAmazonUrlStandard || undefined,
+          amazonUrlPremium: newBookAmazonUrlPremium || undefined,
         })
       });
 
@@ -151,7 +157,8 @@ export default function AdminSecretsPage() {
         setNewBookTitle('');
         setNewBookImage(null);
         setNewBookKey('');
-        setNewBookAmazonUrl('');
+        setNewBookAmazonUrlStandard('');
+        setNewBookAmazonUrlPremium('');
         queryClient.invalidateQueries({ queryKey: ['admin-secret-books'] });
         toast({
           title: "Book created",
@@ -224,14 +231,31 @@ export default function AdminSecretsPage() {
 
   const handleUpdateBookSettings = async () => {
     if (!selectedBook) return;
+    if (!editTitle) {
+      toast({
+        title: "Missing fields",
+        description: "Please provide a title.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsUpdatingSettings(true);
     try {
+      let coverImageUrl = selectedBook.coverImage;
+      if (editCoverImage) {
+        coverImageUrl = await uploadFile(editCoverImage, 'secrets/covers');
+      }
+
       const res = await fetch(`/api/admin/secret-books/${selectedBook._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          title: editTitle,
+          coverImage: coverImageUrl,
           secretKey: editKey || undefined,
-          amazonUrl: editAmazonUrl || undefined,
+          amazonUrlStandard: editAmazonUrlStandard || undefined,
+          amazonUrlPremium: editAmazonUrlPremium || undefined,
         })
       });
 
@@ -239,8 +263,11 @@ export default function AdminSecretsPage() {
         setShowBookSettingsModal(false);
         const updatedBook = {
           ...selectedBook,
+          title: editTitle,
+          coverImage: coverImageUrl,
           secretKey: editKey || undefined,
-          amazonUrl: editAmazonUrl || undefined,
+          amazonUrlStandard: editAmazonUrlStandard || undefined,
+          amazonUrlPremium: editAmazonUrlPremium || undefined,
         };
         setSelectedBook(updatedBook);
         queryClient.setQueryData(['admin-secret-books'], (old: SecretBook[] | undefined) => {
@@ -488,8 +515,11 @@ export default function AdminSecretsPage() {
                     size="sm"
                     className="h-6 text-xs px-2 text-neutral-500 hover:text-neutral-900"
                     onClick={() => {
+                      setEditTitle(selectedBook.title || '');
+                      setEditCoverImage(null);
                       setEditKey(selectedBook.secretKey || '');
-                      setEditAmazonUrl(selectedBook.amazonUrl || '');
+                      setEditAmazonUrlStandard(selectedBook.amazonUrlStandard || '');
+                      setEditAmazonUrlPremium(selectedBook.amazonUrlPremium || '');
                       setShowBookSettingsModal(true);
                     }}
                   >
@@ -657,6 +687,37 @@ export default function AdminSecretsPage() {
             </AlertDialogHeader>
             <div className="py-2 space-y-4">
               <div>
+                <label className="block text-sm font-medium mb-1 line-clamp-1">Book Title <span className="text-red-500">*</span></label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Animals Volume 1"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Cover Image</label>
+                <div className="flex gap-2 items-center">
+                  <div className="relative w-12 h-16 rounded overflow-hidden shadow-sm bg-neutral-100 flex-shrink-0">
+                    <Image
+                      src={editCoverImage ? URL.createObjectURL(editCoverImage) : selectedBook.coverImage}
+                      alt="Current Cover"
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setEditCoverImage(e.target.files?.[0] || null)}
+                  />
+                </div>
+                <p className="text-[11px] text-neutral-500 mt-1">Leave empty to keep current cover.</p>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-1 line-clamp-1">Secret Key (6 Characters)</label>
                 <div className="flex gap-2">
                   <Input
@@ -678,14 +739,23 @@ export default function AdminSecretsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Amazon Buy Link</label>
+                <label className="block text-sm font-medium mb-1">Amazon Standard Link</label>
                 <Input
                   type="url"
                   placeholder="https://amazon.com/dp/XXXXXX"
-                  value={editAmazonUrl}
-                  onChange={(e) => setEditAmazonUrl(e.target.value)}
+                  value={editAmazonUrlStandard}
+                  onChange={(e) => setEditAmazonUrlStandard(e.target.value)}
                 />
-                <p className="text-[11px] text-neutral-500 mt-1">Link visitors to purchase to obtain the key.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Amazon Premium Link</label>
+                <Input
+                  type="url"
+                  placeholder="https://amazon.com/dp/XXXXXX"
+                  value={editAmazonUrlPremium}
+                  onChange={(e) => setEditAmazonUrlPremium(e.target.value)}
+                />
               </div>
 
             </div>
@@ -781,12 +851,21 @@ export default function AdminSecretsPage() {
               <p className="text-[11px] text-neutral-500 mt-1">Leave blank for public, or enter 6 chars.</p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Amazon Link (Optional)</label>
+              <label className="block text-sm font-medium mb-1">Amazon Standard Link (Optional)</label>
               <Input
                 type="url"
                 placeholder="https://amazon.com/..."
-                value={newBookAmazonUrl}
-                onChange={(e) => setNewBookAmazonUrl(e.target.value)}
+                value={newBookAmazonUrlStandard}
+                onChange={(e) => setNewBookAmazonUrlStandard(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Amazon Premium Link (Optional)</label>
+              <Input
+                type="url"
+                placeholder="https://amazon.com/..."
+                value={newBookAmazonUrlPremium}
+                onChange={(e) => setNewBookAmazonUrlPremium(e.target.value)}
               />
             </div>
           </div>

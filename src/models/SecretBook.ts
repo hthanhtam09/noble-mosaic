@@ -6,7 +6,8 @@ export interface ISecretBook {
   slug: string;
   coverImage: string;
   secretKey?: string;
-  amazonUrl?: string;
+  amazonUrlStandard?: string;
+  amazonUrlPremium?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -18,7 +19,8 @@ const SecretBookSchema = new mongoose.Schema<ISecretBook>(
     slug: { type: String, required: true, unique: true },
     coverImage: { type: String, required: true },
     secretKey: { type: String, maxlength: 6 },
-    amazonUrl: { type: String },
+    amazonUrlStandard: { type: String },
+    amazonUrlPremium: { type: String },
     isActive: { type: Boolean, default: true }
   },
   { timestamps: true }

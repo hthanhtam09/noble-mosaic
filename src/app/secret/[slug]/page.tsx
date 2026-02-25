@@ -23,7 +23,8 @@ interface SecretBookInfo {
   title: string;
   slug: string;
   coverImage: string;
-  amazonUrl?: string;
+  amazonUrlStandard?: string;
+  amazonUrlPremium?: string;
   previewImage?: string;
 }
 
@@ -227,17 +228,31 @@ function SecretBookContent() {
                   </Button>
                 </form>
 
-                {book?.amazonUrl && (
+                {(book?.amazonUrlStandard || book?.amazonUrlPremium) && (
                   <div className="pt-6 border-t border-neutral-100">
                     <p className="text-sm font-medium text-neutral-900 mb-3">Don't have the key yet?</p>
-                    <a
-                      href={book.amazonUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center w-full max-w-[280px] py-4 px-6 text-sm font-bold rounded-full bg-[#FF9900] hover:bg-[#FF9900]/90 text-neutral-900 shadow-sm transition-all shadow-[#FF9900]/20 hover:shadow-[#FF9900]/40"
-                    >
-                      Buy on Amazon To Unlock
-                    </a>
+                    <div className="flex flex-col gap-3 items-center">
+                      {book.amazonUrlStandard && (
+                        <a
+                          href={book.amazonUrlStandard}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center w-full max-w-[280px] py-3 px-6 text-sm font-bold rounded-full bg-[#FF9900] hover:bg-[#FF9900]/90 text-neutral-900 shadow-sm transition-all shadow-[#FF9900]/20 hover:shadow-[#FF9900]/40"
+                        >
+                          Buy Standard Edition
+                        </a>
+                      )}
+                      {book.amazonUrlPremium && (
+                        <a
+                          href={book.amazonUrlPremium}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center w-full max-w-[280px] py-3 px-6 text-sm font-bold rounded-full bg-neutral-900 hover:bg-neutral-800 text-white shadow-sm transition-all shadow-neutral-900/20 hover:shadow-neutral-900/40"
+                        >
+                          Buy Premium Edition
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
               </Card>

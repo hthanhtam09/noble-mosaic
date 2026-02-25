@@ -38,7 +38,8 @@ export async function GET(
           title: book.title,
           slug: book.slug,
           coverImage: book.coverImage,
-          amazonUrl: book.amazonUrl,
+          amazonUrlStandard: book.amazonUrlStandard,
+          amazonUrlPremium: book.amazonUrlPremium,
           previewImage: computedPreviewImage
         }
       }, { status: 403 });
@@ -57,7 +58,8 @@ export async function GET(
         title: book.title,
         slug: book.slug,
         coverImage: book.coverImage,
-        amazonUrl: book.amazonUrl,
+        amazonUrlStandard: book.amazonUrlStandard,
+        amazonUrlPremium: book.amazonUrlPremium,
         previewImage: computedPreviewImage
       },
       secrets 

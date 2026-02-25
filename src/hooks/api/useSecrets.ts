@@ -8,7 +8,8 @@ interface SecretBook {
   slug: string;
   coverImage: string;
   secretKey?: string;
-  amazonUrl?: string;
+  amazonUrlStandard?: string;
+  amazonUrlPremium?: string;
 }
 
 interface SecretImage {
