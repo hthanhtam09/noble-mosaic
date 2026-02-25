@@ -17,13 +17,13 @@ const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
 
 function ShopContent() {
   const searchParams = useSearchParams();
-  
+
   const themeParam = searchParams.get('theme');
   const difficultyParam = searchParams.get('difficulty');
-  
+
   const initialTheme = themeParam && themes.includes(themeParam) ? themeParam : 'All';
   const initialDifficulty = difficultyParam && difficulties.includes(difficultyParam) ? difficultyParam : 'All';
-  
+
   const { data: products = [], isLoading } = useProducts();
 
   const [selectedTheme, setSelectedTheme] = useState(initialTheme);
@@ -33,6 +33,7 @@ function ShopContent() {
   const [displayLimit, setDisplayLimit] = useState(12);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayLimit(12);
   }, [selectedTheme, selectedDifficulty, sortBy, gridView]);
 
@@ -87,7 +88,7 @@ function ShopContent() {
       />
 
       <Header />
-      
+
       <main className="flex-grow">
         <div className="layout-inner py-8">
           {/* SEO-friendly heading */}
@@ -97,7 +98,7 @@ function ShopContent() {
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 p-4 bg-white rounded-2xl shadow-sm">
             <div className="flex flex-wrap items-center gap-3">
               <Filter className="h-5 w-5 text-neutral-400" />
-              
+
               {/* Theme Filter */}
               <Select value={selectedTheme} onValueChange={setSelectedTheme}>
                 <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
@@ -128,9 +129,9 @@ function ShopContent() {
 
               {/* Clear Filters */}
               {hasActiveFilters && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={clearFilters}
                   className="text-neutral-500 hover:text-neutral-700 rounded-xl"
                 >
@@ -179,12 +180,12 @@ function ShopContent() {
           {hasActiveFilters && (
             <div className="flex flex-wrap gap-2 mb-6">
               {selectedTheme !== 'All' && (
-                <Badge 
+                <Badge
                   className="rounded-lg px-3 py-1.5 text-sm"
                   style={{ backgroundColor: 'var(--mosaic-coral)', color: 'white' }}
                 >
                   Theme: {selectedTheme}
-                  <button 
+                  <button
                     onClick={() => setSelectedTheme('All')}
                     className="ml-2 hover:opacity-70"
                   >
@@ -193,11 +194,11 @@ function ShopContent() {
                 </Badge>
               )}
               {selectedDifficulty !== 'All' && (
-                <Badge 
+                <Badge
                   className="bg-[var(--mosaic-teal)] text-white rounded-lg px-3 py-1.5 text-sm"
                 >
                   Level: {selectedDifficulty}
-                  <button 
+                  <button
                     onClick={() => setSelectedDifficulty('All')}
                     className="ml-2 hover:opacity-70"
                   >
@@ -222,8 +223,8 @@ function ShopContent() {
             <>
               <div className={`
                 grid gap-6
-                ${gridView === 'grid' 
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                ${gridView === 'grid'
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                   : 'grid-cols-1 md:grid-cols-2'
                 }
               `}>
@@ -231,10 +232,10 @@ function ShopContent() {
                   <ProductCard key={product._id} product={product} priority={index < 4} />
                 ))}
               </div>
-              
+
               {filteredProducts.length > displayLimit && (
                 <div className="mt-12 flex justify-center">
-                  <Button 
+                  <Button
                     onClick={() => setDisplayLimit(prev => prev + 12)}
                     variant="outline"
                     size="lg"
@@ -262,7 +263,7 @@ function ShopContent() {
           )}
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

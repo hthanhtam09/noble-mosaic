@@ -47,9 +47,7 @@ export async function clearAdminCookie(): Promise<void> {
   cookieStore.delete('admin_token');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withAuth(handler: (req: NextRequest, context?: any) => Promise<NextResponse>) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (req: NextRequest, context?: any) => {
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;

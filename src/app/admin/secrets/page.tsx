@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useAdminSecretBooks, useAdminSecrets } from '@/hooks/api/useAdmin';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/lib/query-keys';
+import { api } from '@/lib/api';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -117,13 +118,13 @@ export default function AdminSecretsPage() {
     formData.append('file', file);
     formData.append('folder', folderName);
 
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
+    // Using existing api instance (axios) instead of fetch
+    const data = await api.post<any, any>('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
 
-    if (!res.ok) throw new Error('Upload failed');
-    const data = await res.json();
     return data.url;
   };
 
@@ -141,37 +142,25 @@ export default function AdminSecretsPage() {
     try {
       const coverImageUrl = await uploadFile(newBookImage, 'secrets/covers');
 
-      const res = await fetch('/api/admin/secret-books', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newBookTitle,
-          coverImage: coverImageUrl,
-          secretKey: newBookKey || undefined,
-          amazonUrlStandard: newBookAmazonUrlStandard || undefined,
-          amazonUrlPremium: newBookAmazonUrlPremium || undefined,
-        })
+      await api.post('/admin/secret-books', {
+        title: newBookTitle,
+        coverImage: coverImageUrl,
+        secretKey: newBookKey || undefined,
+        amazonUrlStandard: newBookAmazonUrlStandard || undefined,
+        amazonUrlPremium: newBookAmazonUrlPremium || undefined,
       });
 
-      if (res.ok) {
-        setShowCreateBook(false);
-        setNewBookTitle('');
-        setNewBookImage(null);
-        setNewBookKey('');
-        setNewBookAmazonUrlStandard('');
-        setNewBookAmazonUrlPremium('');
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
-        toast({
-          title: "Book created",
-          description: "Your secret book has been created successfully."
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to create book.",
-          variant: "destructive"
-        });
-      }
+      setShowCreateBook(false);
+      setNewBookTitle('');
+      setNewBookImage(null);
+      setNewBookKey('');
+      setNewBookAmazonUrlStandard('');
+      setNewBookAmazonUrlPremium('');
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
+      toast({
+        title: "Book created",
+        description: "Your secret book has been created successfully."
+      });
     } catch (error) {
       console.error(error);
       toast({
@@ -192,28 +181,20 @@ export default function AdminSecretsPage() {
     setIsDeletingBook(true);
 
     try {
-      const res = await fetch(`/api/admin/secret-books/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
-        if (selectedBook?._id === id) {
-          setSelectedBook(null);
-        }
-        toast({
-          title: "Book Deleted",
-          description: "The secret book has been deleted successfully."
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete the book.",
-          variant: "destructive"
-        });
+      await api.delete(`/admin/secret-books/${id}`);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
+      if (selectedBook?._id === id) {
+        setSelectedBook(null);
       }
-    } catch (error) {
+      toast({
+        title: "Book Deleted",
+        description: "The secret book has been deleted successfully."
+      });
+    } catch (error: any) {
       console.error('Error deleting book:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred while deleting the book.",
+        description: error.response?.data?.error || "Failed to delete the book.",
         variant: "destructive"
       });
     } finally {
@@ -245,47 +226,34 @@ export default function AdminSecretsPage() {
         coverImageUrl = await uploadFile(editCoverImage, 'secrets/covers');
       }
 
-      const res = await fetch(`/api/admin/secret-books/${selectedBook._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: editTitle,
-          coverImage: coverImageUrl,
-          secretKey: editKey || undefined,
-          amazonUrlStandard: editAmazonUrlStandard || undefined,
-          amazonUrlPremium: editAmazonUrlPremium || undefined,
-        })
+      await api.put(`/admin/secret-books/${selectedBook._id}`, {
+        title: editTitle,
+        coverImage: coverImageUrl,
+        secretKey: editKey || undefined,
+        amazonUrlStandard: editAmazonUrlStandard || undefined,
+        amazonUrlPremium: editAmazonUrlPremium || undefined,
       });
 
-      if (res.ok) {
-        setShowBookSettingsModal(false);
-        const updatedBook = {
-          ...selectedBook,
-          title: editTitle,
-          coverImage: coverImageUrl,
-          secretKey: editKey || undefined,
-          amazonUrlStandard: editAmazonUrlStandard || undefined,
-          amazonUrlPremium: editAmazonUrlPremium || undefined,
-        };
-        setSelectedBook(updatedBook);
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
-        toast({
-          title: "Settings updated",
-          description: "Book settings have been successfully saved."
-        });
-      } else {
-        const error = await res.json();
-        toast({
-          title: "Update failed",
-          description: error.error || 'Unknown error occurred.',
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
+      setShowBookSettingsModal(false);
+      const updatedBook = {
+        ...selectedBook,
+        title: editTitle,
+        coverImage: coverImageUrl,
+        secretKey: editKey || undefined,
+        amazonUrlStandard: editAmazonUrlStandard || undefined,
+        amazonUrlPremium: editAmazonUrlPremium || undefined,
+      };
+      setSelectedBook(updatedBook);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
+      toast({
+        title: "Settings updated",
+        description: "Book settings have been successfully saved."
+      });
+    } catch (error: any) {
       console.error(error);
       toast({
-        title: "Error",
-        description: "Failed to update settings.",
+        title: "Update failed",
+        description: error.response?.data?.error || "Failed to update settings.",
         variant: "destructive"
       });
     } finally {
@@ -347,39 +315,37 @@ export default function AdminSecretsPage() {
     try {
       let successCount = 0;
       let existingMaxOrder = secrets.length > 0 ? Math.max(...secrets.map(s => s.order || 0)) : 0;
+      const CHUNK_SIZE = 5;
+      const total = colorImages.length;
+      const failedIndices: number[] = [];
 
-      for (let i = 0; i < colorImages.length; i++) {
-        try {
-          // Both arrays are sorted numerically, so index 'i' in color matches index 'i' in uncolor.
-          // Upload pairs
-          const colorImageUrl = await uploadFile(colorImages[i], `secrets/${selectedBook.slug}/color`);
-          const uncolorImageUrl = await uploadFile(uncolorImages[i], `secrets/${selectedBook.slug}/uncolor`);
+      for (let i = 0; i < total; i += CHUNK_SIZE) {
+        const chunk = Array.from({ length: Math.min(CHUNK_SIZE, total - i) }, (_, index) => i + index);
 
-          const order = existingMaxOrder + 1;
+        await Promise.all(chunk.map(async (index) => {
+          try {
+            // Upload pairs
+            const colorImageUrl = await uploadFile(colorImages[index], `secrets/${selectedBook.slug}/color`);
+            const uncolorImageUrl = await uploadFile(uncolorImages[index], `secrets/${selectedBook.slug}/uncolor`);
 
-          // Save to DB
-          const res = await fetch('/api/admin/secrets', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            const order = existingMaxOrder + (index - i) + 1; // Basic order calculation for chunk
+
+            // Save to DB using api (axios)
+            await api.post('/admin/secrets', {
               secretBook: selectedBook._id,
               colorImageUrl,
               uncolorImageUrl,
-              order,
+              order: existingMaxOrder + index + 1,
               isActive: true
-            })
-          });
+            });
 
-          if (res.ok) {
             successCount++;
-            existingMaxOrder++;
-          } else {
-            console.error(`Failed to save pair index ${i} to database`);
+          } catch (err) {
+            console.error(`Failed to upload pair index ${index}`, err);
+            failedIndices.push(index);
           }
-        } catch (err) {
-          console.error(`Failed to upload pair index ${i}`, err);
-        }
-        setUploadProgress(i + 1);
+          setUploadProgress(prev => prev + 1);
+        }));
       }
 
       if (successCount > 0) {
@@ -390,14 +356,22 @@ export default function AdminSecretsPage() {
         if (uncolorInputRef.current) uncolorInputRef.current.value = '';
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id] });
 
+        if (successCount === total) {
+          toast({
+            title: "Upload complete",
+            description: `Successfully added all ${successCount} pairs.`
+          });
+        } else {
+          toast({
+            title: "Upload partial",
+            description: `Added ${successCount} out of ${total} pairs. Check console for details.`,
+            variant: "destructive"
+          });
+        }
+      } else {
         toast({
-          title: "Upload complete",
-          description: `Successfully added ${successCount} out of ${colorImages.length} pairs.`
-        });
-      } else if (successCount < colorImages.length) {
-        toast({
-          title: "Upload partial/failed",
-          description: `Only added ${successCount} out of ${colorImages.length} pairs. Check console for details.`,
+          title: "Upload failed",
+          description: "Could not upload any image pairs. Please check your connection and Cloudinary settings.",
           variant: "destructive"
         });
       }
@@ -419,25 +393,17 @@ export default function AdminSecretsPage() {
     const id = secretToDelete;
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/admin/secrets/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook?._id] });
-        toast({
-          title: "Secret Deleted",
-          description: "The secret image pair has been deleted successfully."
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete the secret.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
+      await api.delete(`/admin/secrets/${id}`);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook?._id] });
+      toast({
+        title: "Secret Deleted",
+        description: "The secret image pair has been deleted successfully."
+      });
+    } catch (error: any) {
       console.error(error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred while deleting.",
+        description: error.response?.data?.error || "Failed to delete the secret.",
         variant: "destructive"
       });
     } finally {
@@ -454,26 +420,18 @@ export default function AdminSecretsPage() {
     if (!selectedBook) return;
     setIsDeletingAll(true);
     try {
-      const res = await fetch(`/api/admin/secrets?bookId=${selectedBook._id}`, { method: 'DELETE' });
-      if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id] });
-        setShowDeleteAllModal(false);
-        toast({
-          title: "Deleted All",
-          description: "All images in this folder have been deleted."
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete all images.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
+      await api.delete(`/admin/secrets?bookId=${selectedBook._id}`);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id] });
+      setShowDeleteAllModal(false);
+      toast({
+        title: "Deleted All",
+        description: "All images in this folder have been deleted."
+      });
+    } catch (error: any) {
       console.error('Error deleting all secrets:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: error.response?.data?.error || "Failed to delete all images.",
         variant: "destructive"
       });
     } finally {

@@ -20,10 +20,11 @@ export default function BlogPageClient() {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayLimit(7);
   }, [selectedCategory]);
 
-  const filteredPosts = posts.filter(post => 
+  const filteredPosts = posts.filter(post =>
     selectedCategory === 'All' || post.category === selectedCategory
   );
   const displayedPosts = filteredPosts.slice(0, displayLimit);
@@ -44,7 +45,7 @@ export default function BlogPageClient() {
       />
 
       <Header />
-      
+
       <main className="flex-grow bg-stone-50">
         <div className="layout-inner py-8">
           {/* SEO heading */}
@@ -67,11 +68,10 @@ export default function BlogPageClient() {
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        category === selectedCategory
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${category === selectedCategory
                           ? 'bg-neutral-900 text-white'
                           : 'bg-white text-neutral-600 hover:bg-neutral-100'
-                      }`}
+                        }`}
                     >
                       {category}
                     </button>
@@ -172,10 +172,10 @@ export default function BlogPageClient() {
                   ))}
                 </div>
               )}
-              
+
               {filteredPosts.length > displayLimit && (
                 <div className="mt-12 flex justify-center">
-                  <Button 
+                  <Button
                     onClick={() => setDisplayLimit(prev => prev + 6)}
                     variant="outline"
                     size="lg"
@@ -189,7 +189,7 @@ export default function BlogPageClient() {
           )}
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

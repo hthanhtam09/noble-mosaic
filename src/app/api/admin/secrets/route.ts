@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const secrets = await SecretImage.find(query)
       .populate('secretBook', 'title slug')
       .sort({ order: 1, createdAt: -1 })
+      .limit(1000)
       .lean();
     
     return NextResponse.json({ secrets });

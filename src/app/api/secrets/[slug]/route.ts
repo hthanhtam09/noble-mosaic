@@ -51,6 +51,7 @@ export async function GET(
       isActive: true 
     })
       .sort({ order: 1, createdAt: -1 })
+      .limit(1000)
       .lean();
     
     return NextResponse.json({ 

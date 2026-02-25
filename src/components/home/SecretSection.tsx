@@ -24,14 +24,24 @@ export default function SecretSection() {
   useEffect(() => {
     if (books.length > 0) {
       const unlockedStatus: Record<string, boolean> = {};
+      let hasChanges = false;
       books.forEach((book: SecretBook) => {
         if (localStorage.getItem(`secret_key_${book.slug}`)) {
           unlockedStatus[book.slug] = true;
+          if (!unlockedBooks[book.slug]) hasChanges = true;
         }
       });
-      setUnlockedBooks(unlockedStatus);
+      // Also check if we lost any
+      if (Object.keys(unlockedStatus).length !== Object.keys(unlockedBooks).length) {
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUnlockedBooks(unlockedStatus);
+      }
     }
-  }, [books]);
+  }, [books, unlockedBooks]);
 
   const unlockedCount = Object.values(unlockedBooks).filter(Boolean).length;
 
