@@ -188,6 +188,9 @@ export default function GiftPageClient() {
                           We've sent a 6-digit code to <br />
                           <strong className="text-neutral-900">{email}</strong>
                         </p>
+                        <p className="text-xs text-neutral-400 mt-2">
+                          If you don't see the email, please check your <strong className="text-neutral-500">Spam</strong> or <strong className="text-neutral-500">Junk</strong> folder.
+                        </p>
                       </div>
                       
                       <div className="flex justify-center mb-2">

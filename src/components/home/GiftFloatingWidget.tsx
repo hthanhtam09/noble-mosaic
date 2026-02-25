@@ -217,6 +217,9 @@ export default function GiftFloatingWidget() {
                                             <p className="text-sm text-neutral-600 text-center">
                                                 Code sent to <strong className="text-neutral-900">{email}</strong>
                                             </p>
+                                            <p className="text-xs text-neutral-400 mt-2 text-center">
+                                                If you don't see the email, please check your <strong className="text-neutral-500">Spam</strong> or <strong className="text-neutral-500">Junk</strong> folder.
+                                            </p>
 
                                             <Input
                                                 type="text"
