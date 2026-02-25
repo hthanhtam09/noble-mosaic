@@ -1,0 +1,683 @@
+'use client';
+
+import { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/lib/query-keys';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import {
+    ArrowLeft, Plus, X, Loader2, Upload, Image as ImageIcon,
+    Star, Check, ExternalLink, Info, Trash2
+} from 'lucide-react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from "@/hooks/use-toast";
+import dynamic from 'next/dynamic';
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
+
+export default function EditProductPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = use(params);
+    const router = useRouter();
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
+    const [activeTab, setActiveTab] = useState('basic');
+
+    // Form state
+    const [coverImage, setCoverImage] = useState('');
+    const [galleryImages, setGalleryImages] = useState<string[]>([]);
+    const [bulletPoints, setBulletPoints] = useState<string[]>(['', '', '']);
+    const [featured, setFeatured] = useState(false);
+
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        amazonLink: '',
+        price: '',
+        rating: '4.5',
+        reviewCount: '0',
+    });
+
+    // A+ Content state
+    const [aplusBlocks, setAplusBlocks] = useState<any[]>([]);
+
+    // Editions state
+    const [editions, setEditions] = useState<{ name: string; link: string; price: string }[]>([]);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const response = await fetch(`/api/products/${slug}`);
+                if (response.ok) {
+                    const { product } = await response.json();
+                    setFormData({
+                        title: product.title || '',
+                        description: product.description || '',
+                        amazonLink: product.amazonLink || '',
+                        price: product.price || '',
+                        rating: product.rating?.toString() || '4.5',
+                        reviewCount: product.reviewCount?.toString() || '0',
+                    });
+                    setCoverImage(product.coverImage || '');
+                    setGalleryImages(product.galleryImages || []);
+                    setBulletPoints(product.bulletPoints?.length > 0 ? product.bulletPoints : ['', '', '']);
+                    setFeatured(product.featured || false);
+                    setAplusBlocks(product.aPlusContent || []);
+                    setEditions(product.editions || []);
+                } else {
+                    toast({
+                        title: "Error",
+                        description: "Failed to fetch product data.",
+                        variant: "destructive"
+                    });
+                    router.push('/admin/products');
+                }
+            } catch (error) {
+                console.error('Error fetching product:', error);
+                toast({
+                    title: "Error",
+                    description: "An unexpected error occurred while fetching product data.",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsFetching(false);
+            }
+        };
+
+        fetchProduct();
+    }, [slug, router, toast]);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+        uploadFormData.append('folder', 'noble-mosaic/products');
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: uploadFormData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (type === 'cover') {
+                    setCoverImage(data.url);
+                } else {
+                    setGalleryImages([...galleryImages, data.url]);
+                }
+                toast({
+                    title: "Upload Successful",
+                    description: `${type === 'cover' ? 'Cover' : 'Gallery'} image uploaded.`,
+                });
+            } else {
+                const errorData = await response.json();
+                toast({
+                    title: "Upload Failed",
+                    description: errorData.message || "Could not upload image.",
+                    variant: "destructive"
+                });
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            toast({
+                title: "Upload error",
+                description: "An unexpected error occurred during upload.",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const addBulletPoint = () => {
+        setBulletPoints([...bulletPoints, '']);
+    };
+
+    const removeBulletPoint = (index: number) => {
+        setBulletPoints(bulletPoints.filter((_, i) => i !== index));
+    };
+
+    const updateBulletPoint = (index: number, value: string) => {
+        const updated = [...bulletPoints];
+        updated[index] = value;
+        setBulletPoints(updated);
+    };
+
+    const addAplusBlock = (type: string) => {
+        const newBlock = {
+            type,
+            title: '',
+            content: '',
+            image: '',
+            images: [],
+            items: [],
+        };
+        setAplusBlocks([...aplusBlocks, newBlock]);
+    };
+
+    const addEdition = () => {
+        setEditions([...editions, { name: '', link: '', price: '' }]);
+    };
+
+    const removeEdition = (index: number) => {
+        setEditions(editions.filter((_, i) => i !== index));
+    };
+
+    const updateEdition = (index: number, field: string, value: string) => {
+        const updated = [...editions];
+        updated[index] = { ...updated[index], [field]: value };
+        setEditions(updated);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            const response = await fetch(`/api/products/${slug}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    theme: 'General',
+                    difficulty: 'beginner',
+                    coverImage,
+                    galleryImages,
+                    bulletPoints: bulletPoints.filter(bp => bp.trim()),
+                    featured,
+                    rating: parseFloat(formData.rating),
+                    reviewCount: parseInt(formData.reviewCount),
+                    aPlusContent: aplusBlocks,
+                    editions,
+                }),
+            });
+
+            if (response.ok) {
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.product, slug] });
+                router.push('/admin/products');
+            } else {
+                const errorData = await response.json();
+                console.error('Error response:', errorData);
+                toast({
+                    title: "Error",
+                    description: errorData.message || "Failed to update product.",
+                    variant: "destructive"
+                });
+            }
+        } catch (error: any) {
+            console.error('Error updating product:', error);
+            toast({
+                title: "Error",
+                description: error.message || "An unexpected error occurred.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isFetching) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-5xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex items-center gap-4">
+                <Button asChild variant="ghost" size="sm">
+                    <Link href="/admin/products">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Products
+                    </Link>
+                </Button>
+            </div>
+
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-serif font-bold text-neutral-900">Edit Product</h1>
+                    <p className="text-neutral-500 text-sm mt-1">Modify your product listing</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <Label htmlFor="featured" className="text-sm text-neutral-600">Featured</Label>
+                        <Switch
+                            id="featured"
+                            checked={featured}
+                            onCheckedChange={setFeatured}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+                <div className="grid lg:grid-cols-3 gap-6">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Tabs value={activeTab} onValueChange={setActiveTab}>
+                            <TabsList className="bg-white border border-neutral-200">
+                                <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                                <TabsTrigger value="images">Images</TabsTrigger>
+                                <TabsTrigger value="details">Details</TabsTrigger>
+                                <TabsTrigger value="aplus">A+ Content</TabsTrigger>
+                                <TabsTrigger value="editions">Editions</TabsTrigger>
+                            </TabsList>
+
+                            {/* Basic Info Tab */}
+                            <TabsContent value="basic" className="mt-4 space-y-4">
+                                <Card className="border-0 shadow-sm">
+                                    <CardContent className="p-6 space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="title">Product Title *</Label>
+                                            <Input
+                                                id="title"
+                                                value={formData.title}
+                                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                                placeholder="e.g., Mosaic Animals Color By Number"
+                                                className="text-lg"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Description</Label>
+                                            <div data-color-mode="light">
+                                                <MDEditor
+                                                    value={formData.description}
+                                                    onChange={(val) => setFormData({ ...formData, description: val || '' })}
+                                                    height={300}
+                                                />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            {/* Images Tab */}
+                            <TabsContent value="images" className="mt-4 space-y-4">
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Cover Image</CardTitle>
+                                        <CardDescription>Main product image (recommended: 800x1200px)</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex items-start gap-4">
+                                            {coverImage ? (
+                                                <div className="relative w-32 h-44 rounded-lg overflow-hidden bg-neutral-100 group">
+                                                    <Image src={coverImage} alt="Cover" fill className="object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setCoverImage('')}
+                                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                    >
+                                                        <Trash2 className="h-5 w-5 text-white" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <label className="w-32 h-44 rounded-lg border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-neutral-50 transition-colors">
+                                                    <Upload className="h-6 w-6 text-neutral-400 mb-2" />
+                                                    <span className="text-xs text-neutral-500">Upload</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={(e) => handleImageUpload(e, 'cover')}
+                                                    />
+                                                </label>
+                                            )}
+                                            <div className="flex-1 text-sm text-neutral-500">
+                                                <p className="mb-2">Tips for great cover images:</p>
+                                                <ul className="space-y-1 text-xs">
+                                                    <li>• Use high-resolution images (at least 800x1200px)</li>
+                                                    <li>• Show the actual book cover design</li>
+                                                    <li>• Ensure good lighting and clear visibility</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Gallery Images</CardTitle>
+                                        <CardDescription>Additional product images (interior pages, back cover, etc.)</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex flex-wrap gap-3">
+                                            {galleryImages.map((img, index) => (
+                                                <div key={index} className="relative w-24 h-32 rounded-lg overflow-hidden bg-neutral-100 group">
+                                                    <Image src={img} alt={`Gallery ${index + 1}`} fill className="object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== index))}
+                                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                    >
+                                                        <Trash2 className="h-5 w-5 text-white" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <label className="w-24 h-32 rounded-lg border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-neutral-50 transition-colors">
+                                                <Plus className="h-5 w-5 text-neutral-400" />
+                                                <span className="text-xs text-neutral-500 mt-1">Add</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => handleImageUpload(e, 'gallery')}
+                                                />
+                                            </label>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            {/* Details Tab */}
+                            <TabsContent value="details" className="mt-4 space-y-4">
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Amazon & Pricing</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="amazonLink">Amazon Product Link *</Label>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    id="amazonLink"
+                                                    value={formData.amazonLink}
+                                                    onChange={(e) => setFormData({ ...formData, amazonLink: e.target.value })}
+                                                    placeholder="https://amazon.com/dp/..."
+                                                    required
+                                                    className="flex-1"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    onClick={() => window.open(formData.amazonLink, '_blank')}
+                                                    disabled={!formData.amazonLink}
+                                                >
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="price">Price (optional)</Label>
+                                                <Input
+                                                    id="price"
+                                                    value={formData.price}
+                                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                    placeholder="$12.99"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="rating">Initial Rating</Label>
+                                                <div className="flex items-center gap-2">
+                                                    <Input
+                                                        id="rating"
+                                                        type="number"
+                                                        step="0.1"
+                                                        min="0"
+                                                        max="5"
+                                                        value={formData.rating}
+                                                        onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                                                    />
+                                                    <Star className="h-5 w-5 text-amber-400 fill-amber-400" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Bullet Points</CardTitle>
+                                        <CardDescription>Key features and benefits (shown on product page)</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {bulletPoints.map((point, index) => (
+                                            <div key={index} className="flex items-center gap-2">
+                                                <div className="w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs text-neutral-500 flex-shrink-0">
+                                                    {index + 1}
+                                                </div>
+                                                <Input
+                                                    value={point}
+                                                    onChange={(e) => updateBulletPoint(index, e.target.value)}
+                                                    placeholder="e.g., 50+ unique mosaic designs"
+                                                    className="flex-1"
+                                                />
+                                                {bulletPoints.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => removeBulletPoint(index)}
+                                                        className="text-neutral-400 hover:text-red-500"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={addBulletPoint}
+                                            className="mt-2"
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Add Bullet Point
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            {/* A+ Content Tab */}
+                            <TabsContent value="aplus" className="mt-4 space-y-4">
+                                <Card className="border-0 shadow-sm bg-neutral-50">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-start gap-3">
+                                            <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+                                            <div className="text-sm text-neutral-600">
+                                                <p className="font-medium text-neutral-900 mb-1">A+ Content</p>
+                                                <p>Add rich content blocks to enhance your product page, similar to Amazon's A+ content. These blocks appear below the main product info.</p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {aplusBlocks.map((block, index) => (
+                                    <Card key={index} className="border-0 shadow-sm">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <Badge variant="outline">{block.type}</Badge>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setAplusBlocks(aplusBlocks.filter((_, i) => i !== index))}
+                                                    className="text-red-500"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <Input
+                                                placeholder="Block title"
+                                                value={block.title}
+                                                onChange={(e) => {
+                                                    const updated = [...aplusBlocks];
+                                                    updated[index].title = e.target.value;
+                                                    setAplusBlocks(updated);
+                                                }}
+                                                className="mb-2"
+                                            />
+                                            <Textarea
+                                                placeholder="Block content"
+                                                value={block.content}
+                                                onChange={(e) => {
+                                                    const updated = [...aplusBlocks];
+                                                    updated[index].content = e.target.value;
+                                                    setAplusBlocks(updated);
+                                                }}
+                                                rows={3}
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+
+                                <div className="flex flex-wrap gap-2">
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('fullWidth')}>
+                                        + Full Width
+                                    </Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('twoColumn')}>
+                                        + Two Column
+                                    </Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('featureHighlight')}>
+                                        + Features
+                                    </Button>
+                                </div>
+                            </TabsContent>
+
+                            {/* Editions Tab */}
+                            <TabsContent value="editions" className="mt-4 space-y-4">
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Product Editions</CardTitle>
+                                        <CardDescription>Add different editions of this book (e.g., Standard, Premium)</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {editions.map((edition, index) => (
+                                            <div key={index} className="p-4 border border-neutral-200 rounded-xl space-y-3 relative bg-neutral-50/50">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => removeEdition(index)}
+                                                    className="absolute top-2 right-2 text-red-500 hover:text-red-600"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                <div className="grid sm:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label>Edition Name *</Label>
+                                                        <Input
+                                                            value={edition.name}
+                                                            onChange={(e) => updateEdition(index, 'name', e.target.value)}
+                                                            placeholder="e.g., Premium Edition"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Price (optional)</Label>
+                                                        <Input
+                                                            value={edition.price}
+                                                            onChange={(e) => updateEdition(index, 'price', e.target.value)}
+                                                            placeholder="e.g., $19.99"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Amazon Link *</Label>
+                                                    <Input
+                                                        value={edition.link}
+                                                        onChange={(e) => updateEdition(index, 'link', e.target.value)}
+                                                        placeholder="https://amazon.com/dp/..."
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={addEdition}
+                                            className="w-full border-dashed"
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Add Another Edition
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="lg:col-span-1 space-y-4">
+                        <Card className="border-0 shadow-sm sticky top-20">
+                            <CardContent className="p-4 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">Status</span>
+                                    <Badge variant="outline" className="bg-amber-50 text-amber-700">Editing</Badge>
+                                </div>
+
+                                <div className="pt-4 border-t border-neutral-100">
+                                    <h3 className="text-sm font-medium mb-3">Product Preview</h3>
+                                    {coverImage ? (
+                                        <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-neutral-100 mb-3">
+                                            <Image src={coverImage} alt="Preview" fill className="object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="aspect-[3/4] rounded-lg bg-neutral-100 flex items-center justify-center mb-3">
+                                            <ImageIcon className="h-8 w-8 text-neutral-300" />
+                                        </div>
+                                    )}
+                                    <p className="text-sm font-medium text-neutral-900 truncate">
+                                        {formData.title || 'Product Title'}
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-neutral-100 space-y-2">
+                                    <Button
+                                        type="submit"
+                                        disabled={isLoading || !formData.title || !formData.amazonLink || !coverImage}
+                                        className="w-full bg-neutral-900 hover:bg-neutral-800 text-white"
+                                    >
+                                        {isLoading ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Check className="h-4 w-4 mr-2" />
+                                                Save Changes
+                                            </>
+                                        )}
+                                    </Button>
+                                    <Button asChild variant="outline" className="w-full">
+                                        <Link href="/admin/products">Cancel</Link>
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </form>
+        </div>
+    );
+}

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { SecretBook } from '@/models/SecretBook';
 import { SecretImage } from '@/models/SecretImage';
-import { deleteFolder, deleteImage } from '@/lib/cloudinary';
+import { deleteFolder, deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
 
 export async function PUT(
   request: NextRequest,
@@ -13,6 +13,13 @@ export async function PUT(
     const id = (await params).id;
     const body = await request.json();
     
+    // Fetch existing book for image comparison
+    const existingBook = await SecretBook.findById(id).lean();
+    
+    if (!existingBook) {
+      return NextResponse.json({ error: 'Secret Book not found' }, { status: 404 });
+    }
+
     if (body.title && !body.slug) {
        body.slug = body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
@@ -21,14 +28,19 @@ export async function PUT(
       return NextResponse.json({ error: 'Secret Key must be exactly 6 characters or less' }, { status: 400 });
     }
 
+    // Step 2: Update in DB
     const book = await SecretBook.findByIdAndUpdate(
       id,
       { $set: body },
       { new: true, runValidators: true }
     );
     
-    if (!book) {
-      return NextResponse.json({ error: 'Secret Book not found' }, { status: 404 });
+    // Step 3: Cleanup old image if changed
+    if (book && existingBook.coverImage && body.coverImage && existingBook.coverImage !== body.coverImage) {
+      const pid = getPublicIdFromUrl(existingBook.coverImage);
+      if (pid) {
+        await deleteImage(pid);
+      }
     }
     
     return NextResponse.json({ book });
@@ -38,14 +50,7 @@ export async function PUT(
   }
 }
 
-// Function to extract Cloudinary public ID from URL
-const getPublicIdFromUrl = (url: string) => {
-  if (!url) return null;
-  const parts = url.split('/');
-  const filename = parts.pop()?.split('.')[0];
-  const folderPath = parts.slice(parts.indexOf('upload') + 2).join('/');
-  return folderPath ? `${folderPath}/${filename}` : filename;
-};
+
 
 export async function DELETE(
   request: NextRequest,

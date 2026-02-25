@@ -6,8 +6,8 @@ export interface IProduct {
   slug: string;
   description: string;
   shortDescription?: string;
-  theme: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  theme?: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
   coverImage: string;
   galleryImages: string[];
   amazonLink: string;
@@ -24,6 +24,11 @@ export interface IProduct {
   reviewCount?: number;
   price?: string;
   featured?: boolean;
+  editions?: {
+    name: string;
+    link: string;
+    price?: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,7 +39,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     shortDescription: { type: String },
-    theme: { type: String, required: true },
+    theme: { type: String, default: 'General' },
     difficulty: { 
       type: String, 
       enum: ['beginner', 'intermediate', 'advanced'],
@@ -60,6 +65,11 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     reviewCount: { type: Number, default: 0 },
     price: { type: String },
     featured: { type: Boolean, default: false },
+    editions: [{
+      name: { type: String, required: true },
+      link: { type: String, required: true },
+      price: { type: String }
+    }],
   },
   { timestamps: true }
 );
@@ -68,5 +78,10 @@ ProductSchema.index({ slug: 1 });
 ProductSchema.index({ theme: 1 });
 ProductSchema.index({ difficulty: 1 });
 ProductSchema.index({ featured: 1 });
+
+// For Next.js hot reloading: delete the model to force registration with updated schema
+if (process.env.NODE_ENV === 'development' && mongoose.models.Product) {
+  delete (mongoose.models as any).Product;
+}
 
 export const Product = mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);

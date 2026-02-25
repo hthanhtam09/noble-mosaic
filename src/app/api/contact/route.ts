@@ -53,3 +53,30 @@ export const GET = withAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: 'Failed to fetch contacts' }, { status: 500 });
   }
 });
+export const PATCH = withAuth(async (request: NextRequest) => {
+  try {
+    await connectDB();
+    
+    const body = await request.json();
+    const { id, read } = body;
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Contact ID is required' }, { status: 400 });
+    }
+    
+    const contact = await Contact.findByIdAndUpdate(
+      id,
+      { read: !!read },
+      { new: true }
+    );
+    
+    if (!contact) {
+      return NextResponse.json({ error: 'Contact not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json({ contact });
+  } catch (error) {
+    console.error('Error updating contact:', error);
+    return NextResponse.json({ error: 'Failed to update contact' }, { status: 500 });
+  }
+});

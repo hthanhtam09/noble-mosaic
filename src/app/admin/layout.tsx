@@ -5,8 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { 
-  Home, BookOpen, FileText, MessageSquare, LogOut, Menu, X, 
+import {
+  Home, BookOpen, MessageSquare, LogOut, Menu, X,
   Users, ShoppingBag, Settings, Lock, Gift
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -50,7 +50,7 @@ export default function AdminLayout({
       try {
         const response = await fetch('/api/auth');
         const data = await response.json();
-        
+
         if (!data.authenticated) {
           router.push('/admin/login');
         } else {
@@ -69,7 +69,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    
+
     const fetchProductCount = async () => {
       try {
         const response = await fetch('/api/products');
@@ -81,7 +81,7 @@ export default function AdminLayout({
         console.error('Failed to fetch product count:', error);
       }
     };
-    
+
     fetchProductCount();
   }, [isAuthenticated, pathname]);
 
@@ -132,10 +132,10 @@ export default function AdminLayout({
             <Image
               src="/logo.png"
               alt="Noble Mosaic"
-              width={44}
-              height={44}
+              width={500}
+              height={100}
               unoptimized
-              className="h-11 w-auto"
+              className="w-auto"
               priority
             />
           </Link>
@@ -153,7 +153,7 @@ export default function AdminLayout({
             Main Menu
           </p>
           {navigation.map((item) => {
-            const isActive = pathname === item.href || 
+            const isActive = pathname === item.href ||
               (item.href !== '/admin' && pathname.startsWith(item.href));
             return (
               <Link
@@ -179,17 +179,6 @@ export default function AdminLayout({
 
         {/* User Section */}
         <div className="p-4 border-t border-neutral-200">
-          <div className="flex items-center gap-3 mb-3 px-2">
-            <div className="w-9 h-9 rounded-full bg-neutral-900 flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                {user?.username?.charAt(0).toUpperCase() || 'A'}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-neutral-900 truncate">{user?.username || 'Admin'}</p>
-              <p className="text-xs text-neutral-500">Administrator</p>
-            </div>
-          </div>
           <Button
             variant="outline"
             className="w-full justify-start text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
@@ -211,7 +200,7 @@ export default function AdminLayout({
           >
             <Menu className="h-5 w-5" />
           </button>
-          
+
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm">
             <Link href="/admin" className="text-neutral-500 hover:text-neutral-700">Admin</Link>

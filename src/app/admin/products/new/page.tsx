@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -11,8 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { 
-  ArrowLeft, Plus, X, Loader2, Upload, Image as ImageIcon, 
+import {
+  ArrowLeft, Plus, X, Loader2, Upload, Image as ImageIcon,
   Star, Check, ExternalLink, Info, Trash2
 } from 'lucide-react';
 import {
@@ -23,24 +25,27 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from "@/hooks/use-toast";
+import dynamic from 'next/dynamic';
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
 
 export default function NewProductPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
-  
+
   // Form state
   const [coverImage, setCoverImage] = useState('');
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [bulletPoints, setBulletPoints] = useState<string[]>(['', '', '']);
   const [featured, setFeatured] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    shortDescription: '',
-    theme: '',
-    difficulty: 'beginner',
     amazonLink: '',
     price: '',
     rating: '4.5',
@@ -49,6 +54,9 @@ export default function NewProductPage() {
 
   // A+ Content state
   const [aplusBlocks, setAplusBlocks] = useState<any[]>([]);
+
+  // Editions state
+  const [editions, setEditions] = useState<{ name: string; link: string; price: string }[]>([]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery') => {
     const file = e.target.files?.[0];
@@ -71,9 +79,25 @@ export default function NewProductPage() {
         } else {
           setGalleryImages([...galleryImages, data.url]);
         }
+        toast({
+          title: "Upload Successful",
+          description: `${type === 'cover' ? 'Cover' : 'Gallery'} image uploaded.`,
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Upload Failed",
+          description: errorData.message || "Could not upload image.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error uploading image:', error);
+      toast({
+        title: "Upload error",
+        description: "An unexpected error occurred during upload.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -103,6 +127,20 @@ export default function NewProductPage() {
     setAplusBlocks([...aplusBlocks, newBlock]);
   };
 
+  const addEdition = () => {
+    setEditions([...editions, { name: '', link: '', price: '' }]);
+  };
+
+  const removeEdition = (index: number) => {
+    setEditions(editions.filter((_, i) => i !== index));
+  };
+
+  const updateEdition = (index: number, field: string, value: string) => {
+    const updated = [...editions];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditions(updated);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -115,6 +153,8 @@ export default function NewProductPage() {
         },
         body: JSON.stringify({
           ...formData,
+          theme: 'General',
+          difficulty: 'beginner',
           coverImage,
           galleryImages,
           bulletPoints: bulletPoints.filter(bp => bp.trim()),
@@ -122,14 +162,29 @@ export default function NewProductPage() {
           rating: parseFloat(formData.rating),
           reviewCount: parseInt(formData.reviewCount),
           aPlusContent: aplusBlocks,
+          editions,
         }),
       });
 
       if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
         router.push('/admin/products');
+      } else {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        toast({
+          title: "Error",
+          description: errorData.message || "Failed to create product.",
+          variant: "destructive"
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating product:', error);
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -146,14 +201,14 @@ export default function NewProductPage() {
           </Link>
         </Button>
       </div>
-      
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-serif font-bold text-neutral-900">Add New Product</h1>
           <p className="text-neutral-500 text-sm mt-1">Create a detailed product listing</p>
         </div>
         <div className="flex items-center gap-3">
- <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Label htmlFor="featured" className="text-sm text-neutral-600">Featured</Label>
             <Switch
               id="featured"
@@ -174,6 +229,7 @@ export default function NewProductPage() {
                 <TabsTrigger value="images">Images</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="aplus">A+ Content</TabsTrigger>
+                <TabsTrigger value="editions">Editions</TabsTrigger>
               </TabsList>
 
               {/* Basic Info Tab */}
@@ -192,66 +248,18 @@ export default function NewProductPage() {
                       />
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="theme">Theme *</Label>
-                        <Select
-                          value={formData.theme}
-                          onValueChange={(value) => setFormData({ ...formData, theme: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select theme" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Animals">Animals</SelectItem>
-                            <SelectItem value="Flowers">Flowers</SelectItem>
-                            <SelectItem value="Mandala">Mandala</SelectItem>
-                            <SelectItem value="Nature">Nature</SelectItem>
-                            <SelectItem value="Geometric">Geometric</SelectItem>
-                            <SelectItem value="Abstract">Abstract</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="difficulty">Difficulty Level</Label>
-                        <Select
-                          value={formData.difficulty}
-                          onValueChange={(value) => setFormData({ ...formData, difficulty: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="beginner">Beginner</SelectItem>
-                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                            <SelectItem value="advanced">Advanced</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <div data-color-mode="light">
+                        <MDEditor
+                          value={formData.description}
+                          onChange={(val) => setFormData({ ...formData, description: val || '' })}
+                          height={300}
+                        />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="shortDescription">Short Description</Label>
-                      <Input
-                        id="shortDescription"
-                        value={formData.shortDescription}
-                        onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                        placeholder="Brief description for product cards (max 100 chars)"
-                        maxLength={100}
-                      />
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Full Description</Label>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Detailed product description..."
-                        rows={5}
-                      />
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -502,6 +510,68 @@ export default function NewProductPage() {
 
                 </div>
               </TabsContent>
+
+              {/* Editions Tab */}
+              <TabsContent value="editions" className="mt-4 space-y-4">
+                <Card className="border-0 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-base">Product Editions</CardTitle>
+                    <CardDescription>Add different editions of this book (e.g., Standard, Premium)</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {editions.map((edition, index) => (
+                      <div key={index} className="p-4 border border-neutral-200 rounded-xl space-y-3 relative bg-neutral-50/50">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeEdition(index)}
+                          className="absolute top-2 right-2 text-red-500 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Edition Name *</Label>
+                            <Input
+                              value={edition.name}
+                              onChange={(e) => updateEdition(index, 'name', e.target.value)}
+                              placeholder="e.g., Premium Edition"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Price (optional)</Label>
+                            <Input
+                              value={edition.price}
+                              onChange={(e) => updateEdition(index, 'price', e.target.value)}
+                              placeholder="e.g., $19.99"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Amazon Link *</Label>
+                          <Input
+                            value={edition.link}
+                            onChange={(e) => updateEdition(index, 'link', e.target.value)}
+                            placeholder="https://amazon.com/dp/..."
+                            required
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addEdition}
+                      className="w-full border-dashed"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Another Edition
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </div>
 
@@ -528,7 +598,6 @@ export default function NewProductPage() {
                   <p className="text-sm font-medium text-neutral-900 truncate">
                     {formData.title || 'Product Title'}
                   </p>
-                  <p className="text-xs text-neutral-500">{formData.theme || 'Theme'}</p>
                 </div>
 
                 <div className="pt-4 border-t border-neutral-100 space-y-2">

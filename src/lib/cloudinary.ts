@@ -63,3 +63,32 @@ export async function deleteFolder(folderPath: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Extracts the Cloudinary public ID from a given URL.
+ * Example: https://res.cloudinary.com/demo/image/upload/v12345678/sample.jpg -> sample
+ * Also handles folders: .../upload/v1234/folder/sample.jpg -> folder/sample
+ */
+export function getPublicIdFromUrl(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parts = url.split('/');
+    const uploadIndex = parts.indexOf('upload');
+    if (uploadIndex === -1) return null;
+
+    // The public ID is everything after 'upload/vXXXXXXXX/'
+    // Usually parts[uploadIndex + 1] is the version (e.g., v17123456)
+    // but sometimes it might be omitted. We skip the version if it starts with 'v' and is followed by numbers.
+    let startIndex = uploadIndex + 2;
+    if (parts[uploadIndex + 1] && !parts[uploadIndex + 1].startsWith('v')) {
+      startIndex = uploadIndex + 1;
+    }
+
+    const publicIdWithExtension = parts.slice(startIndex).join('/');
+    const publicId = publicIdWithExtension.split('.')[0];
+    return publicId || null;
+  } catch (error) {
+    console.error('Error parsing Cloudinary URL:', error);
+    return null;
+  }
+}

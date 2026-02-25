@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAdminContacts } from '@/hooks/api/useAdmin';
 import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,11 +28,19 @@ export default function AdminContactsPage() {
   const unreadCount = contacts.filter(c => !c.read).length;
 
   const markAsRead = async (id: string) => {
-    queryClient.setQueryData(['admin-contacts'], (old: Contact[] | undefined) => {
-      if (!old) return [];
-      return old.map(c => c._id === id ? { ...c, read: true } : c);
-    });
-    // TODO: Add API endpoint for marking as read when needed
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, read: true }),
+      });
+
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminContacts] });
+      }
+    } catch (error) {
+      console.error('Error marking as read:', error);
+    }
   };
 
   return (
@@ -61,8 +70,8 @@ export default function AdminContactsPage() {
       ) : (
         <div className="grid gap-4">
           {contacts.map((contact) => (
-            <Card 
-              key={contact._id} 
+            <Card
+              key={contact._id}
               className={`border-0 shadow-sm ${!contact.read ? 'bg-amber-50' : 'bg-white'}`}
             >
               <CardContent className="p-4">
@@ -93,9 +102,9 @@ export default function AdminContactsPage() {
                         })}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-neutral-500 mb-2">{contact.email}</p>
-                    
+
                     <p className={`text-sm text-neutral-600 ${expandedId !== contact._id ? 'line-clamp-2' : ''}`}>
                       {contact.message}
                     </p>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Product } from '@/models/Product';
 import { withAuth } from '@/lib/auth';
+import { deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
 
 export async function GET(
   request: NextRequest,
@@ -33,14 +34,76 @@ export const PUT = withAuth(async (
     const { slug } = await params;
     const body = await request.json();
     
+    // Fetch existing product for image comparison
+    const existingProduct = await Product.findOne({ slug }).lean();
+    
+    if (!existingProduct) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    // Identify images to delete
+    const imagesToDelete: string[] = [];
+
+    // Check cover image
+    if (existingProduct.coverImage && body.coverImage && existingProduct.coverImage !== body.coverImage) {
+      const pid = getPublicIdFromUrl(existingProduct.coverImage);
+      if (pid) imagesToDelete.push(pid);
+    }
+
+    // Check gallery images
+    if (existingProduct.galleryImages && Array.isArray(existingProduct.galleryImages)) {
+      const newGallery = body.galleryImages || [];
+      existingProduct.galleryImages.forEach((url: string) => {
+        if (!newGallery.includes(url)) {
+          const pid = getPublicIdFromUrl(url);
+          if (pid) imagesToDelete.push(pid);
+        }
+      });
+    }
+
+    // Check A+ Content images
+    if (existingProduct.aPlusContent && Array.isArray(existingProduct.aPlusContent)) {
+      const newAPlus = body.aPlusContent || [];
+      const newImages = new Set<string>();
+      
+      // Collect all images in new A+ content
+      newAPlus.forEach((block: any) => {
+        if (block.image) newImages.add(block.image);
+        if (block.images && Array.isArray(block.images)) {
+          block.images.forEach((url: string) => newImages.add(url));
+        }
+      });
+
+      // Compare with old ones
+      existingProduct.aPlusContent.forEach((block: any) => {
+        if (block.image && !newImages.has(block.image)) {
+          const pid = getPublicIdFromUrl(block.image);
+          if (pid) imagesToDelete.push(pid);
+        }
+        if (block.images && Array.isArray(block.images)) {
+          block.images.forEach((url: string) => {
+            if (!newImages.has(url)) {
+              const pid = getPublicIdFromUrl(url);
+              if (pid) imagesToDelete.push(pid);
+            }
+          });
+        }
+      });
+    }
+
+    // Perform DB update
     const product = await Product.findOneAndUpdate(
       { slug },
       { $set: body },
       { new: true }
     );
     
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    // If update successful, delete orphaned images from Cloudinary
+    if (product && imagesToDelete.length > 0) {
+      // Use fire-and-forget or await? Usually better to await to ensure cleanup, 
+      // but fire-and-forget is faster for response time.
+      // Given the requirement "don't keep to clean data", let's await.
+      await Promise.all(imagesToDelete.map(pid => deleteImage(pid)));
     }
     
     return NextResponse.json({ product });
@@ -63,8 +126,41 @@ export const DELETE = withAuth(async (
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
+
+    // Clean up images from Cloudinary
+    const imagesToDelete: string[] = [];
+
+    if (product.coverImage) {
+      const pid = getPublicIdFromUrl(product.coverImage);
+      if (pid) imagesToDelete.push(pid);
+    }
+
+    if (product.galleryImages && Array.isArray(product.galleryImages)) {
+      product.galleryImages.forEach((url: string) => {
+        const pid = getPublicIdFromUrl(url);
+        if (pid) imagesToDelete.push(pid);
+      });
+    }
+
+    if (product.aPlusContent && Array.isArray(product.aPlusContent)) {
+      product.aPlusContent.forEach((block: any) => {
+        if (block.image) {
+          const pid = getPublicIdFromUrl(block.image);
+          if (pid) imagesToDelete.push(pid);
+        }
+        if (block.images && Array.isArray(block.images)) {
+          block.images.forEach((url: string) => {
+            const pid = getPublicIdFromUrl(url);
+            if (pid) imagesToDelete.push(pid);
+          });
+        }
+      });
+    }
+
+    // Delete all identified images
+    await Promise.all(imagesToDelete.map(pid => deleteImage(pid)));
     
-    return NextResponse.json({ message: 'Product deleted successfully' });
+    return NextResponse.json({ message: 'Product and associated images deleted successfully' });
   } catch (error) {
     console.error('Error deleting product:', error);
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });

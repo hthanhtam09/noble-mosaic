@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAdminProducts } from '@/hooks/api/useAdmin';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -46,8 +47,7 @@ interface Product {
   createdAt: string;
 }
 
-const themes = ['All', 'Animals', 'Flowers', 'Mandala', 'Nature', 'Geometric', 'Abstract'];
-const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
+
 
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
@@ -56,8 +56,6 @@ export default function AdminProductsPage() {
   const { data: products = [], isLoading } = useAdminProducts();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [themeFilter, setThemeFilter] = useState('All');
-  const [difficultyFilter, setDifficultyFilter] = useState('All');
   const [processingSlug, setProcessingSlug] = useState<string | null>(null);
 
   const handleDelete = async (slug: string) => {
@@ -69,10 +67,7 @@ export default function AdminProductsPage() {
         });
 
         if (response.ok) {
-          queryClient.setQueryData(['admin-products'], (old: Product[] | undefined) => {
-            if (!old) return [];
-            return old.filter(p => p.slug !== slug);
-          });
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
           toast({
             title: "Product Deleted",
             description: "The product has been successfully deleted."
@@ -109,10 +104,7 @@ export default function AdminProductsPage() {
         title: `${product.title} (Copy)`,
         createdAt: new Date().toISOString(),
       };
-      queryClient.setQueryData(['admin-products'], (old: Product[] | undefined) => {
-        if (!old) return [newProduct];
-        return [newProduct, ...old];
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
       toast({
         title: "Product Duplicated",
         description: "A copy of the product has been created."
@@ -131,13 +123,10 @@ export default function AdminProductsPage() {
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.theme.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTheme = themeFilter === 'All' || product.theme === themeFilter;
-      const matchesDifficulty = difficultyFilter === 'All' || product.difficulty === difficultyFilter;
-      return matchesSearch && matchesTheme && matchesDifficulty;
+      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
     });
-  }, [products, searchQuery, themeFilter, difficultyFilter]);
+  }, [products, searchQuery]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -167,30 +156,6 @@ export default function AdminProductsPage() {
             className="w-full pl-10 pr-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 bg-white"
           />
         </div>
-        <Select value={themeFilter} onValueChange={setThemeFilter}>
-          <SelectTrigger className="w-[140px] bg-white">
-            <SelectValue placeholder="Theme" />
-          </SelectTrigger>
-          <SelectContent>
-            {themes.map((theme) => (
-              <SelectItem key={theme} value={theme}>
-                {theme === 'All' ? 'All Themes' : theme}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-          <SelectTrigger className="w-[140px] bg-white">
-            <SelectValue placeholder="Difficulty" />
-          </SelectTrigger>
-          <SelectContent>
-            {difficulties.map((diff) => (
-              <SelectItem key={diff} value={diff}>
-                {diff === 'All' ? 'All Levels' : diff.charAt(0).toUpperCase() + diff.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Results Count */}
@@ -215,8 +180,6 @@ export default function AdminProductsPage() {
             {products.length > 0 && (
               <Button variant="outline" onClick={() => {
                 setSearchQuery('');
-                setThemeFilter('All');
-                setDifficultyFilter('All');
               }}>
                 Clear Filters
               </Button>
@@ -261,8 +224,6 @@ export default function AdminProductsPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <Badge variant="outline" className="text-xs">{product.theme}</Badge>
-                      <Badge variant="outline" className="text-xs capitalize">{product.difficulty}</Badge>
                       <div className="flex items-center gap-1">
                         <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
                         <span className="text-sm font-medium text-neutral-700">{product.rating}</span>

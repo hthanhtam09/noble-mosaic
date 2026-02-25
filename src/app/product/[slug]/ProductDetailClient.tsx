@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useProduct } from '@/hooks/api/useProducts';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,7 +8,6 @@ import { useParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Star,
   ExternalLink,
@@ -24,35 +23,13 @@ import {
   ChevronRight,
   BookOpen,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ProductJsonLd,
   BreadcrumbJsonLd,
 } from '@/components/seo/JsonLd';
 
-interface Product {
-  _id: string;
-  title: string;
-  slug: string;
-  description: string;
-  shortDescription?: string;
-  theme: string;
-  difficulty: string;
-  coverImage: string;
-  galleryImages: string[];
-  amazonLink: string;
-  bulletPoints: string[];
-  aPlusContent: {
-    type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
-    title?: string;
-    content?: string;
-    image?: string;
-    images?: string[];
-    items?: { title: string; description: string; icon?: string }[];
-  }[];
-  rating?: number;
-  reviewCount?: number;
-  price?: string;
-}
 
 interface RelatedProduct {
   _id: string;
@@ -78,6 +55,7 @@ export default function ProductDetailClient() {
   const { data, isLoading, isError: notFound } = useProduct(slug);
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedEdition, setSelectedEdition] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const product = data?.product || null;
@@ -97,6 +75,17 @@ export default function ProductDetailClient() {
   const allImages = product
     ? [product.coverImage, ...(product.galleryImages || [])]
     : [];
+
+  // Auto-advance gallery images
+  useEffect(() => {
+    if (allImages.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setSelectedImage((prev) => (prev + 1) % allImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [allImages.length]);
 
   if (isLoading) {
     return (
@@ -133,7 +122,7 @@ export default function ProductDetailClient() {
       {/* Structured Data */}
       <ProductJsonLd
         name={product.title}
-        description={product.shortDescription || product.description || ''}
+        description={product.description || ''}
         image={product.coverImage}
         url={`https://noblemosaic.com/product/${product.slug}`}
         price={product.price != null ? String(product.price) : undefined}
@@ -172,19 +161,30 @@ export default function ProductDetailClient() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
           <div className="layout-inner py-8 lg:py-12">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
+            <div className="grid lg:grid-cols-[0.8fr_1.8fr] gap-8 lg:gap-14 items-start">
               {/* Left: Image Gallery */}
               <div className="space-y-4">
                 {/* Main Image */}
-                <div className="product-image-border relative aspect-[3/4] bg-neutral-50">
-                  <Image
-                    src={allImages[selectedImage] || product.coverImage}
-                    alt={`${product.title} - Mosaic Color By Number Book`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    priority
-                  />
+                <div className="product-image-border relative aspect-[3/4] bg-neutral-50 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={selectedImage}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="absolute inset-0"
+                    >
+                      <Image
+                        src={allImages[selectedImage] || product.coverImage}
+                        alt={`${product.title} - Mosaic Color By Number Book`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        priority
+                      />
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
 
                 {/* Thumbnail Strip */}
@@ -194,11 +194,10 @@ export default function ProductDetailClient() {
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`relative w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                          selectedImage === index
-                            ? 'product-thumb-active shadow-md'
-                            : 'border-neutral-200 hover:border-neutral-400'
-                        }`}
+                        className={`relative w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImage === index
+                          ? 'product-thumb-active shadow-md'
+                          : 'border-neutral-200 hover:border-neutral-400'
+                          }`}
                       >
                         <Image
                           src={image}
@@ -220,28 +219,79 @@ export default function ProductDetailClient() {
                   {product.title}
                 </h1>
 
-                {/* Coming soon badge (if no amazonLink or placeholder) */}
-                {product.galleryImages && product.galleryImages.length > 0 && (
-                  <div className="mt-4 flex items-start gap-3">
-                    <Badge className="bg-green-600 text-white text-xs px-3 py-1">
-                      Available Now
-                    </Badge>
-                    <div className="relative w-12 h-16 rounded-md overflow-hidden border border-neutral-200 shadow-sm">
-                      <Image
-                        src={product.galleryImages[0]}
-                        alt="Preview"
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                      />
+                {/* Rating */}
+                {product.rating && (
+                  <div className="mt-5 flex items-center gap-3">
+                    <span className="text-lg font-bold text-neutral-900">
+                      {product.rating}
+                    </span>
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-5 w-5 ${i < Math.floor(product.rating || 4.5)
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-neutral-200'
+                            }`}
+                        />
+                      ))}
+                    </div>
+                    {product.reviewCount && (
+                      <span className="text-sm text-neutral-500">
+                        ({product.reviewCount} reviews)
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Product Editions */}
+                {product.editions && product.editions.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
+                      Choose Edition
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {/* Original / Standard Edition */}
+                      <button
+                        onClick={() => setSelectedEdition(null)}
+                        className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === null
+                          ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
+                          : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                          }`}
+                      >
+                        Standard Edition
+                      </button>
+
+                      {/* Other Editions */}
+                      {product.editions.map((edition: any, index: number) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedEdition(index)}
+                          className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === index
+                            ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
+                            : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                            }`}
+                        >
+                          {edition.name}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
 
+                {/* Price */}
+                <div className="mt-5">
+                  <span className="text-3xl font-bold text-neutral-900">
+                    {selectedEdition !== null && product.editions?.[selectedEdition]?.price
+                      ? product.editions[selectedEdition].price
+                      : product.price}
+                  </span>
+                </div>
+
                 {/* Description */}
-                <p className="mt-4 text-neutral-600 leading-relaxed text-sm md:text-base">
-                  {product.shortDescription || product.description}
-                </p>
+                <div className="mt-4 text-neutral-600 leading-relaxed text-sm md:text-base prose prose-sm max-w-none">
+                  <ReactMarkdown>{product.description}</ReactMarkdown>
+                </div>
 
                 {/* What makes it special? */}
                 {product.bulletPoints && product.bulletPoints.length > 0 && (
@@ -260,38 +310,7 @@ export default function ProductDetailClient() {
                   </div>
                 )}
 
-                {/* Rating */}
-                {product.rating && (
-                  <div className="mt-5 flex items-center gap-3">
-                    <span className="text-lg font-bold text-neutral-900">
-                      {product.rating}
-                    </span>
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-5 w-5 ${
-                            i < Math.floor(product.rating || 4.5)
-                              ? 'text-amber-400 fill-amber-400'
-                              : 'text-neutral-200'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    {product.reviewCount && (
-                      <span className="text-sm text-neutral-500">
-                        ({product.reviewCount} reviews)
-                      </span>
-                    )}
-                  </div>
-                )}
 
-                {/* Price */}
-                {product.price && (
-                  <div className="mt-3">
-                    <span className="text-3xl font-bold text-neutral-900">{product.price}</span>
-                  </div>
-                )}
 
                 {/* Spacer to push CTA down */}
                 <div className="flex-grow min-h-4" />
@@ -304,7 +323,7 @@ export default function ProductDetailClient() {
                     className="w-full bg-amber-500 hover:bg-amber-600 text-white text-base font-semibold rounded-xl h-14 shadow-lg shadow-amber-500/20 btn-mosaic"
                   >
                     <a
-                      href={product.amazonLink}
+                      href={selectedEdition !== null && product.editions ? product.editions[selectedEdition].link : product.amazonLink}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { SecretImage } from '@/models/SecretImage';
+import { deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,10 +58,31 @@ export async function DELETE(request: NextRequest) {
     if (!bookId) {
       return NextResponse.json({ error: 'bookId is required' }, { status: 400 });
     }
+
+    // Find all secrets to get their image URLs before deletion
+    const secrets = await SecretImage.find({ secretBook: bookId });
     
+    const imagesToDelete: string[] = [];
+    secrets.forEach(secret => {
+      if (secret.colorImageUrl) {
+        const pid = getPublicIdFromUrl(secret.colorImageUrl);
+        if (pid) imagesToDelete.push(pid);
+      }
+      if (secret.uncolorImageUrl) {
+        const pid = getPublicIdFromUrl(secret.uncolorImageUrl);
+        if (pid) imagesToDelete.push(pid);
+      }
+    });
+
+    // Delete records from DB
     await SecretImage.deleteMany({ secretBook: bookId });
     
-    return NextResponse.json({ message: 'All secrets deleted successfully' });
+    // Delete images from Cloudinary
+    if (imagesToDelete.length > 0) {
+      await Promise.all(imagesToDelete.map(pid => deleteImage(pid)));
+    }
+    
+    return NextResponse.json({ message: 'All secrets and associated images deleted successfully' });
   } catch (error) {
     console.error('Error deleting secrets:', error);
     return NextResponse.json({ error: 'Failed to delete secrets' }, { status: 500 });

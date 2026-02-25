@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     
     // Check credentials
     const validUsername = process.env.ADMIN_USERNAME || 'shin';
-    const validPassword = process.env.ADMIN_PASSWORD || '123456';
+    const validPassword = process.env.ADMIN_PASSWORD || 'thanh9199';
     
     if (username !== validUsername || password !== validPassword) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });

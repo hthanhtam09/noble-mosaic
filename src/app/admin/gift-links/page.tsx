@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useAdminGiftLinks } from '@/hooks/api/useAdmin';
 import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -112,7 +113,7 @@ export default function AdminGiftLinksPage() {
         setNewUrl('');
         setNewImage(null);
         if (createImageRef.current) createImageRef.current.value = '';
-        queryClient.invalidateQueries({ queryKey: ['admin-gift-links'] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminGiftLinks] });
         toast({
           title: "Gift link created",
           description: "Your gift link was successfully created."
@@ -161,7 +162,7 @@ export default function AdminGiftLinksPage() {
         setEditingLink(null);
         setEditImage(null);
         if (editImageRef.current) editImageRef.current.value = '';
-        queryClient.invalidateQueries({ queryKey: ['admin-gift-links'] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminGiftLinks] });
         toast({
           title: "Gift link updated",
           description: "Gift link details have been saved."
@@ -187,7 +188,7 @@ export default function AdminGiftLinksPage() {
     try {
       const res = await fetch(`/api/gift-links/${linkToDelete.id}`, { method: 'DELETE' });
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: ['admin-gift-links'] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminGiftLinks] });
         toast({
           title: "Gift link deleted",
           description: `The gift link "${linkToDelete.title}" was successfully deleted.`

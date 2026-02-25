@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { SecretImage } from '@/models/SecretImage';
-import { deleteImage } from '@/lib/cloudinary';
+import { deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
 
 export async function PUT(
   request: NextRequest,
@@ -12,14 +12,33 @@ export async function PUT(
     const id = (await params).id;
     const body = await request.json();
     
+    // Step 1: Fetch existing secret for image comparison
+    const existingSecret = await SecretImage.findById(id).lean();
+    
+    if (!existingSecret) {
+      return NextResponse.json({ error: 'Secret not found' }, { status: 404 });
+    }
+
+    // Step 2: Update in DB
     const secret = await SecretImage.findByIdAndUpdate(
       id,
       { $set: body },
       { new: true, runValidators: true }
     );
     
-    if (!secret) {
-      return NextResponse.json({ error: 'Secret not found' }, { status: 404 });
+    // Step 3: Cleanup old images if changed
+    if (secret) {
+      // Color Image
+      if (existingSecret.colorImageUrl && body.colorImageUrl && existingSecret.colorImageUrl !== body.colorImageUrl) {
+        const pid = getPublicIdFromUrl(existingSecret.colorImageUrl);
+        if (pid) await deleteImage(pid);
+      }
+      
+      // Uncolor Image
+      if (existingSecret.uncolorImageUrl && body.uncolorImageUrl && existingSecret.uncolorImageUrl !== body.uncolorImageUrl) {
+        const pid = getPublicIdFromUrl(existingSecret.uncolorImageUrl);
+        if (pid) await deleteImage(pid);
+      }
     }
     
     return NextResponse.json({ secret });
@@ -28,15 +47,6 @@ export async function PUT(
     return NextResponse.json({ error: 'Failed to update secret' }, { status: 500 });
   }
 }
-
-// Function to extract Cloudinary public ID from URL
-const getPublicIdFromUrl = (url: string) => {
-  if (!url) return null;
-  const parts = url.split('/');
-  const filename = parts.pop()?.split('.')[0];
-  const folderPath = parts.slice(parts.indexOf('upload') + 2).join('/');
-  return folderPath ? `${folderPath}/${filename}` : filename;
-};
 
 export async function DELETE(
   request: NextRequest,

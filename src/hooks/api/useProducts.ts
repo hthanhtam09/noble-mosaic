@@ -19,6 +19,19 @@ export interface Product {
   reviewCount?: number;
   theme: string;
   difficulty: string;
+  aPlusContent?: {
+    type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
+    title?: string;
+    content?: string;
+    image?: string;
+    images?: string[];
+    items?: { title: string; description: string; icon?: string }[];
+  }[];
+  editions?: {
+    name: string;
+    link: string;
+    price?: string;
+  }[];
 }
 
 export interface RelatedProduct {

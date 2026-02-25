@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,24 +18,24 @@ interface Subscriber {
 
 export default function AdminSubscribersPage() {
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-subscribers'],
+    queryKey: [QUERY_KEYS.adminSubscribers],
     queryFn: async () => {
       const response = await fetch('/api/subscribers');
       const data = await response.json();
-      
+
       if (response.ok) {
         const now = new Date();
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        
-        const thisWeek = (data.subscribers || []).filter((s: Subscriber) => 
+
+        const thisWeek = (data.subscribers || []).filter((s: Subscriber) =>
           new Date(s.createdAt) >= weekAgo
         ).length;
-        
-        const thisMonth = (data.subscribers || []).filter((s: Subscriber) => 
+
+        const thisMonth = (data.subscribers || []).filter((s: Subscriber) =>
           new Date(s.createdAt) >= monthAgo
         ).length;
-        
+
         return {
           subscribers: data.subscribers || [],
           stats: {
@@ -54,7 +55,7 @@ export default function AdminSubscribersPage() {
     thisWeek: 0,
     thisMonth: 0,
   };
-  
+
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredSubscribers = subscribers.filter(subscriber =>
@@ -89,7 +90,7 @@ export default function AdminSubscribersPage() {
           <h1 className="text-2xl font-serif font-bold text-neutral-900">Email Subscribers</h1>
           <p className="text-neutral-500 text-sm mt-1">Manage your email list</p>
         </div>
-        <Button 
+        <Button
           onClick={exportToCSV}
           variant="outline"
           className="flex items-center gap-2"

@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useAdminSecretBooks, useAdminSecrets } from '@/hooks/api/useAdmin';
 import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/lib/query-keys';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -159,7 +160,7 @@ export default function AdminSecretsPage() {
         setNewBookKey('');
         setNewBookAmazonUrlStandard('');
         setNewBookAmazonUrlPremium('');
-        queryClient.invalidateQueries({ queryKey: ['admin-secret-books'] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
         toast({
           title: "Book created",
           description: "Your secret book has been created successfully."
@@ -193,10 +194,7 @@ export default function AdminSecretsPage() {
     try {
       const res = await fetch(`/api/admin/secret-books/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        queryClient.setQueryData(['admin-secret-books'], (old: SecretBook[] | undefined) => {
-          if (!old) return [];
-          return old.filter(b => b._id !== id);
-        });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
         if (selectedBook?._id === id) {
           setSelectedBook(null);
         }
@@ -270,10 +268,7 @@ export default function AdminSecretsPage() {
           amazonUrlPremium: editAmazonUrlPremium || undefined,
         };
         setSelectedBook(updatedBook);
-        queryClient.setQueryData(['admin-secret-books'], (old: SecretBook[] | undefined) => {
-          if (!old) return [];
-          return old.map(b => b._id === updatedBook._id ? updatedBook : b);
-        });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
         toast({
           title: "Settings updated",
           description: "Book settings have been successfully saved."
@@ -393,7 +388,7 @@ export default function AdminSecretsPage() {
         setUncolorImages([]);
         if (colorInputRef.current) colorInputRef.current.value = '';
         if (uncolorInputRef.current) uncolorInputRef.current.value = '';
-        queryClient.invalidateQueries({ queryKey: ['admin-secrets', selectedBook._id] });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id] });
 
         toast({
           title: "Upload complete",
@@ -426,10 +421,7 @@ export default function AdminSecretsPage() {
     try {
       const res = await fetch(`/api/admin/secrets/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        queryClient.setQueryData(['admin-secrets', selectedBook?._id], (old: SecretImage[] | undefined) => {
-          if (!old) return [];
-          return old.filter(s => s._id !== id);
-        });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook?._id] });
         toast({
           title: "Secret Deleted",
           description: "The secret image pair has been deleted successfully."
@@ -464,7 +456,7 @@ export default function AdminSecretsPage() {
     try {
       const res = await fetch(`/api/admin/secrets?bookId=${selectedBook._id}`, { method: 'DELETE' });
       if (res.ok) {
-        queryClient.setQueryData(['admin-secrets', selectedBook._id], []);
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id] });
         setShowDeleteAllModal(false);
         toast({
           title: "Deleted All",
