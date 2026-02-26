@@ -68,27 +68,80 @@ export const PUT = withAuth(async (
       
       // Collect all images in new A+ content
       newAPlus.forEach((block: any) => {
-        if (block.image) newImages.add(block.image);
-        if (block.images && Array.isArray(block.images)) {
-          block.images.forEach((url: string) => newImages.add(url));
+        if (typeof block === 'string') {
+          newImages.add(block);
+        } else {
+          if (block.image) newImages.add(block.image);
+          if (block.images && Array.isArray(block.images)) {
+            block.images.forEach((url: string) => newImages.add(url));
+          }
         }
       });
 
       // Compare with old ones
       existingProduct.aPlusContent.forEach((block: any) => {
-        if (block.image && !newImages.has(block.image)) {
-          const pid = getPublicIdFromUrl(block.image);
+        if (typeof block === 'string') {
+          if (!newImages.has(block)) {
+            const pid = getPublicIdFromUrl(block);
+            if (pid) imagesToDelete.push(pid);
+          }
+        } else {
+          if (block.image && !newImages.has(block.image)) {
+            const pid = getPublicIdFromUrl(block.image);
+            if (pid) imagesToDelete.push(pid);
+          }
+          if (block.images && Array.isArray(block.images)) {
+            block.images.forEach((url: string) => {
+              if (!newImages.has(url)) {
+                const pid = getPublicIdFromUrl(url);
+                if (pid) imagesToDelete.push(pid);
+              }
+            });
+          }
+        }
+      });
+    }
+
+    // Check Editions images
+    if (existingProduct.editions && Array.isArray(existingProduct.editions)) {
+      const newEditions = body.editions || [];
+      const newImages = new Set<string>();
+
+      newEditions.forEach((edition: any) => {
+        if (edition.coverImage) newImages.add(edition.coverImage);
+        if (edition.aPlusContent && Array.isArray(edition.aPlusContent)) {
+          edition.aPlusContent.forEach((img: any) => {
+            if (typeof img === 'string') newImages.add(img);
+          });
+        }
+      });
+
+      existingProduct.editions.forEach((edition: any) => {
+        if (edition.coverImage && !newImages.has(edition.coverImage)) {
+          const pid = getPublicIdFromUrl(edition.coverImage);
           if (pid) imagesToDelete.push(pid);
         }
-        if (block.images && Array.isArray(block.images)) {
-          block.images.forEach((url: string) => {
-            if (!newImages.has(url)) {
-              const pid = getPublicIdFromUrl(url);
+        if (edition.aPlusContent && Array.isArray(edition.aPlusContent)) {
+          edition.aPlusContent.forEach((img: any) => {
+            if (typeof img === 'string' && !newImages.has(img)) {
+              const pid = getPublicIdFromUrl(img);
               if (pid) imagesToDelete.push(pid);
             }
           });
         }
       });
+    }
+
+    // Update slug if it doesn't match the title
+    if (body.title) {
+      const expectedSlug = body.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+        
+      if (existingProduct.slug !== expectedSlug) {
+        body.slug = expectedSlug;
+      }
     }
 
     // Perform DB update
@@ -144,14 +197,36 @@ export const DELETE = withAuth(async (
 
     if (product.aPlusContent && Array.isArray(product.aPlusContent)) {
       product.aPlusContent.forEach((block: any) => {
-        if (block.image) {
-          const pid = getPublicIdFromUrl(block.image);
+        if (typeof block === 'string') {
+          const pid = getPublicIdFromUrl(block);
+          if (pid) imagesToDelete.push(pid);
+        } else {
+          if (block.image) {
+            const pid = getPublicIdFromUrl(block.image);
+            if (pid) imagesToDelete.push(pid);
+          }
+          if (block.images && Array.isArray(block.images)) {
+            block.images.forEach((url: string) => {
+              const pid = getPublicIdFromUrl(url);
+              if (pid) imagesToDelete.push(pid);
+            });
+          }
+        }
+      });
+    }
+
+    if (product.editions && Array.isArray(product.editions)) {
+      product.editions.forEach((edition: any) => {
+        if (edition.coverImage) {
+          const pid = getPublicIdFromUrl(edition.coverImage);
           if (pid) imagesToDelete.push(pid);
         }
-        if (block.images && Array.isArray(block.images)) {
-          block.images.forEach((url: string) => {
-            const pid = getPublicIdFromUrl(url);
-            if (pid) imagesToDelete.push(pid);
+        if (edition.aPlusContent && Array.isArray(edition.aPlusContent)) {
+          edition.aPlusContent.forEach((img: any) => {
+            if (typeof img === 'string') {
+              const pid = getPublicIdFromUrl(img);
+              if (pid) imagesToDelete.push(pid);
+            }
           });
         }
       });

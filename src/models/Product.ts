@@ -12,14 +12,14 @@ export interface IProduct {
   galleryImages: string[];
   amazonLink: string;
   bulletPoints: string[];
-  aPlusContent: {
+  aPlusContent: (string | {
     type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
     title?: string;
     content?: string;
     image?: string;
     images?: string[];
     items?: { title: string; description: string; icon?: string }[];
-  }[];
+  })[];
   rating?: number;
   reviewCount?: number;
   price?: string;
@@ -28,6 +28,8 @@ export interface IProduct {
     name: string;
     link: string;
     price?: string;
+    coverImage?: string;
+    aPlusContent?: (string | any)[];
   }[];
   createdAt: Date;
   updatedAt: Date;
@@ -50,16 +52,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     amazonLink: { type: String, required: true },
     bulletPoints: [{ type: String }],
     aPlusContent: [{
-      type: { type: String, required: true },
-      title: { type: String },
-      content: { type: String },
-      image: { type: String },
-      images: [{ type: String }],
-      items: [{
-        title: { type: String },
-        description: { type: String },
-        icon: { type: String }
-      }]
+      type: mongoose.Schema.Types.Mixed
     }],
     rating: { type: Number, default: 4.5 },
     reviewCount: { type: Number, default: 0 },
@@ -68,7 +61,9 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     editions: [{
       name: { type: String, required: true },
       link: { type: String, required: true },
-      price: { type: String }
+      price: { type: String },
+      coverImage: { type: String },
+      aPlusContent: [{ type: mongoose.Schema.Types.Mixed }]
     }],
   },
   { timestamps: true }

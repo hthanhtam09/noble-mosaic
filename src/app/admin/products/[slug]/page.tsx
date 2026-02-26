@@ -17,18 +17,11 @@ import {
     ArrowLeft, Plus, X, Loader2, Upload, Image as ImageIcon,
     Star, Check, ExternalLink, Info, Trash2
 } from 'lucide-react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from "@/hooks/use-toast";
 import dynamic from 'next/dynamic';
 
-const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
+const MarkdownEditor = dynamic(() => import('@/components/ui/markdown-editor'), { ssr: false });
 
 export default function EditProductPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
@@ -55,10 +48,10 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
     });
 
     // A+ Content state
-    const [aplusBlocks, setAplusBlocks] = useState<any[]>([]);
+    const [aplusImages, setAplusImages] = useState<string[]>([]);
 
     // Editions state
-    const [editions, setEditions] = useState<{ name: string; link: string; price: string }[]>([]);
+    const [editions, setEditions] = useState<{ name: string; link: string; price: string; coverImage?: string; aPlusContent?: string[] }[]>([]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -78,7 +71,21 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                     setGalleryImages(product.galleryImages || []);
                     setBulletPoints(product.bulletPoints?.length > 0 ? product.bulletPoints : ['', '', '']);
                     setFeatured(product.featured || false);
-                    setAplusBlocks(product.aPlusContent || []);
+
+                    const extractedAplusImages: string[] = [];
+                    if (product.aPlusContent && Array.isArray(product.aPlusContent)) {
+                        product.aPlusContent.forEach((item: any) => {
+                            if (typeof item === 'string') {
+                                extractedAplusImages.push(item);
+                            } else {
+                                if (item.image) extractedAplusImages.push(item.image);
+                                if (item.images && Array.isArray(item.images)) {
+                                    extractedAplusImages.push(...item.images);
+                                }
+                            }
+                        });
+                    }
+                    setAplusImages(extractedAplusImages);
                     setEditions(product.editions || []);
                 } else {
                     toast({
@@ -103,44 +110,47 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
         fetchProduct();
     }, [slug, router, toast]);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery') => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', file);
-        uploadFormData.append('folder', 'noble-mosaic/products');
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery' | 'aplus') => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
 
         try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: uploadFormData,
+            const uploadPromises = files.map(file => {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', file);
+                uploadFormData.append('folder', 'noble-mosaic/products');
+                return fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadFormData,
+                }).then(async res => {
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.message || 'Upload failed');
+                    }
+                    return res.json();
+                });
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                if (type === 'cover') {
-                    setCoverImage(data.url);
-                } else {
-                    setGalleryImages([...galleryImages, data.url]);
-                }
-                toast({
-                    title: "Upload Successful",
-                    description: `${type === 'cover' ? 'Cover' : 'Gallery'} image uploaded.`,
-                });
-            } else {
-                const errorData = await response.json();
-                toast({
-                    title: "Upload Failed",
-                    description: errorData.message || "Could not upload image.",
-                    variant: "destructive"
-                });
+            const results = await Promise.all(uploadPromises);
+            const urls = results.map(data => data.url);
+
+            if (type === 'cover') {
+                setCoverImage(urls[0]);
+            } else if (type === 'gallery') {
+                setGalleryImages(prev => [...prev, ...urls]);
+            } else if (type === 'aplus') {
+                setAplusImages(prev => [...prev, ...urls]);
             }
-        } catch (error) {
+
+            toast({
+                title: "Upload Successful",
+                description: `${urls.length} image(s) uploaded successfully.`,
+            });
+        } catch (error: any) {
             console.error('Error uploading image:', error);
             toast({
-                title: "Upload error",
-                description: "An unexpected error occurred during upload.",
+                title: "Upload Failed",
+                description: error.message || "An unexpected error occurred during upload.",
                 variant: "destructive"
             });
         }
@@ -160,20 +170,57 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
         setBulletPoints(updated);
     };
 
-    const addAplusBlock = (type: string) => {
-        const newBlock = {
-            type,
-            title: '',
-            content: '',
-            image: '',
-            images: [],
-            items: [],
-        };
-        setAplusBlocks([...aplusBlocks, newBlock]);
+    const handleEditionImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number, type: 'cover' | 'aplus') => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        try {
+            const uploadPromises = files.map(file => {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', file);
+                uploadFormData.append('folder', 'noble-mosaic/products/editions');
+                return fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadFormData,
+                }).then(async res => {
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.message || 'Upload failed');
+                    }
+                    return res.json();
+                });
+            });
+
+            const results = await Promise.all(uploadPromises);
+            const urls = results.map(data => data.url);
+
+            setEditions(prev => {
+                const next = [...prev];
+                if (type === 'cover') {
+                    next[index] = { ...next[index], coverImage: urls[0] };
+                } else if (type === 'aplus') {
+                    const existing = next[index].aPlusContent || [];
+                    next[index] = { ...next[index], aPlusContent: [...existing, ...urls] };
+                }
+                return next;
+            });
+
+            toast({
+                title: "Upload Successful",
+                description: `${urls.length} image(s) uploaded for edition.`,
+            });
+        } catch (error: any) {
+            console.error('Error uploading image:', error);
+            toast({
+                title: "Upload Failed",
+                description: error.message || "An unexpected error occurred during edition image upload.",
+                variant: "destructive"
+            });
+        }
     };
 
     const addEdition = () => {
-        setEditions([...editions, { name: '', link: '', price: '' }]);
+        setEditions([...editions, { name: '', link: '', price: '', coverImage: '', aPlusContent: [] }]);
     };
 
     const removeEdition = (index: number) => {
@@ -206,7 +253,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                     featured,
                     rating: parseFloat(formData.rating),
                     reviewCount: parseInt(formData.reviewCount),
-                    aPlusContent: aplusBlocks,
+                    aPlusContent: aplusImages,
                     editions,
                 }),
             });
@@ -304,13 +351,11 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
 
                                         <div className="space-y-2">
                                             <Label>Description</Label>
-                                            <div data-color-mode="light">
-                                                <MDEditor
-                                                    value={formData.description}
-                                                    onChange={(val) => setFormData({ ...formData, description: val || '' })}
-                                                    height={300}
-                                                />
-                                            </div>
+                                            <MarkdownEditor
+                                                value={formData.description}
+                                                onChange={(val) => setFormData({ ...formData, description: val || '' })}
+                                                height={300}
+                                            />
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -385,6 +430,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                                 <input
                                                     type="file"
                                                     accept="image/*"
+                                                    multiple
                                                     className="hidden"
                                                     onChange={(e) => handleImageUpload(e, 'gallery')}
                                                 />
@@ -504,62 +550,45 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                             <Info className="h-5 w-5 text-blue-500 mt-0.5" />
                                             <div className="text-sm text-neutral-600">
                                                 <p className="font-medium text-neutral-900 mb-1">A+ Content</p>
-                                                <p>Add rich content blocks to enhance your product page, similar to Amazon's A+ content. These blocks appear below the main product info.</p>
+                                                <p>Upload full-size images to enhance your product page below the main product info. Recommended size: 970 x 600 px.</p>
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
 
-                                {aplusBlocks.map((block, index) => (
-                                    <Card key={index} className="border-0 shadow-sm">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <Badge variant="outline">{block.type}</Badge>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setAplusBlocks(aplusBlocks.filter((_, i) => i !== index))}
-                                                    className="text-red-500"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                            <Input
-                                                placeholder="Block title"
-                                                value={block.title}
-                                                onChange={(e) => {
-                                                    const updated = [...aplusBlocks];
-                                                    updated[index].title = e.target.value;
-                                                    setAplusBlocks(updated);
-                                                }}
-                                                className="mb-2"
-                                            />
-                                            <Textarea
-                                                placeholder="Block content"
-                                                value={block.content}
-                                                onChange={(e) => {
-                                                    const updated = [...aplusBlocks];
-                                                    updated[index].content = e.target.value;
-                                                    setAplusBlocks(updated);
-                                                }}
-                                                rows={3}
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-
-                                <div className="flex flex-wrap gap-2">
-                                    <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('fullWidth')}>
-                                        + Full Width
-                                    </Button>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('twoColumn')}>
-                                        + Two Column
-                                    </Button>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => addAplusBlock('featureHighlight')}>
-                                        + Features
-                                    </Button>
-                                </div>
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">A+ Image Gallery</CardTitle>
+                                        <CardDescription>Upload multiple images (970x600px)</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex flex-wrap gap-3">
+                                            {aplusImages.map((img, index) => (
+                                                <div key={index} className="relative w-40 h-24 rounded-lg overflow-hidden bg-neutral-100 group">
+                                                    <Image src={img} alt={`A+ Image ${index + 1}`} fill className="object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAplusImages(aplusImages.filter((_, i) => i !== index))}
+                                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                    >
+                                                        <Trash2 className="h-5 w-5 text-white" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <label className="w-40 h-24 rounded-lg border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-neutral-50 transition-colors">
+                                                <Plus className="h-5 w-5 text-neutral-400" />
+                                                <span className="text-xs text-neutral-500 mt-1">Add Images</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    className="hidden"
+                                                    onChange={(e) => handleImageUpload(e, 'aplus')}
+                                                />
+                                            </label>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </TabsContent>
 
                             {/* Editions Tab */}
@@ -608,6 +637,78 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                                         placeholder="https://amazon.com/dp/..."
                                                         required
                                                     />
+                                                </div>
+                                                <div className="pt-4 border-t border-neutral-200 grid sm:grid-cols-2 gap-6">
+                                                    {/* Cover Image Upload */}
+                                                    <div className="space-y-3">
+                                                        <Label className="text-sm font-semibold text-neutral-700">Edition Cover Image</Label>
+                                                        <div className="flex items-start gap-3">
+                                                            {edition.coverImage ? (
+                                                                <div className="relative w-20 h-28 rounded-md overflow-hidden bg-white border border-neutral-200 group flex-shrink-0">
+                                                                    <Image src={edition.coverImage} alt="Cover" fill className="object-cover" />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const next = [...editions];
+                                                                            next[index].coverImage = '';
+                                                                            setEditions(next);
+                                                                        }}
+                                                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4 text-white" />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <label className="w-20 h-28 rounded-md border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-white transition-colors flex-shrink-0">
+                                                                    <Upload className="h-4 w-4 text-neutral-400 mb-1" />
+                                                                    <span className="text-[10px] text-neutral-500">Upload</span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="hidden"
+                                                                        onChange={(e) => handleEditionImageUpload(e, index, 'cover')}
+                                                                    />
+                                                                </label>
+                                                            )}
+                                                            <p className="text-xs text-neutral-500">Override general cover image when this edition is selected.</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* A+ Content Upload */}
+                                                    <div className="space-y-3">
+                                                        <Label className="text-sm font-semibold text-neutral-700">Edition A+ Images</Label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {(edition.aPlusContent || []).map((img, i) => (
+                                                                <div key={i} className="relative w-16 h-10 rounded overflow-hidden bg-white border border-neutral-200 group">
+                                                                    <Image src={img} alt={`A+ ${i}`} fill className="object-cover" />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const next = [...editions];
+                                                                            const arr = [...(next[index].aPlusContent || [])];
+                                                                            arr.splice(i, 1);
+                                                                            next[index].aPlusContent = arr;
+                                                                            setEditions(next);
+                                                                        }}
+                                                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                                    >
+                                                                        <Trash2 className="h-3 w-3 text-white" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            <label className="w-16 h-10 rounded border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-white transition-colors">
+                                                                <Plus className="h-4 w-4 text-neutral-400" />
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    multiple
+                                                                    className="hidden"
+                                                                    onChange={(e) => handleEditionImageUpload(e, index, 'aplus')}
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                        <p className="text-[11px] text-neutral-500 leading-tight">Override A+ contents (970x600px). If empty, falls back to general A+ contents.</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}

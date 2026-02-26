@@ -11,39 +11,31 @@ import { Button } from '@/components/ui/button';
 import {
   Star,
   ExternalLink,
-  Shield,
-  Truck,
   Check,
   Loader2,
-  Clock,
-  BarChart3,
   Grid3X3,
   Maximize,
   ChevronLeft,
   ChevronRight,
-  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Book,
+  Ruler
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import rehypeRaw from 'rehype-raw';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ProductJsonLd,
   BreadcrumbJsonLd,
 } from '@/components/seo/JsonLd';
 
-
-interface RelatedProduct {
-  _id: string;
-  title: string;
-  slug: string;
-  coverImage: string;
-  price?: string;
-  rating?: number;
-}
-
 // Feature icons data
 const featureIcons = [
-  { icon: Clock, label: 'Coloring Time', sublabel: '~1h 50min' },
-  { icon: BarChart3, label: 'Difficulty', sublabel: 'Intermediate' },
+  { icon: Book, label: 'Print length', sublabel: '107 pages' },
+  { icon: Ruler, label: 'Dimensions', sublabel: '8.5 x 0.26 x 11 inches' },
   { icon: Grid3X3, label: 'Cell Size', sublabel: '5×5mm' },
   { icon: Maximize, label: 'Bold Lines', sublabel: 'Easy to see' },
 ];
@@ -56,7 +48,11 @@ export default function ProductDetailClient() {
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedEdition, setSelectedEdition] = useState<number | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [showReadMore, setShowReadMore] = useState(false);
+
   const carouselRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLDivElement>(null);
 
   const product = data?.product || null;
   const relatedProducts = data?.relatedProducts || [];
@@ -71,10 +67,52 @@ export default function ProductDetailClient() {
     }
   };
 
+  // Determine cover image based on edition
+  const currentCoverImage = selectedEdition !== null && product?.editions?.[selectedEdition]?.coverImage
+    ? product.editions[selectedEdition].coverImage
+    : product?.coverImage;
+
   // All images (cover + gallery)
   const allImages = product
-    ? [product.coverImage, ...(product.galleryImages || [])]
+    ? [currentCoverImage, ...(product.galleryImages || [])].filter(Boolean) as string[]
     : [];
+
+  // Reset to first image if edition changes
+  useEffect(() => {
+    setSelectedImage(0);
+  }, [selectedEdition]);
+
+  // Check if description needs Read More button
+  useEffect(() => {
+    // Small timeout to allow content to render and fonts to load
+    const timer = setTimeout(() => {
+      if (descriptionRef.current) {
+        if (descriptionRef.current.scrollHeight > 450) {
+          setShowReadMore(true);
+        }
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [product?.description]);
+
+  // Extract A+ Content
+  const rawAPlusContent = selectedEdition !== null && product?.editions?.[selectedEdition]?.aPlusContent?.length
+    ? product.editions[selectedEdition].aPlusContent
+    : product?.aPlusContent;
+
+  const currentAPlusContent: string[] = [];
+  if (rawAPlusContent && Array.isArray(rawAPlusContent)) {
+    rawAPlusContent.forEach((item: any) => {
+      if (typeof item === 'string') {
+        currentAPlusContent.push(item);
+      } else {
+        if (item.image) currentAPlusContent.push(item.image);
+        if (item.images && Array.isArray(item.images)) {
+          currentAPlusContent.push(...item.images);
+        }
+      }
+    });
+  }
 
   // Auto-advance gallery images
   useEffect(() => {
@@ -161,11 +199,11 @@ export default function ProductDetailClient() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
           <div className="layout-inner py-8 lg:py-12">
-            <div className="grid lg:grid-cols-[0.8fr_1.8fr] gap-8 lg:gap-14 items-start">
+            <div className="grid lg:grid-cols-[1.2fr_1.4fr_1fr] gap-8 lg:gap-14 items-start">
               {/* Left: Image Gallery */}
               <div className="space-y-4">
                 {/* Main Image */}
-                <div className="product-image-border relative aspect-[3/4] bg-neutral-50 overflow-hidden">
+                <div className="relative aspect-[3/4] bg-neutral-50 overflow-hidden rounded-sm">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={selectedImage}
@@ -244,53 +282,41 @@ export default function ProductDetailClient() {
                   </div>
                 )}
 
-                {/* Product Editions */}
-                {product.editions && product.editions.length > 0 && (
-                  <div className="mt-8">
-                    <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
-                      Choose Edition
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {/* Original / Standard Edition */}
-                      <button
-                        onClick={() => setSelectedEdition(null)}
-                        className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === null
-                          ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
-                          : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
-                          }`}
-                      >
-                        Standard Edition
-                      </button>
-
-                      {/* Other Editions */}
-                      {product.editions.map((edition: any, index: number) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedEdition(index)}
-                          className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === index
-                            ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
-                            : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
-                            }`}
-                        >
-                          {edition.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Price */}
-                <div className="mt-5">
-                  <span className="text-3xl font-bold text-neutral-900">
-                    {selectedEdition !== null && product.editions?.[selectedEdition]?.price
-                      ? product.editions[selectedEdition].price
-                      : product.price}
-                  </span>
-                </div>
-
                 {/* Description */}
-                <div className="mt-4 text-neutral-600 leading-relaxed text-sm md:text-base prose prose-sm max-w-none">
-                  <ReactMarkdown>{product.description}</ReactMarkdown>
+                <div className="mt-5 relative">
+                  <motion.div
+                    initial={false}
+                    animate={{ height: isDescriptionExpanded || !showReadMore ? 'auto' : 450 }}
+                    className="overflow-hidden"
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  >
+                    <div
+                      ref={descriptionRef}
+                      className="text-neutral-900 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-p:my-3 prose-headings:my-4 prose-headings:font-bold prose-h3:text-lg prose-ul:my-2 prose-ul:list-disc prose-li:my-1 prose-strong:font-bold prose-strong:text-neutral-900 pb-2"
+                    >
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkBreaks]}
+                        rehypePlugins={[rehypeRaw]}
+                      >
+                        {product.description}
+                      </ReactMarkdown>
+                    </div>
+                  </motion.div>
+
+                  {showReadMore && (
+                    <div className="mt-4 flex justify-start">
+                      <button
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                        className="text-sm font-semibold text-[var(--mosaic-teal)] hover:text-neutral-900 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        {isDescriptionExpanded ? (
+                          <>Show less <ChevronUp className="h-4 w-4" /></>
+                        ) : (
+                          <>Read more <ChevronDown className="h-4 w-4" /></>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* What makes it special? */}
@@ -312,35 +338,79 @@ export default function ProductDetailClient() {
 
 
 
-                {/* Spacer to push CTA down */}
+                {/* Spacer to push content down if needed */}
                 <div className="flex-grow min-h-4" />
+              </div>
 
-                {/* CTA Section */}
-                <div className="mt-6 space-y-3">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-white text-base font-semibold rounded-xl h-14 shadow-lg shadow-amber-500/20 btn-mosaic"
-                  >
-                    <a
-                      href={selectedEdition !== null && product.editions ? product.editions[selectedEdition].link : product.amazonLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2"
+              {/* Right: Purchase Options Column */}
+              <div className="lg:pl-6 flex flex-col pt-4 lg:pt-0 sticky top-24">
+                <div className="p-6 rounded-2xl border border-neutral-200 bg-white shadow-sm flex flex-col">
+                  {/* Product Editions */}
+                  {product.editions && product.editions.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
+                        Choose Edition
+                      </h3>
+                      <div className="flex flex-wrap gap-3">
+                        {/* Original / Standard Edition */}
+                        <button
+                          onClick={() => setSelectedEdition(null)}
+                          className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === null
+                            ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
+                            : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                            }`}
+                        >
+                          Standard Edition
+                        </button>
+
+                        {/* Other Editions */}
+                        {product.editions.map((edition: any, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedEdition(index)}
+                            className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === index
+                              ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
+                              : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                              }`}
+                          >
+                            {edition.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Price */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
+                      Price
+                    </h3>
+                    <span className="text-3xl font-bold text-neutral-900 block">
+                      {selectedEdition !== null && product.editions?.[selectedEdition]?.price
+                        ? product.editions[selectedEdition].price
+                        : product.price}
+                    </span>
+                  </div>
+
+                  <hr className="my-6" />
+
+                  {/* CTA Section */}
+                  <div className="space-y-3">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold rounded-full h-12 shadow-md btn-mosaic"
                     >
-                      Buy on Amazon
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
-
-                  <p className="text-xs text-center text-neutral-500 flex items-center justify-center gap-1.5">
-                    <Shield className="h-3.5 w-3.5" />
-                    Secure checkout via Amazon
-                  </p>
-
-                  <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg text-sm text-neutral-600">
-                    <Truck className="h-5 w-5 flex-shrink-0" />
-                    <span>Fast shipping available via Amazon Prime</span>
+                      <a
+                        href={selectedEdition !== null && product.editions ? product.editions[selectedEdition].link : product.amazonLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2"
+                      >
+                        Buy on Amazon
+                        <ExternalLink className="h-4 w-4 text-neutral-600" />
+                      </a>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -368,141 +438,25 @@ export default function ProductDetailClient() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 3: "What's inside?" — Specs + Preview Grid            */}
-        {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="bg-stone-50">
-          <div className="layout-inner py-16">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-neutral-900 text-center mb-12">
-              What&apos;s inside?
-            </h2>
-
-            <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start mb-12">
-              {/* Specs Card */}
-              <div className="spec-card">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="spec-item flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="spec-number">34</span>
-                      <span className="spec-label text-xs">Hidden</span>
-                    </div>
-                    <span className="spec-label">Images</span>
-                  </div>
-                  <div className="spec-item flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="spec-number">15</span>
-                      <span className="spec-label text-xs">Vibrant</span>
-                    </div>
-                    <span className="spec-label">Colors</span>
-                  </div>
-                  <div className="spec-item flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="spec-number">5</span>
-                      <span className="spec-label text-xs">Unique</span>
-                    </div>
-                    <span className="spec-label">Backgrounds</span>
-                  </div>
-                  <div className="spec-item flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="spec-number text-2xl">8.5×11&quot;</span>
-                    </div>
-                    <span className="spec-label">Large Print</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Preview stack / description */}
-              <div className="flex flex-col items-center justify-center">
-                {product.galleryImages && product.galleryImages.length > 0 ? (
-                  <div className="relative w-full max-w-sm">
-                    {/* Stacked images effect */}
-                    <div className="relative">
-                      {product.galleryImages.slice(0, 3).map((img, i) => (
-                        <div
-                          key={i}
-                          className={`${i === 0 ? 'relative' : 'absolute inset-0'} rounded-xl overflow-hidden shadow-lg`}
-                          style={{
-                            transform: `rotate(${(i - 1) * 3}deg) translateX(${i * 8}px)`,
-                            zIndex: 3 - i,
-                          }}
-                        >
-                          <div className="relative aspect-[3/4]">
-                            <Image
-                              src={img}
-                              alt={`Inside preview ${i + 1}`}
-                              fill
-                              className="object-cover"
-                              sizes="300px"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-neutral-500">
-                    <BookOpen className="h-16 w-16 mx-auto mb-4 text-neutral-300" />
-                    <p>Preview images coming soon</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════════════════════ */}
         {/* SECTION 4: Simple A+ Content Layout                           */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
           <div className="mx-auto max-w-[970px] py-16 space-y-12">
-            {/* Three 970x300 Banners */}
-            <div className="space-y-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="relative w-full aspect-[97/30] bg-neutral-100 overflow-hidden">
-                  <Image
-                    src={`https://picsum.photos/seed/noble-aplus-ban-${i * 10}/970/300`}
-                    alt={`A+ Banner ${i}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 970px) 100vw, 970px"
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Three Horizontal Images with Text */}
-            <div className="grid md:grid-cols-3 gap-8 pt-6">
-              {[
-                {
-                  title: "Beautiful Designs",
-                  desc: "Carefully crafted mosaic patterns that reveal stunning artwork as you color.",
-                  imgSeed: "noble-sq-1"
-                },
-                {
-                  title: "Relaxing Experience",
-                  desc: "Unwind and de-stress with our mindful color-by-number approach.",
-                  imgSeed: "noble-sq-2"
-                },
-                {
-                  title: "Premium Quality",
-                  desc: "Printed on high-quality paper with bold, easy-to-read numbers and lines.",
-                  imgSeed: "noble-sq-3"
-                }
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col text-center group">
-                  <div className="relative w-full aspect-[4/3] bg-neutral-100 overflow-hidden mb-5">
+            {currentAPlusContent.length > 0 && (
+              <div className="space-y-6">
+                {currentAPlusContent.map((imgSrc, i) => (
+                  <div key={i} className="relative w-full aspect-[97/60] bg-neutral-100 overflow-hidden">
                     <Image
-                      src={`https://picsum.photos/seed/${item.imgSeed}/600/450`}
-                      alt={item.title}
+                      src={imgSrc}
+                      alt={`A+ Content ${i + 1}`}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover"
+                      sizes="(max-width: 970px) 100vw, 970px"
                     />
                   </div>
-                  <h3 className="text-xl font-bold text-neutral-900 mb-3">{item.title}</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
