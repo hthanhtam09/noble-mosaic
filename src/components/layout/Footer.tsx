@@ -4,9 +4,8 @@ import { Facebook, Instagram, Twitter, Gift, Heart, Palette } from 'lucide-react
 const footerLinks = {
   books: [
     { name: 'All Books', href: '/books' },
-    { name: 'Animals', href: '/books?theme=Animals' },
-    { name: 'Flowers', href: '/books?theme=Flowers' },
-    { name: 'Mandala', href: '/books?theme=Mandala' },
+    { name: 'Latest Releases', href: '/books?sort=newest' },
+    { name: 'Most Popular', href: '/books?sort=popular' },
   ],
   company: [
     { name: 'About Us', href: '/about' },

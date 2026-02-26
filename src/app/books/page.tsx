@@ -1,39 +1,44 @@
 import type { Metadata } from 'next';
-import ShopPageClient from './ShopPageClient';
-import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
+import BookPageClient from './BookPageClient';
+import { BreadcrumbJsonLd, CollectionPageJsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
-  title: 'Shop All Coloring Books',
+  title: 'Mosaic Color By Number Books',
   description:
-    'Browse our complete collection of premium mosaic color by number books. Filter by theme, difficulty, and find the perfect coloring book for relaxation and creative expression.',
+    'Browse our complete collection of premium mosaic color by number books. Find the perfect coloring book for relaxation and creative expression.',
   alternates: {
     canonical: 'https://noblemosaic.com/books',
   },
   openGraph: {
-    title: 'Shop All Coloring Books | Noble Mosaic',
+    title: 'Mosaic Color By Number Books | Noble Mosaic',
     description:
-      'Browse our complete collection of premium mosaic color by number books for adults. Animals, flowers, mandalas, and more.',
+      'Browse our complete collection of premium mosaic color by number books for adults.',
     url: 'https://noblemosaic.com/books',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Shop All Coloring Books | Noble Mosaic',
+    title: 'Mosaic Color By Number Books | Noble Mosaic',
     description:
       'Browse our complete collection of premium mosaic color by number books for adults.',
   },
 };
 
-export default function ShopPage() {
+export default function BookPage() {
   return (
     <>
+      <CollectionPageJsonLd
+        name="Mosaic Color By Number Books"
+        description="Browse our complete collection of premium mosaic color by number books. Find the perfect coloring book for relaxation and creative expression."
+        url="https://noblemosaic.com/books"
+      />
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
           { name: 'Books', url: 'https://noblemosaic.com/books' },
         ]}
       />
-      <ShopPageClient />
+      <BookPageClient />
     </>
   );
 }

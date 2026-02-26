@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 
@@ -56,5 +56,19 @@ export function useBlogPost(slug: string) {
       };
     },
     enabled: !!slug,
+  });
+}
+
+export function useDeleteBlogPost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (slug: string) => {
+      const data = await api.delete(`/blog/${slug}`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts, 'admin'] });
+    }
   });
 }

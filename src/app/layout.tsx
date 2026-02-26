@@ -53,9 +53,6 @@ export const metadata: Metadata = {
     ],
     apple: "/logo.png",
   },
-  alternates: {
-    canonical: 'https://noblemosaic.com',
-  },
   openGraph: {
     title: "Noble Mosaic | Premium Mosaic Color By Number Books",
     description: "Discover premium mosaic color by number books designed for mindful relaxation and creative expression. Unique hidden-image designs for adults.",

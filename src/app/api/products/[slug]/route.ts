@@ -12,7 +12,9 @@ export async function GET(
     await connectDB();
     const { slug } = await params;
     
-    const product = await Product.findOne({ slug }).lean();
+    const product = await Product.findOne({ slug })
+      .select('-theme -difficulty -bulletPoints')
+      .lean();
     
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });

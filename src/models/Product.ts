@@ -6,12 +6,9 @@ export interface IProduct {
   slug: string;
   description: string;
   shortDescription?: string;
-  theme?: string;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
   coverImage: string;
   galleryImages: string[];
   amazonLink: string;
-  bulletPoints: string[];
   aPlusContent: (string | {
     type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
     title?: string;
@@ -24,6 +21,7 @@ export interface IProduct {
   reviewCount?: number;
   price?: string;
   featured?: boolean;
+  showRating: boolean;
   editions?: {
     name: string;
     link: string;
@@ -41,23 +39,17 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     shortDescription: { type: String },
-    theme: { type: String, default: 'General' },
-    difficulty: { 
-      type: String, 
-      enum: ['beginner', 'intermediate', 'advanced'],
-      default: 'beginner'
-    },
     coverImage: { type: String, required: true },
     galleryImages: [{ type: String }],
     amazonLink: { type: String, required: true },
-    bulletPoints: [{ type: String }],
     aPlusContent: [{
       type: mongoose.Schema.Types.Mixed
     }],
-    rating: { type: Number, default: 4.5 },
-    reviewCount: { type: Number, default: 0 },
+    rating: { type: Number },
+    reviewCount: { type: Number },
     price: { type: String },
     featured: { type: Boolean, default: false },
+    showRating: { type: Boolean, default: true },
     editions: [{
       name: { type: String, required: true },
       link: { type: String, required: true },
@@ -70,9 +62,6 @@ const ProductSchema = new mongoose.Schema<IProduct>(
 );
 
 ProductSchema.index({ slug: 1 });
-ProductSchema.index({ theme: 1 });
-ProductSchema.index({ difficulty: 1 });
-ProductSchema.index({ featured: 1 });
 
 // For Next.js hot reloading: delete the model to force registration with updated schema
 if (process.env.NODE_ENV === 'development' && mongoose.models.Product) {

@@ -1,15 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  ShoppingBag, FileText, MessageSquare, Users, 
+import {
+  ShoppingBag, FileText, MessageSquare, Users,
   ArrowUpRight, ArrowRight, Mail, Eye, Clock, Download, Gift, Loader2
 } from 'lucide-react';
+import {
+  useAdminProducts,
+  useAdminBlogPosts,
+  useAdminSubscribers,
+  useAdminContacts,
+  useAdminGiftLinks
+} from '@/hooks/api/useAdmin';
 
 interface Stats {
   products: number;
@@ -43,109 +50,71 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function AdminDashboard() {
-  const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ['admin-dashboard'],
-    queryFn: async () => {
-      let currentStats: Stats = {
-        products: 0,
-        blogPosts: 0,
-        subscribers: 0,
-        messages: 0,
-        unreadMessages: 0,
-        newSubscribersThisWeek: 0,
-        giftLinks: 0,
-      };
-      const activity: RecentActivity[] = [];
+  const { data: products = [], isLoading: isLoadingProd } = useAdminProducts();
+  const { data: blogPosts = [], isLoading: isLoadingBlog } = useAdminBlogPosts();
+  const { data: subscribers = [], isLoading: isLoadingSub } = useAdminSubscribers();
+  const { data: contacts = [], isLoading: isLoadingMsg } = useAdminContacts();
+  const { data: giftLinks = [], isLoading: isLoadingGift } = useAdminGiftLinks();
 
-      try {
-        // Fetch products
-        const prodRes = await fetch('/api/products');
-        if (prodRes.ok) {
-          const prodData = await prodRes.json();
-          const products = prodData.products || [];
-          currentStats.products = products.length;
-          // Add recent products to activity
-          products.slice(0, 2).forEach((p: { _id: string; title: string; createdAt: string }) => {
-            activity.push({
-              id: `prod-${p._id}`,
-              type: 'product',
-              title: 'Product added',
-              description: p.title,
-              time: timeAgo(p.createdAt),
-            });
-          });
-        }
+  const isLoading = isLoadingProd || isLoadingBlog || isLoadingSub || isLoadingMsg || isLoadingGift;
 
-        // Fetch blog posts (all including drafts)
-        const blogRes = await fetch('/api/blog?all=true');
-        if (blogRes.ok) {
-          const blogData = await blogRes.json();
-          currentStats.blogPosts = (blogData.posts || []).length;
-        }
+  const dashboardData = useMemo(() => {
+    const stats: Stats = {
+      products: (products as any[]).length,
+      blogPosts: (blogPosts as any[]).length,
+      subscribers: (subscribers as any[]).length,
+      messages: (contacts as any[]).length,
+      unreadMessages: (contacts as any[]).filter((c: any) => !c.read).length,
+      newSubscribersThisWeek: 0,
+      giftLinks: (giftLinks as any[]).length,
+    };
 
-        // Fetch subscribers
-        const subRes = await fetch('/api/subscribers');
-        if (subRes.ok) {
-          const subData = await subRes.json();
-          const subs = subData.subscribers || [];
-          const now = new Date();
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          const thisWeek = subs.filter((s: { createdAt: string }) => 
-            new Date(s.createdAt) >= weekAgo
-          ).length;
-          
-          currentStats.subscribers = subs.length;
-          currentStats.newSubscribersThisWeek = thisWeek;
-          
-          // Add recent subscribers to activity
-          subs.slice(0, 2).forEach((s: { _id: string; email: string; source: string; createdAt: string }) => {
-            activity.push({
-              id: `sub-${s._id}`,
-              type: 'subscriber',
-              title: 'New subscriber',
-              description: `${s.email} joined via ${s.source || 'website'}`,
-              time: timeAgo(s.createdAt),
-            });
-          });
-        }
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    stats.newSubscribersThisWeek = (subscribers as any[]).filter((s: any) =>
+      new Date(s.createdAt) >= weekAgo
+    ).length;
 
-        // Fetch messages
-        const msgRes = await fetch('/api/contact');
-        if (msgRes.ok) {
-          const msgData = await msgRes.json();
-          const contacts = msgData.contacts || [];
-          const unread = contacts.filter((c: { read: boolean }) => !c.read).length;
-          currentStats.messages = contacts.length;
-          currentStats.unreadMessages = unread;
-          
-          // Add recent messages to activity
-          contacts.slice(0, 2).forEach((c: { _id: string; name: string; email: string; createdAt: string }) => {
-            activity.push({
-              id: `msg-${c._id}`,
-              type: 'message',
-              title: `Message from ${c.name}`,
-              description: `From: ${c.email}`,
-              time: timeAgo(c.createdAt),
-            });
-          });
-        }
+    const activity: RecentActivity[] = [];
 
-        // Fetch gift links count
-        const giftRes = await fetch('/api/gift-links');
-        if (giftRes.ok) {
-          const giftData = await giftRes.json();
-          currentStats.giftLinks = (giftData.links || []).length;
-        }
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
+    // Add recent products
+    (products as any[]).slice(0, 2).forEach((p: any) => {
+      activity.push({
+        id: `prod-${p._id}`,
+        type: 'product',
+        title: 'Product added',
+        description: p.title,
+        time: timeAgo(p.createdAt),
+      });
+    });
 
-      return {
-        stats: currentStats,
-        recentActivity: activity.slice(0, 6)
-      };
-    }
-  });
+    // Add recent subscribers
+    (subscribers as any[]).slice(0, 2).forEach((s: any) => {
+      activity.push({
+        id: `sub-${s._id}`,
+        type: 'subscriber',
+        title: 'New subscriber',
+        description: `${s.email} joined via ${s.source || 'website'}`,
+        time: timeAgo(s.createdAt),
+      });
+    });
+
+    // Add recent messages
+    (contacts as any[]).slice(0, 2).forEach((c: any) => {
+      activity.push({
+        id: `msg-${c._id}`,
+        type: 'message',
+        title: `Message from ${c.name}`,
+        description: `From: ${c.email}`,
+        time: timeAgo(c.createdAt),
+      });
+    });
+
+    return {
+      stats,
+      recentActivity: activity.sort((a, b) => 0).slice(0, 6)
+    };
+  }, [products, blogPosts, subscribers, contacts, giftLinks]);
 
   const stats = dashboardData?.stats || {
     products: 0,
@@ -156,7 +125,9 @@ export default function AdminDashboard() {
     newSubscribersThisWeek: 0,
     giftLinks: 0,
   };
-  const recentActivity = dashboardData?.recentActivity || [];
+  const recentActivity = (dashboardData?.recentActivity || []).map((item: any) => ({
+    ...item
+  }));
 
   const statCards = [
     {
@@ -258,9 +229,8 @@ export default function AdminDashboard() {
                     <p className="text-sm text-neutral-500 mb-1">{stat.title}</p>
                     <p className="text-3xl font-bold text-neutral-900">{stat.value}</p>
                     {stat.change && (
-                      <p className={`text-xs mt-2 flex items-center gap-1 ${
-                        stat.changePositive ? 'text-green-600' : 'text-amber-600'
-                      }`}>
+                      <p className={`text-xs mt-2 flex items-center gap-1 ${stat.changePositive ? 'text-green-600' : 'text-amber-600'
+                        }`}>
                         {stat.changePositive ? <ArrowUpRight className="h-3 w-3" /> : null}
                         {stat.change}
                       </p>
@@ -286,7 +256,7 @@ export default function AdminDashboard() {
               <div className="space-y-3">
                 {quickActions.map((action) => (
                   <Link key={action.name} href={action.href}>
-                    <Button 
+                    <Button
                       className={`w-full justify-start h-auto py-3 px-4 ${action.color}`}
                     >
                       <action.icon className="h-5 w-5 mr-3" />
@@ -319,10 +289,9 @@ export default function AdminDashboard() {
                 <div className="divide-y divide-neutral-100">
                   {recentActivity.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-4 py-3">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        activity.type === 'subscriber' ? 'bg-green-100' :
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${activity.type === 'subscriber' ? 'bg-green-100' :
                         activity.type === 'message' ? 'bg-blue-100' : 'bg-purple-100'
-                      }`}>
+                        }`}>
                         {activity.type === 'subscriber' && <Users className="h-4 w-4 text-green-600" />}
                         {activity.type === 'message' && <Mail className="h-4 w-4 text-blue-600" />}
                         {activity.type === 'product' && <ShoppingBag className="h-4 w-4 text-purple-600" />}

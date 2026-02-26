@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Lock, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { useLogin } from '@/hooks/api/useAuth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -17,32 +18,20 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const loginMutation = useLogin();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
 
-    try {
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+    loginMutation.mutate({ username, password }, {
+      onSuccess: () => {
         router.push('/admin');
-      } else {
-        setError(data.error || 'Invalid credentials');
+      },
+      onError: (err: any) => {
+        setError(err.response?.data?.error || 'Invalid credentials');
       }
-    } catch {
-      setError('Failed to login. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -134,7 +123,7 @@ export default function AdminLoginPage() {
             </Link>
           </div>
         </div>
-        
+
         <p className="text-center text-xs text-neutral-400 mt-4">
           Protected area. Authorized personnel only.
         </p>

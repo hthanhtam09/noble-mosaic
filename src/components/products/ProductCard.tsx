@@ -8,9 +8,8 @@ interface ProductCardProps {
     slug: string;
     description?: string;
     shortDescription?: string;
-    theme: string;
-    difficulty: string;
     coverImage: string;
+    showRating?: boolean;
     rating?: number;
     reviewCount?: number;
     price?: string | number;

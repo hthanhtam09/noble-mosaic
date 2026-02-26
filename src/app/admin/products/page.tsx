@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAdminProducts } from '@/hooks/api/useAdmin';
+import { useDeleteProduct } from '@/hooks/api/useProducts';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -34,12 +35,9 @@ interface Product {
   title: string;
   slug: string;
   description: string;
-  theme: string;
-  difficulty: string;
   coverImage: string;
   galleryImages: string[];
   amazonLink: string;
-  bulletPoints: string[];
   rating: number;
   reviewCount: number;
   price: string;
@@ -54,6 +52,7 @@ export default function AdminProductsPage() {
   const { toast } = useToast();
 
   const { data: products = [], isLoading } = useAdminProducts();
+  const deleteProductMutation = useDeleteProduct();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [processingSlug, setProcessingSlug] = useState<string | null>(null);
@@ -61,34 +60,25 @@ export default function AdminProductsPage() {
   const handleDelete = async (slug: string) => {
     if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
       setProcessingSlug(slug);
-      try {
-        const response = await fetch(`/api/products/${slug}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+      deleteProductMutation.mutate(slug, {
+        onSuccess: () => {
           toast({
             title: "Product Deleted",
             description: "The product has been successfully deleted."
           });
-        } else {
+        },
+        onError: (error: any) => {
+          console.error('Error deleting product:', error);
           toast({
             title: "Error",
-            description: "Failed to delete the product.",
+            description: error.response?.data?.message || error.message || "Failed to delete the product.",
             variant: "destructive"
           });
+        },
+        onSettled: () => {
+          setProcessingSlug(null);
         }
-      } catch (error) {
-        console.error('Error deleting product:', error);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred while deleting the product.",
-          variant: "destructive"
-        });
-      } finally {
-        setProcessingSlug(null);
-      }
+      });
     }
   };
 
@@ -201,13 +191,6 @@ export default function AdminProductsPage() {
                       className="object-cover"
                       sizes="80px"
                     />
-                    {product.featured && (
-                      <div className="absolute top-1 left-1">
-                        <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5">
-                          Featured
-                        </Badge>
-                      </div>
-                    )}
                   </div>
 
                   {/* Info */}
@@ -223,21 +206,15 @@ export default function AdminProductsPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-                        <span className="text-sm font-medium text-neutral-700">{product.rating}</span>
+                    {(product.rating ?? 0) > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+                          <span className="text-sm font-medium text-neutral-700">{product.rating}</span>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Bullet Points Preview */}
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {product.bulletPoints.slice(0, 3).map((point, idx) => (
-                        <span key={idx} className="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded">
-                          {point}
-                        </span>
-                      ))}
-                    </div>
                   </div>
 
                   {/* Actions */}

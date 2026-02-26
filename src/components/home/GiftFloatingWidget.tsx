@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSendVerificationCode, useSubscribeNewsletter } from "@/hooks/api/useSubscribers";
 
 export default function GiftFloatingWidget() {
     const router = useRouter();
@@ -22,8 +23,10 @@ export default function GiftFloatingWidget() {
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
     const [step, setStep] = useState<"email" | "verify">("email");
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
+
+    const sendCodeMutation = useSendVerificationCode();
+    const subscribeMutation = useSubscribeNewsletter();
 
     // --- mount: read localStorage ---
     useEffect(() => {
@@ -58,47 +61,24 @@ export default function GiftFloatingWidget() {
     const handleSendCode = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        setIsSubmitting(true);
-        try {
-            const res = await fetch("/api/send-code", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-            });
-            const data = await res.json();
-            if (res.ok) setStep("verify");
-            else setError(data.error || "Failed to send verification code");
-        } catch {
-            setError("Something went wrong. Please try again.");
-        } finally {
-            setIsSubmitting(false);
-        }
+        sendCodeMutation.mutate(email, {
+            onSuccess: () => setStep("verify"),
+            onError: (err: any) => setError(err.response?.data?.error || "Failed to send verification code")
+        });
     };
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        setIsSubmitting(true);
-        try {
-            const res = await fetch("/api/subscribers", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, source: "gift", code }),
-            });
-            const data = await res.json();
-            if (res.ok) {
+        subscribeMutation.mutate({ email, source: "gift", code }, {
+            onSuccess: () => {
                 localStorage.setItem("gift_verified", "true");
                 setIsSubscribed(true);
                 setIsOpen(false);
                 router.push("/gift");
-            } else {
-                setError(data.error || "Invalid or expired code");
-            }
-        } catch {
-            setError("Failed to verify code. Please try again.");
-        } finally {
-            setIsSubmitting(false);
-        }
+            },
+            onError: (err: any) => setError(err.response?.data?.error || "Invalid or expired code")
+        });
     };
 
     // --- don't render if dismissed ---
@@ -192,10 +172,10 @@ export default function GiftFloatingWidget() {
 
                                             <Button
                                                 type="submit"
-                                                disabled={isSubmitting}
+                                                disabled={sendCodeMutation.isPending}
                                                 className="w-full h-12 text-base bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl shadow-lg shadow-[var(--mosaic-purple)]/20"
                                             >
-                                                {isSubmitting ? (
+                                                {sendCodeMutation.isPending ? (
                                                     <>
                                                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                                         Sending...
@@ -241,10 +221,10 @@ export default function GiftFloatingWidget() {
 
                                             <Button
                                                 type="submit"
-                                                disabled={isSubmitting || code.length !== 6}
+                                                disabled={subscribeMutation.isPending || code.length !== 6}
                                                 className="w-full h-12 text-base bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl shadow-lg shadow-[var(--mosaic-purple)]/20"
                                             >
-                                                {isSubmitting ? (
+                                                {subscribeMutation.isPending ? (
                                                     <>
                                                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                                         Verifying...

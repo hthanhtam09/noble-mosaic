@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import HeroBanner from "@/components/home/HeroBanner";
@@ -6,6 +7,12 @@ import BestSeller from "@/components/home/BestSeller";
 import SecretSection from "@/components/home/SecretSection";
 import GiftFloatingWidget from "@/components/home/GiftFloatingWidget";
 import BlogPosts from "@/components/home/BlogPosts";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: 'https://noblemosaic.com',
+  },
+};
 
 export default function HomePage() {
   return (

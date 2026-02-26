@@ -164,8 +164,8 @@ export default function ProductDetailClient() {
         image={product.coverImage}
         url={`https://noblemosaic.com/product/${product.slug}`}
         price={product.price != null ? String(product.price) : undefined}
-        rating={product.rating}
-        reviewCount={product.reviewCount}
+        rating={product.showRating !== false ? product.rating : undefined}
+        reviewCount={product.showRating !== false ? product.reviewCount : undefined}
       />
       <BreadcrumbJsonLd
         items={[
@@ -233,7 +233,7 @@ export default function ProductDetailClient() {
                         key={index}
                         onClick={() => setSelectedImage(index)}
                         className={`relative w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImage === index
-                          ? 'product-thumb-active shadow-md'
+                          ? 'border-black shadow-md'
                           : 'border-neutral-200 hover:border-neutral-400'
                           }`}
                       >
@@ -256,10 +256,11 @@ export default function ProductDetailClient() {
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-neutral-900 leading-tight">
                   {product.title}
                 </h1>
+                <hr className="my-4" />
 
                 {/* Rating */}
-                {product.rating && (
-                  <div className="mt-5 flex items-center gap-3">
+                {product.showRating !== false && (product.rating ?? 0) > 0 && (
+                  <div className="flex items-center gap-3">
                     <span className="text-lg font-bold text-neutral-900">
                       {product.rating}
                     </span>
@@ -267,14 +268,14 @@ export default function ProductDetailClient() {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-5 w-5 ${i < Math.floor(product.rating || 4.5)
+                          className={`h-5 w-5 ${i < Math.floor(product.rating ?? 0)
                             ? 'text-amber-400 fill-amber-400'
                             : 'text-neutral-200'
                             }`}
                         />
                       ))}
                     </div>
-                    {product.reviewCount && (
+                    {(product.reviewCount ?? 0) > 0 && (
                       <span className="text-sm text-neutral-500">
                         ({product.reviewCount} reviews)
                       </span>
@@ -283,7 +284,7 @@ export default function ProductDetailClient() {
                 )}
 
                 {/* Description */}
-                <div className="mt-5 relative">
+                <div className="relative">
                   <motion.div
                     initial={false}
                     animate={{ height: isDescriptionExpanded || !showReadMore ? 'auto' : 450 }}
@@ -292,7 +293,7 @@ export default function ProductDetailClient() {
                   >
                     <div
                       ref={descriptionRef}
-                      className="text-neutral-900 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-p:my-3 prose-headings:my-4 prose-headings:font-bold prose-h3:text-lg prose-ul:my-2 prose-ul:list-disc prose-li:my-1 prose-strong:font-bold prose-strong:text-neutral-900 pb-2"
+                      className="text-neutral-900 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-p:my-3 prose-headings:my-4 prose-headings:font-bold prose-h3:text-lg prose-ul:my-2 prose-ul:list-disc prose-strong:font-bold prose-strong:text-neutral-900 pb-2"
                     >
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -319,22 +320,7 @@ export default function ProductDetailClient() {
                   )}
                 </div>
 
-                {/* What makes it special? */}
-                {product.bulletPoints && product.bulletPoints.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
-                      What makes it special?
-                    </h3>
-                    <ul className="space-y-2">
-                      {product.bulletPoints.map((point, index) => (
-                        <li key={index} className="flex items-start gap-2.5 text-sm text-neutral-600">
-                          <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+
 
 
 
@@ -448,7 +434,7 @@ export default function ProductDetailClient() {
                   <div key={i} className="relative w-full aspect-[97/60] bg-neutral-100 overflow-hidden">
                     <Image
                       src={imgSrc}
-                      alt={`A+ Content ${i + 1}`}
+                      alt={`${product.title} - Preview Detail ${i + 1}`}
                       fill
                       className="object-cover"
                       sizes="(max-width: 970px) 100vw, 970px"

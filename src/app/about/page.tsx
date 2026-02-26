@@ -55,7 +55,7 @@ const timeline = [
   {
     year: '2021',
     title: 'Growing Collection',
-    description: 'We expanded our catalog to include themes ranging from animals to mandalas, catering to all skill levels.',
+    description: 'We expanded our catalog with original patterns catering to enthusiasts of all levels.',
   },
   {
     year: '2022',
@@ -126,7 +126,7 @@ export default function AboutPage() {
         ]}
       />
       <Header />
-      
+
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-b from-stone-50 to-white py-16 lg:py-24">
@@ -139,7 +139,7 @@ export default function AboutPage() {
                 About Noble Mosaic
               </h1>
               <p className="text-lg text-neutral-600 leading-relaxed">
-                We&apos;re passionate about bringing the therapeutic joy of mosaic coloring to people around the world. 
+                We&apos;re passionate about bringing the therapeutic joy of mosaic coloring to people around the world.
                 Our mission is to help you find moments of peace, creativity, and mindful relaxation through beautiful art.
               </p>
             </div>
@@ -164,14 +164,14 @@ export default function AboutPage() {
                   Our Mission
                 </h2>
                 <p className="text-lg text-neutral-600 leading-relaxed mb-6">
-                  At Noble Mosaic, we believe everyone deserves a moment of peace in their busy lives. 
-                  Our color by number books are designed to be more than just coloring pages—they&apos;re 
+                  At Noble Mosaic, we believe everyone deserves a moment of peace in their busy lives.
+                  Our color by number books are designed to be more than just coloring pages—they&apos;re
                   gateways to relaxation, mindfulness, and creative expression.
                 </p>
                 <p className="text-lg text-neutral-600 leading-relaxed">
-                  Each book we create is a labor of love, combining stunning mosaic artwork with 
-                  the therapeutic benefits of guided coloring. We carefully select themes that 
-                  inspire wonder and designs that challenge and delight in equal measure.
+                  Each book we create is a labor of love, combining stunning mosaic artwork with
+                  the therapeutic benefits of guided coloring. We carefully craft designs that
+                  inspire wonder and challenge and delight in equal measure.
                 </p>
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function AboutPage() {
                 Our core values guide everything we do, from design to delivery.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {values.map((value, index) => (
                 <Card key={index} className="border-0 shadow-sm bg-white">
@@ -217,7 +217,7 @@ export default function AboutPage() {
                 Discover why mosaic coloring is more than just a hobby—it&apos;s a path to wellness.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {benefits.map((benefit, index) => (
                 <div key={index} className="flex gap-4 p-6 rounded-xl bg-stone-50">
@@ -245,7 +245,7 @@ export default function AboutPage() {
                 From a passion project to a brand loved by thousands of colorists.
               </p>
             </div>
-            
+
             <div className="max-w-3xl mx-auto">
               {timeline.map((item, index) => (
                 <div key={index} className="relative pl-8 pb-8 last:pb-0">
@@ -268,7 +268,7 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
-      
+
       <Footer />
     </div>
   );

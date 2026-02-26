@@ -10,6 +10,8 @@ import {
   Users, ShoppingBag, Settings, Lock, Gift
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSession, useLogout } from '@/hooks/api/useAuth';
+import { useAdminProducts } from '@/hooks/api/useAdmin';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
@@ -34,63 +36,33 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
-  const [productCount, setProductCount] = useState<number | null>(null);
+
+  const { data: sessionData, isLoading: isAuthLoading } = useSession();
+  const logoutMutation = useLogout();
+  const { data: products = [] } = useAdminProducts();
+
+  const isAuthenticated = !!(sessionData as any)?.authenticated;
+  const user = (sessionData as any)?.user || null;
+  const productCount = products.length;
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (pathname === '/admin/login') {
-        setIsLoading(false);
-        return;
-      }
+    if (pathname === '/admin/login') return;
 
-      try {
-        const response = await fetch('/api/auth');
-        const data = await response.json();
-
-        if (!data.authenticated) {
-          router.push('/admin/login');
-        } else {
-          setIsAuthenticated(true);
-          setUser(data.user || null);
-        }
-      } catch {
-        router.push('/admin/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router, pathname]);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const fetchProductCount = async () => {
-      try {
-        const response = await fetch('/api/products');
-        if (response.ok) {
-          const data = await response.json();
-          setProductCount(data.products?.length || 0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch product count:', error);
-      }
-    };
-
-    fetchProductCount();
-  }, [isAuthenticated, pathname]);
+    if (!isAuthLoading && !isAuthenticated) {
+      router.push('/admin/login');
+    }
+  }, [isAuthenticated, isAuthLoading, pathname, router]);
 
   const handleLogout = async () => {
-    await fetch('/api/auth', { method: 'DELETE' });
-    router.push('/admin/login');
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        router.push('/admin/login');
+      }
+    });
   };
 
-  if (isLoading) {
+  if (isAuthLoading && pathname !== '/admin/login') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-100">
         <div className="text-center">

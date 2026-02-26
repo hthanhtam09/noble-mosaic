@@ -7,9 +7,9 @@ import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, Lock, LockOpen, Palette } from 'lucide-react';
+import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 interface SecretBook {
   _id: string;
@@ -48,6 +48,17 @@ export default function SecretPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <CollectionPageJsonLd
+        name="Secret Hidden Images"
+        description="Unlock secret hidden images from our mosaic color by number books. Enter your secret key to reveal the final colored masterpieces."
+        url="https://noblemosaic.com/secret"
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://noblemosaic.com' },
+          { name: 'Secret', url: 'https://noblemosaic.com/secret' },
+        ]}
+      />
       <Header />
 
       <main className="flex-grow">

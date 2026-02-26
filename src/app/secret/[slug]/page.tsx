@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSecretBookDetails } from '@/hooks/api/useSecrets';
+import { api } from '@/lib/api';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
@@ -74,18 +75,19 @@ function SecretBookContent() {
     setKeyError('');
 
     try {
-      const res = await fetch(`/api/secrets/${slug}?key=${encodeURIComponent(inputKey.toUpperCase())}`);
-      if (res.status === 403) {
+      // We still need to verify the key first, but we'll use the API client
+      const res = await api.get<any, any>(`/secrets/${slug}?key=${encodeURIComponent(inputKey.toUpperCase())}`);
+
+      // If we get here, it means the key is valid (api doesn't throw for 200s)
+      localStorage.setItem(`secret_key_${slug}`, inputKey.toUpperCase());
+      setStoredKey(inputKey.toUpperCase());
+    } catch (err: any) {
+      if (err.response?.status === 403) {
         setKeyError('Incorrect Secret Key');
-      } else if (res.ok) {
-        localStorage.setItem(`secret_key_${slug}`, inputKey.toUpperCase());
-        setStoredKey(inputKey.toUpperCase());
       } else {
+        console.error(err);
         setKeyError('An error occurred. Please try again.');
       }
-    } catch (err) {
-      console.error(err);
-      setKeyError('Connection error');
     } finally {
       setIsCheckingKey(false);
     }

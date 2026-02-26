@@ -11,8 +11,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Mail, MessageSquare, Send, CheckCircle, Loader2 } from 'lucide-react';
 import { BreadcrumbJsonLd, FaqJsonLd } from '@/components/seo/JsonLd';
 
+import { useSubmitContact } from '@/hooks/api/useContact';
+
 export default function ContactPageClient() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitContactMutation = useSubmitContact();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -20,28 +22,20 @@ export default function ContactPageClient() {
     message: '',
   });
 
+  const isSubmitting = submitContactMutation.isPending;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
+    submitContactMutation.mutate(formData, {
+      onSuccess: () => {
         setIsSubmitted(true);
         setFormData({ name: '', email: '', message: '' });
+      },
+      onError: (error: any) => {
+        console.error('Error submitting form:', error);
       }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   return (
@@ -74,7 +68,7 @@ export default function ContactPageClient() {
       />
 
       <Header />
-      
+
       <main className="flex-grow bg-stone-50">
         {/* Page Header */}
         <div className="bg-white border-b border-neutral-100">
@@ -233,7 +227,7 @@ export default function ContactPageClient() {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

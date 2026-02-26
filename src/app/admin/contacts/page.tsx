@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAdminContacts } from '@/hooks/api/useAdmin';
+import { useAdminContacts, useUpdateContact } from '@/hooks/api/useContact';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { Button } from '@/components/ui/button';
@@ -22,25 +22,14 @@ export default function AdminContactsPage() {
   const queryClient = useQueryClient();
 
   const { data: contacts = [], isLoading } = useAdminContacts();
+  const updateContactMutation = useUpdateContact();
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const unreadCount = contacts.filter(c => !c.read).length;
 
   const markAsRead = async (id: string) => {
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, read: true }),
-      });
-
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminContacts] });
-      }
-    } catch (error) {
-      console.error('Error marking as read:', error);
-    }
+    updateContactMutation.mutate({ id, read: true });
   };
 
   return (

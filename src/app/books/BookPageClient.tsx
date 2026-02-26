@@ -12,41 +12,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Grid3X3, LayoutGrid, X, Palette, Filter, Loader2 } from 'lucide-react';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
-const themes = ['All', 'Animals', 'Flowers', 'Mandala', 'Nature', 'Geometric', 'Abstract'];
-const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
-
-function ShopContent() {
-  const searchParams = useSearchParams();
-
-  const themeParam = searchParams.get('theme');
-  const difficultyParam = searchParams.get('difficulty');
-
-  const initialTheme = themeParam && themes.includes(themeParam) ? themeParam : 'All';
-  const initialDifficulty = difficultyParam && difficulties.includes(difficultyParam) ? difficultyParam : 'All';
-
+function BookContent() {
   const { data: products = [], isLoading } = useProducts();
 
-  const [selectedTheme, setSelectedTheme] = useState(initialTheme);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(initialDifficulty);
   const [sortBy, setSortBy] = useState('newest');
   const [gridView, setGridView] = useState<'grid' | 'list'>('grid');
   const [displayLimit, setDisplayLimit] = useState(12);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayLimit(12);
-  }, [selectedTheme, selectedDifficulty, sortBy, gridView]);
+  }, [sortBy, gridView]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
-
-    if (selectedTheme !== 'All') {
-      filtered = filtered.filter(p => p.theme === selectedTheme);
-    }
-
-    if (selectedDifficulty !== 'All') {
-      filtered = filtered.filter(p => p.difficulty === selectedDifficulty);
-    }
 
     switch (sortBy) {
       case 'popular':
@@ -60,15 +38,13 @@ function ShopContent() {
     }
 
     return filtered;
-  }, [products, selectedTheme, selectedDifficulty, sortBy]);
+  }, [products, sortBy]);
 
   const clearFilters = () => {
-    setSelectedTheme('All');
-    setSelectedDifficulty('All');
     setSortBy('newest');
   };
 
-  const hasActiveFilters = selectedTheme !== 'All' || selectedDifficulty !== 'All';
+  const hasActiveFilters = sortBy !== 'newest';
 
   const displayedProducts = filteredProducts.slice(0, displayLimit);
 
@@ -76,7 +52,7 @@ function ShopContent() {
     <div className="min-h-screen flex flex-col">
       {/* Structured Data */}
       <CollectionPageJsonLd
-        name="Shop All Coloring Books"
+        name="All Mosaic Color By Number Books"
         description="Browse our complete collection of premium mosaic color by number books for adults."
         url="https://noblemosaic.com/books"
       />
@@ -92,38 +68,22 @@ function ShopContent() {
       <main className="flex-grow">
         <div className="layout-inner py-8">
           {/* SEO-friendly heading */}
-          <h1 className="sr-only">Shop Mosaic Color By Number Books</h1>
+          <h1 className="sr-only">Mosaic Color By Number Books</h1>
 
           {/* Filters Bar */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 p-4 bg-white rounded-2xl shadow-sm">
             <div className="flex flex-wrap items-center gap-3">
               <Filter className="h-5 w-5 text-neutral-400" />
 
-              {/* Theme Filter */}
-              <Select value={selectedTheme} onValueChange={setSelectedTheme}>
+              {/* Sort */}
+              <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
-                  <SelectValue placeholder="Theme" />
+                  <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  {themes.map((theme) => (
-                    <SelectItem key={theme} value={theme}>
-                      {theme === 'All' ? 'All Themes' : theme}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Difficulty Filter */}
-              <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-                <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
-                  <SelectValue placeholder="Difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  {difficulties.map((diff) => (
-                    <SelectItem key={diff} value={diff}>
-                      {diff === 'All' ? 'All Levels' : diff.charAt(0).toUpperCase() + diff.slice(1)}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="popular">Most Popular</SelectItem>
+                  <SelectItem value="rating">Highest Rated</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -142,18 +102,6 @@ function ShopContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Sort */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="popular">Most Popular</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
-
               {/* Grid Toggle */}
               <div className="hidden sm:flex items-center border rounded-xl bg-white overflow-hidden">
                 <Button
@@ -175,39 +123,6 @@ function ShopContent() {
               </div>
             </div>
           </div>
-
-          {/* Active Filters Display */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {selectedTheme !== 'All' && (
-                <Badge
-                  className="rounded-lg px-3 py-1.5 text-sm"
-                  style={{ backgroundColor: 'var(--mosaic-coral)', color: 'white' }}
-                >
-                  Theme: {selectedTheme}
-                  <button
-                    onClick={() => setSelectedTheme('All')}
-                    className="ml-2 hover:opacity-70"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedDifficulty !== 'All' && (
-                <Badge
-                  className="bg-[var(--mosaic-teal)] text-white rounded-lg px-3 py-1.5 text-sm"
-                >
-                  Level: {selectedDifficulty}
-                  <button
-                    onClick={() => setSelectedDifficulty('All')}
-                    className="ml-2 hover:opacity-70"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-            </div>
-          )}
 
           {/* Results Count */}
           <p className="text-sm text-neutral-500 mb-6">
@@ -269,14 +184,14 @@ function ShopContent() {
   );
 }
 
-export default function ShopPageClient() {
+export default function BookPageClient() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--mosaic-purple)] border-t-transparent" />
       </div>
     }>
-      <ShopContent />
+      <BookContent />
     </Suspense>
   );
 }

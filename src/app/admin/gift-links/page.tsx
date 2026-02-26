@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { useAdminGiftLinks } from '@/hooks/api/useAdmin';
+import { useCreateGiftLink, useUpdateGiftLink, useDeleteGiftLink } from '@/hooks/api/useGift';
+import { useUploadMedia } from '@/hooks/api/useMedia';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import Image from 'next/image';
@@ -47,6 +49,10 @@ export default function AdminGiftLinksPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: links = [], isLoading } = useAdminGiftLinks();
+  const createGiftLinkMutation = useCreateGiftLink();
+  const updateGiftLinkMutation = useUpdateGiftLink();
+  const deleteGiftLinkMutation = useDeleteGiftLink();
+  const uploadMediaMutation = useUploadMedia();
 
   // Create dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -54,7 +60,7 @@ export default function AdminGiftLinksPage() {
   const [newDescription, setNewDescription] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [newImage, setNewImage] = useState<File | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const isCreating = createGiftLinkMutation.isPending || uploadMediaMutation.isPending;
   const createImageRef = useRef<HTMLInputElement>(null);
 
   // Edit dialog state
@@ -63,154 +69,134 @@ export default function AdminGiftLinksPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editUrl, setEditUrl] = useState('');
   const [editImage, setEditImage] = useState<File | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const isEditing = updateGiftLinkMutation.isPending || uploadMediaMutation.isPending;
   const editImageRef = useRef<HTMLInputElement>(null);
 
   // Delete state
   const [linkToDelete, setLinkToDelete] = useState<{ id: string; title: string } | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Upload helper
-  const uploadFile = async (file: File, folderName: string) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('folder', folderName);
-
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) throw new Error('Upload failed');
-    const data = await res.json();
-    return data.url;
-  };
+  const isDeleting = deleteGiftLinkMutation.isPending;
 
   // Create gift link
   const handleCreate = async () => {
     if (!newTitle.trim() || !newUrl.trim()) return;
-    setIsCreating(true);
+
     try {
       let thumbnailUrl = '';
       if (newImage) {
-        thumbnailUrl = await uploadFile(newImage, 'gift-links/thumbnails');
+        const uploadResult: any = await uploadMediaMutation.mutateAsync({
+          file: newImage,
+          folder: 'gift-links/thumbnails'
+        });
+        thumbnailUrl = uploadResult.url;
       }
 
-      const res = await fetch('/api/gift-links', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newTitle.trim(),
-          description: newDescription.trim(),
-          url: newUrl.trim(),
-          thumbnail: thumbnailUrl,
-        }),
+      createGiftLinkMutation.mutate({
+        title: newTitle.trim(),
+        description: newDescription.trim(),
+        url: newUrl.trim(),
+        thumbnail: thumbnailUrl,
+      }, {
+        onSuccess: () => {
+          setShowCreateDialog(false);
+          setNewTitle('');
+          setNewDescription('');
+          setNewUrl('');
+          setNewImage(null);
+          if (createImageRef.current) createImageRef.current.value = '';
+          toast({
+            title: "Gift link created",
+            description: "Your gift link was successfully created."
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.response?.data?.error || error.message || 'Failed to create gift link',
+            variant: "destructive"
+          });
+        }
       });
-      if (res.ok) {
-        setShowCreateDialog(false);
-        setNewTitle('');
-        setNewDescription('');
-        setNewUrl('');
-        setNewImage(null);
-        if (createImageRef.current) createImageRef.current.value = '';
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminGiftLinks] });
-        toast({
-          title: "Gift link created",
-          description: "Your gift link was successfully created."
-        });
-      } else {
-        const data = await res.json();
-        toast({
-          title: "Error",
-          description: data.error || 'Failed to create gift link',
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error creating gift link:', error);
+    } catch (error: any) {
+      console.error('Error uploading image for gift link:', error);
       toast({
         title: "Error",
-        description: "Failed to create gift link",
+        description: error.message || "Failed to upload thumbnail",
         variant: "destructive"
       });
-    } finally {
-      setIsCreating(false);
     }
   };
 
   // Edit gift link
   const handleEdit = async () => {
     if (!editingLink || !editTitle.trim() || !editUrl.trim()) return;
-    setIsEditing(true);
+
     try {
       let thumbnailUrl = editingLink.thumbnail || '';
       if (editImage) {
-        thumbnailUrl = await uploadFile(editImage, 'gift-links/thumbnails');
+        const uploadResult: any = await uploadMediaMutation.mutateAsync({
+          file: editImage,
+          folder: 'gift-links/thumbnails'
+        });
+        thumbnailUrl = uploadResult.url;
       }
 
-      const res = await fetch(`/api/gift-links/${editingLink._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      updateGiftLinkMutation.mutate({
+        id: editingLink._id,
+        item: {
           title: editTitle.trim(),
           description: editDescription.trim(),
           url: editUrl.trim(),
           thumbnail: thumbnailUrl,
-        }),
+        }
+      }, {
+        onSuccess: () => {
+          setEditingLink(null);
+          setEditImage(null);
+          if (editImageRef.current) editImageRef.current.value = '';
+          toast({
+            title: "Gift link updated",
+            description: "Gift link details have been saved."
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.response?.data?.message || error.message || "Failed to update gift link.",
+            variant: "destructive"
+          });
+        }
       });
-      if (res.ok) {
-        setEditingLink(null);
-        setEditImage(null);
-        if (editImageRef.current) editImageRef.current.value = '';
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminGiftLinks] });
-        toast({
-          title: "Gift link updated",
-          description: "Gift link details have been saved."
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to update gift link.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error editing gift link:', error);
-    } finally {
-      setIsEditing(false);
+    } catch (error: any) {
+      console.error('Error uploading image for gift link edit:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload thumbnail",
+        variant: "destructive"
+      });
     }
   };
 
   // Delete gift link
   const confirmDelete = async () => {
     if (!linkToDelete) return;
-    setIsDeleting(true);
-    try {
-      const res = await fetch(`/api/gift-links/${linkToDelete.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminGiftLinks] });
+
+    deleteGiftLinkMutation.mutate(linkToDelete.id, {
+      onSuccess: () => {
         toast({
           title: "Gift link deleted",
           description: `The gift link "${linkToDelete.title}" was successfully deleted.`
         });
-      } else {
+        setLinkToDelete(null);
+      },
+      onError: (error: any) => {
+        console.error('Error deleting gift link:', error);
         toast({
           title: "Error",
-          description: "Failed to delete gift link",
+          description: error.response?.data?.message || error.message || "Failed to delete gift link",
           variant: "destructive"
         });
       }
-    } catch (error) {
-      console.error('Error deleting gift link:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while deleting the gift link.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsDeleting(false);
-      setLinkToDelete(null);
-    }
+    });
   };
 
   // Dialog renderer

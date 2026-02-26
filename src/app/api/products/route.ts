@@ -7,25 +7,10 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const searchParams = request.nextUrl.searchParams;
-    const theme = searchParams.get('theme');
-    const difficulty = searchParams.get('difficulty');
     const sort = searchParams.get('sort') || 'newest';
-    const featured = searchParams.get('featured');
     const limit = parseInt(searchParams.get('limit') || '0');
     
     const query: Record<string, unknown> = {};
-    
-    if (theme) {
-      query.theme = theme;
-    }
-    
-    if (difficulty) {
-      query.difficulty = difficulty;
-    }
-    
-    if (featured === 'true') {
-      query.featured = true;
-    }
     
     let sortOption = {};
     switch (sort) {
@@ -42,7 +27,9 @@ export async function GET(request: NextRequest) {
         sortOption = { createdAt: -1 };
     }
     
-    let productsQuery = Product.find(query).sort(sortOption);
+    let productsQuery = Product.find(query)
+      .select('-theme -difficulty -bulletPoints')
+      .sort(sortOption);
     
     if (limit > 0) {
       productsQuery = productsQuery.limit(limit);

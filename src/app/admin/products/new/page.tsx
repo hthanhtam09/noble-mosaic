@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/lib/query-keys';
+import { useCreateProduct } from '@/hooks/api/useProducts';
+import { useUploadMedia } from '@/hooks/api/useMedia';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -27,22 +29,25 @@ export default function NewProductPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+
+  const createProductMutation = useCreateProduct();
+  const uploadMediaMutation = useUploadMedia();
+
+  const isLoading = createProductMutation.isPending;
 
   // Form state
   const [coverImage, setCoverImage] = useState('');
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [bulletPoints, setBulletPoints] = useState<string[]>(['', '', '']);
-  const [featured, setFeatured] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     amazonLink: '',
     price: '',
-    rating: '4.5',
+    rating: '',
     reviewCount: '0',
+    showRating: true,
   });
 
   // A+ Content state
@@ -56,24 +61,12 @@ export default function NewProductPage() {
     if (files.length === 0) return;
 
     try {
-      const uploadPromises = files.map(file => {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', file);
-        uploadFormData.append('folder', 'noble-mosaic/products');
-        return fetch('/api/upload', {
-          method: 'POST',
-          body: uploadFormData,
-        }).then(async res => {
-          if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || 'Upload failed');
-          }
-          return res.json();
-        });
-      });
+      const uploadPromises = files.map(file =>
+        uploadMediaMutation.mutateAsync({ file, folder: 'noble-mosaic/products' })
+      );
 
       const results = await Promise.all(uploadPromises);
-      const urls = results.map(data => data.url);
+      const urls = results.map((data: any) => data.url);
 
       if (type === 'cover') {
         setCoverImage(urls[0]);
@@ -102,24 +95,12 @@ export default function NewProductPage() {
     if (files.length === 0) return;
 
     try {
-      const uploadPromises = files.map(file => {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', file);
-        uploadFormData.append('folder', 'noble-mosaic/products/editions');
-        return fetch('/api/upload', {
-          method: 'POST',
-          body: uploadFormData,
-        }).then(async res => {
-          if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || 'Upload failed');
-          }
-          return res.json();
-        });
-      });
+      const uploadPromises = files.map(file =>
+        uploadMediaMutation.mutateAsync({ file, folder: 'noble-mosaic/products/editions' })
+      );
 
       const results = await Promise.all(uploadPromises);
-      const urls = results.map(data => data.url);
+      const urls = results.map((data: any) => data.url);
 
       setEditions(prev => {
         const next = [...prev];
@@ -146,19 +127,7 @@ export default function NewProductPage() {
     }
   };
 
-  const addBulletPoint = () => {
-    setBulletPoints([...bulletPoints, '']);
-  };
 
-  const removeBulletPoint = (index: number) => {
-    setBulletPoints(bulletPoints.filter((_, i) => i !== index));
-  };
-
-  const updateBulletPoint = (index: number, value: string) => {
-    const updated = [...bulletPoints];
-    updated[index] = value;
-    setBulletPoints(updated);
-  };
 
 
   const addEdition = () => {
@@ -177,51 +146,32 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          theme: 'General',
-          difficulty: 'beginner',
-          coverImage,
-          galleryImages,
-          bulletPoints: bulletPoints.filter(bp => bp.trim()),
-          featured,
-          rating: parseFloat(formData.rating),
-          reviewCount: parseInt(formData.reviewCount),
-          aPlusContent: aplusImages,
-          editions,
-        }),
-      });
-
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+    createProductMutation.mutate({
+      ...formData,
+      coverImage,
+      galleryImages,
+      rating: formData.rating ? parseFloat(formData.rating) : undefined,
+      reviewCount: formData.reviewCount ? parseInt(formData.reviewCount) : undefined,
+      aPlusContent: aplusImages,
+      editions,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Success",
+          description: "Product created successfully.",
+        });
         router.push('/admin/products');
-      } else {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
+      },
+      onError: (error: any) => {
+        console.error('Error creating product:', error);
         toast({
           title: "Error",
-          description: errorData.message || "Failed to create product.",
+          description: error.response?.data?.message || error.message || "Failed to create product.",
           variant: "destructive"
         });
       }
-    } catch (error: any) {
-      console.error('Error creating product:', error);
-      toast({
-        title: "Error",
-        description: error.message || "An unexpected error occurred.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -240,16 +190,6 @@ export default function NewProductPage() {
         <div>
           <h1 className="text-2xl font-serif font-bold text-neutral-900">Add New Product</h1>
           <p className="text-neutral-500 text-sm mt-1">Create a detailed product listing</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="featured" className="text-sm text-neutral-600">Featured</Label>
-            <Switch
-              id="featured"
-              checked={featured}
-              onCheckedChange={setFeatured}
-            />
-          </div>
         </div>
       </div>
 
@@ -430,49 +370,18 @@ export default function NewProductPage() {
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
 
-                <Card className="border-0 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Bullet Points</CardTitle>
-                    <CardDescription>Key features and benefits (shown on product page)</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {bulletPoints.map((point, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs text-neutral-500 flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <Input
-                          value={point}
-                          onChange={(e) => updateBulletPoint(index, e.target.value)}
-                          placeholder="e.g., 50+ unique mosaic designs"
-                          className="flex-1"
-                        />
-                        {bulletPoints.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeBulletPoint(index)}
-                            className="text-neutral-400 hover:text-red-500"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                    <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-100">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="showRating" className="text-base font-semibold text-amber-900">Show Rating</Label>
+                        <p className="text-sm text-amber-700">Display this rating on the public store pages</p>
                       </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addBulletPoint}
-                      className="mt-2"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Bullet Point
-                    </Button>
+                      <Switch
+                        id="showRating"
+                        checked={formData.showRating}
+                        onCheckedChange={(checked) => setFormData({ ...formData, showRating: checked })}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -730,7 +639,7 @@ export default function NewProductPage() {
             </Card>
           </div>
         </div>
-      </form>
-    </div>
+      </form >
+    </div >
   );
 }

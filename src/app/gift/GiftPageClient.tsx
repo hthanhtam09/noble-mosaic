@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useGiftLinks } from '@/hooks/api/useGift';
+import { useSubscribeNewsletter, useSendVerificationCode } from '@/hooks/api/useSubscribers';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -9,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Download, Mail, Loader2, 
+import {
+  Download, Mail, Loader2,
   Palette, Lock,
   ShieldCheck, ExternalLink, Gift
 } from 'lucide-react';
@@ -22,11 +23,12 @@ export default function GiftPageClient() {
   const [email, setEmail] = useState('');
   const [step, setStep] = useState<'email' | 'verify'>('email');
   const [code, setCode] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState('');
   const { toast } = useToast();
   const { data: giftLinks = [], isLoading } = useGiftLinks();
+  const subscribeMutation = useSubscribeNewsletter();
+  const sendCodeMutation = useSendVerificationCode();
 
   useEffect(() => {
     if (localStorage.getItem('gift_verified') === 'true') {
@@ -37,59 +39,36 @@ export default function GiftPageClient() {
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
-    try {
-      const response = await fetch('/api/send-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setStep('verify');
-      } else {
-        setError(data.error || 'Failed to send verification code');
-      }
-    } catch {
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    sendCodeMutation.mutate(email, {
+      onSuccess: () => setStep('verify'),
+      onError: (err: any) => setError(err.response?.data?.error || 'Failed to send verification code')
+    });
   };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
-    try {
-      const response = await fetch('/api/subscribers', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ email, source: 'gift', code })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+    subscribeMutation.mutate({ email, source: 'gift', code }, {
+      onSuccess: () => {
         setIsSubscribed(true);
         localStorage.setItem('gift_verified', 'true');
         toast({
           title: "You're In! 🎉",
           description: 'Your gift is now unlocked. Enjoy your free downloads!',
         });
-      } else {
-        setError(data.error || 'Invalid or expired code');
+      },
+      onError: (error: any) => {
+        setError(error.response?.data?.error || 'Invalid or expired code');
       }
-    } catch {
-      setError('Failed to verify code. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
+
+  // Note: handleSendCode still uses fetch as it's a specific auth-like step not yet in hooks
+  // But I will update it to also include the code in handleVerify if the API supports it.
+  // Actually, handleVerify in original code passes {email, source: 'gift', code}
+  // My useSubscribeNewsletter only takes email. I need to update the hook to accept more options.
 
   const handleOpenLink = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -114,7 +93,7 @@ export default function GiftPageClient() {
       />
 
       <Header />
-      
+
       <main className="flex-grow">
         {/* SEO heading */}
         <h1 className="sr-only">Free Mosaic Coloring Books - Download Your Gift</h1>
@@ -126,7 +105,7 @@ export default function GiftPageClient() {
               <Card className="border-2 border-neutral-100 shadow-xl overflow-hidden">
                 {/* Color accent bar */}
                 <div className="h-2 bg-gradient-to-r from-[var(--mosaic-coral)] via-[var(--mosaic-gold)] via-[var(--mosaic-teal)] to-[var(--mosaic-purple)]" />
-                
+
                 <CardContent className="p-8">
                   <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-gradient-to-br from-neutral-100 to-neutral-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -160,10 +139,10 @@ export default function GiftPageClient() {
 
                       <Button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={sendCodeMutation.isPending}
                         className="w-full h-14 text-lg bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl shadow-lg shadow-[var(--mosaic-purple)]/20"
                       >
-                        {isSubmitting ? (
+                        {sendCodeMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Sending Code...
@@ -177,7 +156,7 @@ export default function GiftPageClient() {
                       </Button>
 
                       <p className="text-xs text-center text-neutral-500">
-                        By requesting a code, you agree to receive occasional emails from Noble Mosaic. 
+                        By requesting a code, you agree to receive occasional emails from Noble Mosaic.
                         We respect your privacy.
                       </p>
                     </form>
@@ -192,7 +171,7 @@ export default function GiftPageClient() {
                           If you don't see the email, please check your <strong className="text-neutral-500">Spam</strong> or <strong className="text-neutral-500">Junk</strong> folder.
                         </p>
                       </div>
-                      
+
                       <div className="flex justify-center mb-2">
                         <Input
                           type="text"
@@ -211,10 +190,10 @@ export default function GiftPageClient() {
 
                       <Button
                         type="submit"
-                        disabled={isSubmitting || code.length !== 6}
+                        disabled={subscribeMutation.isPending || code.length !== 6}
                         className="w-full h-14 text-lg bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl shadow-lg shadow-[var(--mosaic-purple)]/20"
                       >
-                        {isSubmitting ? (
+                        {sendCodeMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Verifying...
@@ -226,10 +205,10 @@ export default function GiftPageClient() {
                           </>
                         )}
                       </Button>
-                      
+
                       <div className="text-center mt-4">
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => { setStep('email'); setError(''); setCode(''); }}
                           className="text-sm text-neutral-500 hover:text-neutral-900 underline"
                         >
@@ -252,7 +231,7 @@ export default function GiftPageClient() {
                 {isSubscribed ? 'Download Your Gift' : 'Preview: Gift'}
               </h2>
               <p className="text-neutral-600">
-                {isSubscribed 
+                {isSubscribed
                   ? 'Click on any item to download your free coloring book'
                   : 'Subscribe above to unlock all gifts'
                 }
@@ -276,13 +255,12 @@ export default function GiftPageClient() {
                   const color = colorVars[index % colorVars.length];
 
                   return (
-                    <div 
-                      key={link._id} 
-                      className={`mosaic-card group relative overflow-hidden transition-all duration-300 rounded-xl ${
-                        isSubscribed 
-                          ? 'cursor-pointer hover:shadow-lg' 
-                          : 'opacity-70 grayscale'
-                      }`}
+                    <div
+                      key={link._id}
+                      className={`mosaic-card group relative overflow-hidden transition-all duration-300 rounded-xl ${isSubscribed
+                        ? 'cursor-pointer hover:shadow-lg'
+                        : 'opacity-70 grayscale'
+                        }`}
                       onClick={() => isSubscribed && handleOpenLink(link.url)}
                     >
                       {/* Thumbnail */}
@@ -300,7 +278,7 @@ export default function GiftPageClient() {
                             <Gift className="h-12 w-12 text-neutral-300" />
                           </div>
                         )}
-                        
+
                         {/* Lock overlay when not subscribed */}
                         {!isSubscribed && (
                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -309,7 +287,7 @@ export default function GiftPageClient() {
                             </div>
                           </div>
                         )}
-                        
+
                         {/* Download overlay on hover when subscribed */}
                         {isSubscribed && (
                           <div className="absolute inset-0 bg-black/0 hover:bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-all">
@@ -319,7 +297,7 @@ export default function GiftPageClient() {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Info + Download button */}
                       <CardContent className="p-3">
                         <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 mb-1">
@@ -331,7 +309,7 @@ export default function GiftPageClient() {
                           </p>
                         )}
                         {isSubscribed && (
-                          <Button 
+                          <Button
                             className="w-full mt-1 text-white rounded-xl text-xs h-8 group/btn"
                             style={{ backgroundColor: color }}
                             onClick={(e) => {
@@ -367,9 +345,9 @@ export default function GiftPageClient() {
             <p className="text-lg text-neutral-300 mb-8">
               Check out our complete collection of mosaic color by number books on Amazon
             </p>
-            <Button 
-              asChild 
-              size="lg" 
+            <Button
+              asChild
+              size="lg"
               className="bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] text-white hover:opacity-90 rounded-full px-8"
             >
               <a href="/books">
@@ -380,7 +358,7 @@ export default function GiftPageClient() {
           </div>
         </section>
       </main>
-      
+
       <Footer />
     </div>
   );

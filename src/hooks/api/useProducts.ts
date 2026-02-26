@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 export interface Product {
@@ -12,13 +12,11 @@ export interface Product {
   coverImage: string;
   galleryImages?: string[];
   price?: number | string;
+  showRating?: boolean;
   description?: string;
   shortDescription?: string;
-  bulletPoints?: string[];
   rating?: number;
   reviewCount?: number;
-  theme: string;
-  difficulty: string;
   aPlusContent?: (string | {
     type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
     title?: string;
@@ -103,5 +101,48 @@ export function useProduct(slug: string) {
       };
     },
     enabled: !!slug,
+  });
+}
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newProduct: Partial<Product>) => {
+      const data = await api.post('/products', newProduct);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.products] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+    }
+  });
+}
+
+export function useUpdateProduct(slug: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (updatedProduct: Partial<Product>) => {
+      const data = await api.put(`/products/${slug}`, updatedProduct);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.products] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.product, slug] });
+    }
+  });
+}
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (slug: string) => {
+      const data = await api.delete(`/products/${slug}`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.products] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
+    }
   });
 }

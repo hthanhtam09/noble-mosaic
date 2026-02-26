@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import BlogPageClient from './BlogPageClient';
-import { BreadcrumbJsonLd } from '@/components/seo/JsonLd';
+import { BreadcrumbJsonLd, CollectionPageJsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Blog - Tips, Guides & Coloring Inspiration',
@@ -27,6 +27,11 @@ export const metadata: Metadata = {
 export default function BlogPage() {
   return (
     <>
+      <CollectionPageJsonLd
+        name="Blog - Tips, Guides & Coloring Inspiration"
+        description="Read the latest articles about mosaic coloring, mindfulness techniques, creative tips, and coloring book reviews. Get inspired and learn new coloring techniques."
+        url="https://noblemosaic.com/blog"
+      />
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },

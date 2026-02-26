@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { useAdminSubscribers } from '@/hooks/api/useSubscribers';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,44 +17,27 @@ interface Subscriber {
 }
 
 export default function AdminSubscribersPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.adminSubscribers],
-    queryFn: async () => {
-      const response = await fetch('/api/subscribers');
-      const data = await response.json();
+  const { data: subscribers = [], isLoading } = useAdminSubscribers();
 
-      if (response.ok) {
-        const now = new Date();
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const stats = useMemo(() => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-        const thisWeek = (data.subscribers || []).filter((s: Subscriber) =>
-          new Date(s.createdAt) >= weekAgo
-        ).length;
+    const thisWeek = subscribers.filter((s: Subscriber) =>
+      new Date(s.createdAt) >= weekAgo
+    ).length;
 
-        const thisMonth = (data.subscribers || []).filter((s: Subscriber) =>
-          new Date(s.createdAt) >= monthAgo
-        ).length;
+    const thisMonth = subscribers.filter((s: Subscriber) =>
+      new Date(s.createdAt) >= monthAgo
+    ).length;
 
-        return {
-          subscribers: data.subscribers || [],
-          stats: {
-            total: data.subscribers?.length || 0,
-            thisWeek,
-            thisMonth,
-          }
-        };
-      }
-      return { subscribers: [], stats: { total: 0, thisWeek: 0, thisMonth: 0 } };
-    }
-  });
-
-  const subscribers = data?.subscribers || [];
-  const stats = data?.stats || {
-    total: 0,
-    thisWeek: 0,
-    thisMonth: 0,
-  };
+    return {
+      total: subscribers.length,
+      thisWeek,
+      thisMonth,
+    };
+  }, [subscribers]);
 
   const [searchQuery, setSearchQuery] = useState('');
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAdminBlogPosts } from '@/hooks/api/useAdmin';
+import { useDeleteBlogPost } from '@/hooks/api/useBlog';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -33,6 +34,7 @@ export default function AdminBlogPage() {
   const { toast } = useToast();
 
   const { data: posts = [], isLoading } = useAdminBlogPosts();
+  const deleteBlogPostMutation = useDeleteBlogPost();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [processingSlug, setProcessingSlug] = useState<string | null>(null);
@@ -40,37 +42,25 @@ export default function AdminBlogPage() {
   const handleDelete = async (slug: string) => {
     if (confirm('Are you sure you want to delete this post?')) {
       setProcessingSlug(slug);
-      try {
-        const response = await fetch(`/api/blog/${slug}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          queryClient.setQueryData(['admin-blog-posts'], (old: BlogPost[] | undefined) => {
-            if (!old) return [];
-            return old.filter(p => p.slug !== slug);
-          });
+      deleteBlogPostMutation.mutate(slug, {
+        onSuccess: () => {
           toast({
             title: "Post Deleted",
             description: "The blog post has been successfully deleted."
           });
-        } else {
+        },
+        onError: (error: any) => {
+          console.error('Error deleting post:', error);
           toast({
             title: "Error",
-            description: "Failed to delete the blog post.",
+            description: error.response?.data?.message || error.message || "Failed to delete the blog post.",
             variant: "destructive"
           });
+        },
+        onSettled: () => {
+          setProcessingSlug(null);
         }
-      } catch (error) {
-        console.error('Error deleting post:', error);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred while deleting the post.",
-          variant: "destructive"
-        });
-      } finally {
-        setProcessingSlug(null);
-      }
+      });
     }
   };
 
