@@ -35,10 +35,12 @@ function SecretBookContent() {
   const slug = params.slug as string;
 
   const [storedKey, setStoredKey] = useState<string | null>(null);
+  const [isCheckingStorage, setIsCheckingStorage] = useState(true);
 
   // Only read localStorage on the client side
   useEffect(() => {
     setStoredKey(localStorage.getItem(`secret_key_${slug}`));
+    setIsCheckingStorage(false);
   }, [slug]);
 
   const { data, isLoading, refetch } = useSecretBookDetails(slug, storedKey);
@@ -47,6 +49,8 @@ function SecretBookContent() {
   const [isCheckingKey, setIsCheckingKey] = useState(false);
   const [keyError, setKeyError] = useState('');
   const [selectedSecret, setSelectedSecret] = useState<SecretImage | null>(null);
+
+  const isPageLoading = isLoading || isCheckingStorage;
 
   const isLocked = !data?.secrets || data.secrets.length === 0;
   const book = ((data?.product || data?.book) as SecretBookInfo) || null;
@@ -128,9 +132,9 @@ function SecretBookContent() {
               Back to Secrets
             </Button>
 
-            {isLoading ? (
+            {isPageLoading ? (
               <div className="flex animate-pulse gap-6">
-                <div className="w-24 h-32 bg-neutral-200 rounded-md"></div>
+                <div className="w-24 h-32 md:w-40 md:h-52 bg-neutral-200 rounded-md"></div>
                 <div className="flex-1 pt-2">
                   <div className="h-8 bg-neutral-200 w-1/3 rounded mb-4"></div>
                   <div className="h-4 bg-neutral-200 w-1/2 rounded"></div>
@@ -164,7 +168,17 @@ function SecretBookContent() {
         </section>
 
         {/* Conditional View: Lock Screen OR Gallery */}
-        {isLocked ? (
+        {isPageLoading ? (
+          <section className="py-16 md:py-24">
+            <div className="layout-inner">
+              <div className="flex flex-col items-center justify-center py-20 px-4">
+                <Loader2 className="h-10 w-10 animate-spin text-[var(--mosaic-teal)] mb-6" />
+                <h3 className="text-xl font-serif font-medium text-neutral-900 mb-2">Unlocking Secrets...</h3>
+                <p className="text-neutral-500 text-center max-w-sm">Please wait while we prepare the hidden images for you.</p>
+              </div>
+            </div>
+          </section>
+        ) : isLocked ? (
           <section className="py-16 md:py-24">
             <div className="mx-auto max-w-lg px-4 sm:px-6">
               <Card className="p-8 md:p-10 border-0 shadow-xl rounded-2xl bg-white text-center relative overflow-hidden">
@@ -261,11 +275,7 @@ function SecretBookContent() {
         ) : (
           <section className="py-12 md:py-16">
             <div className="layout-inner">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="h-8 w-8 animate-spin text-[var(--mosaic-teal)]" />
-                </div>
-              ) : secrets.length === 0 ? (
+              {secrets.length === 0 ? (
                 <div className="text-center py-20">
                   <ImageIcon className="h-12 w-12 text-neutral-300 mx-auto mb-4" />
                   <h3 className="text-xl font-medium text-neutral-900 mb-2">No Secrets Yet</h3>
