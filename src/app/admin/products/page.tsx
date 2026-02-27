@@ -220,7 +220,7 @@ export default function AdminProductsPage() {
                   {/* Actions */}
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <Button asChild variant="ghost" size="sm" title="View on site">
-                      <a href={`/product/${product.slug}`} target="_blank" rel="noopener noreferrer">
+                      <a href={`/books/${product.slug}`} target="_blank" rel="noopener noreferrer">
                         <Eye className="h-4 w-4" />
                       </a>
                     </Button>

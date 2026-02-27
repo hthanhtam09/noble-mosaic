@@ -22,7 +22,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   return (
     <div className="group relative bg-white overflow-hidden shadow-xl">
-      <Link href={`/product/${product.slug}`} className="block aspect-[3/4] relative overflow-hidden bg-neutral-50/50 p-6 sm:p-8">
+      <Link href={`/books/${product.slug}`} className="block aspect-[3/4] relative overflow-hidden bg-neutral-50/50 p-6 sm:p-8">
         <div className="relative w-full h-full">
           <Image
             src={product.coverImage}
@@ -38,7 +38,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
       {/* Content */}
       <div className="p-4 text-center">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/books/${product.slug}`}>
           <h3 className="font-semibold text-neutral-900 group-hover:text-[var(--mosaic-purple)] transition-colors line-clamp-2 mb-1">
             {product.title}
           </h3>

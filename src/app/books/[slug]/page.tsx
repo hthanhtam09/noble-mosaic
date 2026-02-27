@@ -31,12 +31,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: product.title,
       description: description.slice(0, 160),
       alternates: {
-        canonical: `https://noblemosaic.com/product/${slug}`,
+        canonical: `https://noblemosaic.com/books/${slug}`,
       },
       openGraph: {
         title: `${product.title} | Noble Mosaic`,
         description: description.slice(0, 200),
-        url: `https://noblemosaic.com/product/${slug}`,
+        url: `https://noblemosaic.com/books/${slug}`,
         type: 'website',
         images: product.coverImage
           ? [
@@ -80,7 +80,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
           { name: 'Books', url: 'https://noblemosaic.com/books' },
-          { name: productName, url: `https://noblemosaic.com/product/${slug}` },
+          { name: productName, url: `https://noblemosaic.com/books/${slug}` },
         ]}
       />
       <ProductDetailClient />

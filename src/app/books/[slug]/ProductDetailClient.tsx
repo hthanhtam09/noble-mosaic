@@ -162,7 +162,7 @@ export default function ProductDetailClient() {
         name={product.title}
         description={product.description || ''}
         image={product.coverImage}
-        url={`https://noblemosaic.com/product/${product.slug}`}
+        url={`https://noblemosaic.com/books/${product.slug}`}
         price={product.price != null ? String(product.price) : undefined}
         rating={product.showRating !== false ? product.rating : undefined}
         reviewCount={product.showRating !== false ? product.reviewCount : undefined}
@@ -173,7 +173,7 @@ export default function ProductDetailClient() {
           { name: 'Books', url: 'https://noblemosaic.com/books' },
           {
             name: product.title,
-            url: `https://noblemosaic.com/product/${product.slug}`,
+            url: `https://noblemosaic.com/books/${product.slug}`,
           },
         ]}
       />
@@ -477,7 +477,7 @@ export default function ProductDetailClient() {
                 {relatedProducts.map((relProduct) => (
                   <Link
                     key={relProduct._id}
-                    href={`/product/${relProduct.slug}`}
+                    href={`/books/${relProduct.slug}`}
                     className="series-item group"
                   >
                     <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-neutral-100 shadow-sm">
