@@ -26,8 +26,8 @@ export function useAdminSubscribers() {
   return useQuery({
     queryKey: [QUERY_KEYS.adminSubscribers],
     queryFn: async () => {
-      const data = await api.get('/subscribers');
-      return data;
+      const data = await api.get<any, { subscribers: any[] }>('/subscribers');
+      return data.subscribers || [];
     }
   });
 }
