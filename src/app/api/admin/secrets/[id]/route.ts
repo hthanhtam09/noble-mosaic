@@ -39,6 +39,12 @@ export async function PUT(
         const pid = getPublicIdFromUrl(existingSecret.uncolorImageUrl);
         if (pid) await deleteImage(pid);
       }
+      
+      // Original Image
+      if (existingSecret.originalImageUrl && body.originalImageUrl && existingSecret.originalImageUrl !== body.originalImageUrl) {
+        const pid = getPublicIdFromUrl(existingSecret.originalImageUrl);
+        if (pid) await deleteImage(pid);
+      }
     }
     
     return NextResponse.json({ secret });
@@ -70,6 +76,11 @@ export async function DELETE(
     if (secret.uncolorImageUrl) {
        const uncolorPublicId = getPublicIdFromUrl(secret.uncolorImageUrl);
        if (uncolorPublicId) await deleteImage(uncolorPublicId);
+    }
+
+    if (secret.originalImageUrl) {
+       const originalPublicId = getPublicIdFromUrl(secret.originalImageUrl);
+       if (originalPublicId) await deleteImage(originalPublicId);
     }
     
     return NextResponse.json({ message: 'Secret deleted successfully' });

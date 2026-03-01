@@ -5,6 +5,7 @@ export interface ISecretImage {
   secretBook: mongoose.Types.ObjectId | string;
   colorImageUrl: string;
   uncolorImageUrl: string;
+  originalImageUrl?: string;
   order: number;
   isActive: boolean;
   createdAt: Date;
@@ -16,6 +17,7 @@ const SecretImageSchema = new mongoose.Schema<ISecretImage>(
     secretBook: { type: mongoose.Schema.Types.ObjectId, ref: 'SecretBook', required: true },
     colorImageUrl: { type: String, required: true },
     uncolorImageUrl: { type: String, required: true },
+    originalImageUrl: { type: String },
     order: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true }
   },

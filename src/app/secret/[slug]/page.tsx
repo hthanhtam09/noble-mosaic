@@ -17,6 +17,7 @@ interface SecretImage {
   _id: string;
   colorImageUrl: string;
   uncolorImageUrl: string;
+  originalImageUrl?: string;
   order: number;
 }
 
@@ -292,9 +293,9 @@ function SecretBookContent() {
                       onClick={() => handleOpenSecret(secret)}
                     >
                       <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
-                        {/* Show colored as the default view before they click */}
+                        {/* Show original image as thumbnail if available, otherwise fallback to colored */}
                         <Image
-                          src={secret.colorImageUrl}
+                          src={secret.originalImageUrl || secret.colorImageUrl}
                           alt={`Secret Image ${index + 1}`}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -329,6 +330,7 @@ function SecretBookContent() {
           onClose={handleCloseModal}
           colorImageUrl={selectedSecret.colorImageUrl}
           uncolorImageUrl={selectedSecret.uncolorImageUrl}
+          originalImageUrl={selectedSecret.originalImageUrl}
           title={`${book.title} - Secret #${selectedSecret.order || 1}`}
         />
       )}

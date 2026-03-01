@@ -73,6 +73,10 @@ export async function DELETE(request: NextRequest) {
         const pid = getPublicIdFromUrl(secret.uncolorImageUrl);
         if (pid) imagesToDelete.push(pid);
       }
+      if (secret.originalImageUrl) {
+        const pid = getPublicIdFromUrl(secret.originalImageUrl);
+        if (pid) imagesToDelete.push(pid);
+      }
     });
 
     // Delete records from DB

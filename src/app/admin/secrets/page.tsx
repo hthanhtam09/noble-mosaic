@@ -48,6 +48,7 @@ interface SecretImage {
   secretBook: string | SecretBook;
   colorImageUrl: string;
   uncolorImageUrl: string;
+  originalImageUrl?: string;
   order: number;
   isActive: boolean;
 }
@@ -74,12 +75,14 @@ export default function AdminSecretsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [colorImages, setColorImages] = useState<File[]>([]);
   const [uncolorImages, setUncolorImages] = useState<File[]>([]);
+  const [originalImages, setOriginalImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [totalUploads, setTotalUploads] = useState(0);
 
   const colorInputRef = useRef<HTMLInputElement>(null);
   const uncolorInputRef = useRef<HTMLInputElement>(null);
+  const originalInputRef = useRef<HTMLInputElement>(null);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -288,21 +291,31 @@ export default function AdminSecretsPage() {
     }
   };
 
+  const handleOriginalFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files)
+        .filter(f => f.type.startsWith('image/'))
+        .sort((a, b) => getNumberFromFilename(a.name) - getNumberFromFilename(b.name));
+      setOriginalImages(fileArray);
+    }
+  };
+
   const handleAddSecretsBulk = async () => {
     if (!selectedBook) return;
-    if (colorImages.length === 0 || uncolorImages.length === 0) {
+    if (colorImages.length === 0 || uncolorImages.length === 0 || originalImages.length === 0) {
       toast({
         title: "Missing folders",
-        description: "Please select both color and uncolor folders.",
+        description: "Please select color, uncolor, and original folders.",
         variant: "destructive"
       });
       return;
     }
 
-    if (colorImages.length !== uncolorImages.length) {
+    if (colorImages.length !== uncolorImages.length || colorImages.length !== originalImages.length) {
       toast({
         title: "Mismatched counts",
-        description: `You selected ${colorImages.length} color images and ${uncolorImages.length} uncolor images. They must contain the exact same amount.`,
+        description: `You selected ${colorImages.length} color, ${uncolorImages.length} uncolor, and ${originalImages.length} original images. They must contain the exact same amount.`,
         variant: "destructive"
       });
       return;
@@ -327,6 +340,7 @@ export default function AdminSecretsPage() {
             // Upload pairs
             const colorImageUrl = await uploadFile(colorImages[index], `secrets/${selectedBook.slug}/color`);
             const uncolorImageUrl = await uploadFile(uncolorImages[index], `secrets/${selectedBook.slug}/uncolor`);
+            const originalImageUrl = await uploadFile(originalImages[index], `secrets/${selectedBook.slug}/original`);
 
             const order = existingMaxOrder + (index - i) + 1; // Basic order calculation for chunk
 
@@ -335,6 +349,7 @@ export default function AdminSecretsPage() {
               secretBook: selectedBook._id,
               colorImageUrl,
               uncolorImageUrl,
+              originalImageUrl,
               order: existingMaxOrder + index + 1,
               isActive: true
             });
@@ -352,8 +367,10 @@ export default function AdminSecretsPage() {
         setShowAddForm(false);
         setColorImages([]);
         setUncolorImages([]);
+        setOriginalImages([]);
         if (colorInputRef.current) colorInputRef.current.value = '';
         if (uncolorInputRef.current) uncolorInputRef.current.value = '';
+        if (originalInputRef.current) originalInputRef.current.value = '';
         queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id] });
 
         if (successCount === total) {
@@ -497,10 +514,10 @@ export default function AdminSecretsPage() {
             <DialogHeader>
               <DialogTitle>Upload Folders</DialogTitle>
               <DialogDescription>
-                Please select the <strong>entire folder</strong> containing your color images, and the <strong>entire folder</strong> containing your uncolor images. Make sure both folders contain the exact same amount of images (e.g. 50). The system will automatically sort them from 1 to 50 based on their filenames and pair them together.
+                Please select the <strong>entire folder</strong> containing your color images, the <strong>entire folder</strong> containing your uncolor images, and the <strong>entire folder</strong> containing your original images. Make sure all folders contain the exact same amount of images (e.g. 50). The system will automatically sort them from 1 to 50 based on their filenames and pair them together.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2 mt-4">
               <div className="border border-neutral-200 p-4 rounded-md bg-neutral-50">
                 <label className="block text-sm font-semibold mb-2">1. Select Color Folder</label>
                 <p className="text-xs text-neutral-500 mb-3">Contains colored versions (e.g., 1.jpg, 2.jpg...)</p>
@@ -535,6 +552,23 @@ export default function AdminSecretsPage() {
                   <p className="text-sm mt-3 font-medium text-[var(--mosaic-teal)]">✓ Found {uncolorImages.length} uncolor images</p>
                 )}
               </div>
+              <div className="border border-neutral-200 p-4 rounded-md bg-neutral-50">
+                <label className="block text-sm font-semibold mb-2">3. Select Original Folder</label>
+                <p className="text-xs text-neutral-500 mb-3">Contains original raw versions (e.g., 1.jpg, 2.jpg...)</p>
+                <Input
+                  ref={originalInputRef}
+                  type="file"
+                  // @ts-expect-error - webkitdirectory is standard in most modern browsers but missing from generic React types
+                  webkitdirectory="true"
+                  directory="true"
+                  multiple
+                  onChange={handleOriginalFolderSelect}
+                  className="cursor-pointer bg-white"
+                />
+                {originalImages.length > 0 && (
+                  <p className="text-sm mt-3 font-medium text-[var(--mosaic-teal)]">✓ Found {originalImages.length} original images</p>
+                )}
+              </div>
             </div>
 
             {isSubmitting && (
@@ -563,7 +597,7 @@ export default function AdminSecretsPage() {
               </Button>
               <Button
                 onClick={handleAddSecretsBulk}
-                disabled={colorImages.length === 0 || uncolorImages.length === 0 || colorImages.length !== uncolorImages.length || isSubmitting}
+                disabled={colorImages.length === 0 || uncolorImages.length === 0 || originalImages.length === 0 || colorImages.length !== uncolorImages.length || colorImages.length !== originalImages.length || isSubmitting}
                 className="bg-neutral-900 text-white whitespace-nowrap"
               >
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
@@ -581,7 +615,7 @@ export default function AdminSecretsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {secrets.map((secret) => (
               <Card key={secret._id} className="overflow-hidden group">
-                <div className="grid grid-cols-2 gap-1 bg-neutral-100 p-2">
+                <div className="grid grid-cols-3 gap-1 bg-neutral-100 p-2">
                   <div className="relative aspect-[3/4] bg-white rounded-md overflow-hidden shadow-sm">
                     <Image src={secret.colorImageUrl} alt="Color" fill className="object-cover" unoptimized={true} />
                     <div className="absolute top-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded">Color</div>
@@ -589,6 +623,14 @@ export default function AdminSecretsPage() {
                   <div className="relative aspect-[3/4] bg-white rounded-md overflow-hidden shadow-sm">
                     <Image src={secret.uncolorImageUrl} alt="Uncolor" fill className="object-cover" unoptimized={true} />
                     <div className="absolute top-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded">Uncolor</div>
+                  </div>
+                  <div className="relative aspect-[3/4] bg-white rounded-md overflow-hidden shadow-sm">
+                    {secret.originalImageUrl ? (
+                      <Image src={secret.originalImageUrl} alt="Original" fill className="object-cover" unoptimized={true} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs text-neutral-400 bg-neutral-200">N/A</div>
+                    )}
+                    <div className="absolute top-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded">Original</div>
                   </div>
                 </div>
                 <CardContent className="p-3 flex items-center justify-between border-t border-neutral-100">
