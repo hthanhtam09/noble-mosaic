@@ -28,6 +28,7 @@ interface SecretBookInfo {
   amazonUrlStandard?: string;
   amazonUrlPremium?: string;
   previewImage?: string;
+  secretPageNumber?: number;
 }
 
 function SecretBookContent() {
@@ -211,7 +212,7 @@ function SecretBookContent() {
                   This book is locked. Please enter the 6-character secret key to view the hidden images.
                 </p>
                 <p className="text-neutral-500 mb-8 px-4 font-bold text-xl">
-                  Get the secret key on page 106
+                  Get the secret key on page {book?.secretPageNumber || 86}
                 </p>
                 <form onSubmit={handleUnlock} className="space-y-4 mb-8">
                   <div className="relative max-w-[280px] mx-auto">

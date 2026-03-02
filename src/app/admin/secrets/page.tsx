@@ -39,6 +39,7 @@ interface SecretBook {
   slug: string;
   coverImage: string;
   secretKey?: string;
+  secretPageNumber?: number;
   amazonUrlStandard?: string;
   amazonUrlPremium?: string;
 }
@@ -67,6 +68,7 @@ export default function AdminSecretsPage() {
   const [newBookTitle, setNewBookTitle] = useState('');
   const [newBookImage, setNewBookImage] = useState<File | null>(null);
   const [newBookKey, setNewBookKey] = useState('');
+  const [newBookSecretPageNumber, setNewBookSecretPageNumber] = useState('86');
   const [newBookAmazonUrlStandard, setNewBookAmazonUrlStandard] = useState('');
   const [newBookAmazonUrlPremium, setNewBookAmazonUrlPremium] = useState('');
   const [isCreatingBook, setIsCreatingBook] = useState(false);
@@ -95,6 +97,7 @@ export default function AdminSecretsPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editCoverImage, setEditCoverImage] = useState<File | null>(null);
   const [editKey, setEditKey] = useState('');
+  const [editSecretPageNumber, setEditSecretPageNumber] = useState('86');
   const [editAmazonUrlStandard, setEditAmazonUrlStandard] = useState('');
   const [editAmazonUrlPremium, setEditAmazonUrlPremium] = useState('');
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
@@ -149,6 +152,7 @@ export default function AdminSecretsPage() {
         title: newBookTitle,
         coverImage: coverImageUrl,
         secretKey: newBookKey || undefined,
+        secretPageNumber: newBookSecretPageNumber ? Number(newBookSecretPageNumber) : undefined,
         amazonUrlStandard: newBookAmazonUrlStandard || undefined,
         amazonUrlPremium: newBookAmazonUrlPremium || undefined,
       });
@@ -157,6 +161,7 @@ export default function AdminSecretsPage() {
       setNewBookTitle('');
       setNewBookImage(null);
       setNewBookKey('');
+      setNewBookSecretPageNumber('86');
       setNewBookAmazonUrlStandard('');
       setNewBookAmazonUrlPremium('');
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminSecretBooks] });
@@ -233,6 +238,7 @@ export default function AdminSecretsPage() {
         title: editTitle,
         coverImage: coverImageUrl,
         secretKey: editKey || undefined,
+        secretPageNumber: editSecretPageNumber ? Number(editSecretPageNumber) : undefined,
         amazonUrlStandard: editAmazonUrlStandard || undefined,
         amazonUrlPremium: editAmazonUrlPremium || undefined,
       });
@@ -243,6 +249,7 @@ export default function AdminSecretsPage() {
         title: editTitle,
         coverImage: coverImageUrl,
         secretKey: editKey || undefined,
+        secretPageNumber: editSecretPageNumber ? Number(editSecretPageNumber) : undefined,
         amazonUrlStandard: editAmazonUrlStandard || undefined,
         amazonUrlPremium: editAmazonUrlPremium || undefined,
       };
@@ -485,6 +492,7 @@ export default function AdminSecretsPage() {
                       setEditTitle(selectedBook.title || '');
                       setEditCoverImage(null);
                       setEditKey(selectedBook.secretKey || '');
+                      setEditSecretPageNumber(selectedBook.secretPageNumber?.toString() || '86');
                       setEditAmazonUrlStandard(selectedBook.amazonUrlStandard || '');
                       setEditAmazonUrlPremium(selectedBook.amazonUrlPremium || '');
                       setShowBookSettingsModal(true);
@@ -731,6 +739,17 @@ export default function AdminSecretsPage() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium mb-1 line-clamp-1">Secret Page Number</label>
+                <Input
+                  type="number"
+                  placeholder="e.g. 86"
+                  value={editSecretPageNumber}
+                  onChange={(e) => setEditSecretPageNumber(e.target.value)}
+                />
+                <p className="text-[11px] text-neutral-500 mt-1">Page number to display as a hint (default: 86).</p>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-1">Amazon Standard Link</label>
                 <Input
                   type="url"
@@ -841,6 +860,16 @@ export default function AdminSecretsPage() {
                 </Button>
               </div>
               <p className="text-[11px] text-neutral-500 mt-1">Leave blank for public, or enter 6 chars.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Secret Page Number</label>
+              <Input
+                type="number"
+                placeholder="e.g. 86"
+                value={newBookSecretPageNumber}
+                onChange={(e) => setNewBookSecretPageNumber(e.target.value)}
+              />
+              <p className="text-[11px] text-neutral-500 mt-1">Page number to display as a hint (default: 86).</p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Amazon Standard Link (Optional)</label>
