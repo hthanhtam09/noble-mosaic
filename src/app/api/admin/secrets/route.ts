@@ -3,6 +3,8 @@ import connectDB from '@/lib/mongodb';
 import { SecretImage } from '@/models/SecretImage';
 import { deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();

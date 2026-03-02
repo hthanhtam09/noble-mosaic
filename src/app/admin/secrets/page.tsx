@@ -183,19 +183,30 @@ export default function AdminSecretsPage() {
     }
   };
 
-  const uploadFile = async (file: File, folderName: string) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("folder", folderName);
+  const uploadFile = async (file: File, folderName: string, retries = 2) => {
+    let attempt = 0;
+    while (attempt <= retries) {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", folderName);
 
-    // Using existing api instance (axios) instead of fetch
-    const data = await api.post<any, any>("/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+        // Using existing api instance (axios) instead of fetch
+        const data = await api.post<any, any>("/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
-    return data.url;
+        return data.url;
+      } catch (err) {
+        attempt++;
+        console.error(`Upload failed (attempt ${attempt}):`, err);
+        if (attempt > retries) throw err;
+        // Wait briefly before retrying
+        await new Promise(r => setTimeout(r, 1000 * attempt));
+      }
+    }
   };
 
   const handleCreateBook = async () => {
@@ -412,7 +423,7 @@ export default function AdminSecretsPage() {
       let successCount = 0;
       let existingMaxOrder =
         secrets.length > 0 ? Math.max(...secrets.map((s) => s.order || 0)) : 0;
-      const CHUNK_SIZE = 5;
+      const CHUNK_SIZE = 2; // Reduced chunk size to prevent API rate limits and timeouts
       const total = colorImages.length;
       const failedIndices: number[] = [];
 
@@ -663,9 +674,8 @@ export default function AdminSecretsPage() {
               <DialogTitle>Upload or Update Folders</DialogTitle>
               <DialogDescription>
                 Please select the <strong>entire folder</strong> containing your
-                color images, the <strong>entire folder</strong> containing your
-                uncolor images, and the <strong>entire folder</strong>{" "}
-                containing your original images. Make sure all folders contain
+                color images and the <strong>entire folder</strong> containing your
+                uncolor images. Make sure both folders contain
                 the exact same amount of images (e.g. 50). The system will
                 automatically sort them based on their filenames and pair them
                 together.{" "}

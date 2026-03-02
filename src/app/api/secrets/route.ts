@@ -3,6 +3,8 @@ import connectDB from '@/lib/mongodb';
 import { SecretImage } from '@/models/SecretImage';
 import { SecretBook } from '@/models/SecretBook';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     await connectDB();
