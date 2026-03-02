@@ -42,7 +42,7 @@ export const PUT = withAuth(async (
     if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
     if (isActive !== undefined) updateData.isActive = isActive;
 
-    const link = await GiftLink.findByIdAndUpdate(id, updateData, { new: true }).lean();
+    const link = await GiftLink.findByIdAndUpdate(id, updateData, { returnDocument: 'after' }).lean();
 
     if (!link) {
       return NextResponse.json({ error: 'Gift link not found' }, { status: 404 });

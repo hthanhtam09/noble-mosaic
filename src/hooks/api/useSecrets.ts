@@ -16,7 +16,6 @@ interface SecretImage {
   _id: string;
   colorImageUrl: string;
   uncolorImageUrl: string;
-  originalImageUrl?: string;
   order: number;
 }
 

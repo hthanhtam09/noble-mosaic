@@ -67,7 +67,7 @@ export const PATCH = withAuth(async (request: NextRequest) => {
     const contact = await Contact.findByIdAndUpdate(
       id,
       { read: !!read },
-      { new: true }
+      { returnDocument: 'after' }
     );
     
     if (!contact) {

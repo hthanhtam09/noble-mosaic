@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { BlogPost } from '@/models/BlogPost';
 import { withAuth } from '@/lib/auth';
+import { updateDocumentAndCleanImages, deleteDocumentAndCleanImages } from '@/lib/crud-utils';
 
 export async function GET(
   request: NextRequest,
@@ -33,15 +34,26 @@ export const PUT = withAuth(async (
     const { slug } = await params;
     const body = await request.json();
     
-    const post = await BlogPost.findOneAndUpdate(
-      { slug },
-      { $set: body },
-      { new: true }
-    );
+    // Fetch existing post to check slug changes
+    const existingPost = await BlogPost.findOne({ slug }).select('slug title').lean();
     
-    if (!post) {
+    if (!existingPost) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
     }
+
+    // Update slug if title changes
+    if (body.title && body.title !== existingPost.title) {
+      const expectedSlug = body.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+        
+      if (existingPost.slug !== expectedSlug) {
+        body.slug = expectedSlug;
+      }
+    }
+
+    const post = await updateDocumentAndCleanImages(BlogPost, { slug }, body);
     
     return NextResponse.json({ post });
   } catch (error) {
@@ -58,13 +70,13 @@ export const DELETE = withAuth(async (
     await connectDB();
     const { slug } = await params;
     
-    const post = await BlogPost.findOneAndDelete({ slug });
+    const post = await deleteDocumentAndCleanImages(BlogPost, { slug });
     
     if (!post) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
     }
     
-    return NextResponse.json({ message: 'Blog post deleted successfully' });
+    return NextResponse.json({ message: 'Blog post and associated images deleted successfully' });
   } catch (error) {
     console.error('Error deleting blog post:', error);
     return NextResponse.json({ error: 'Failed to delete blog post' }, { status: 500 });

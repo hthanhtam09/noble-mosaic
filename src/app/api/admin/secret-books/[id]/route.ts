@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { SecretBook } from '@/models/SecretBook';
 import { SecretImage } from '@/models/SecretImage';
-import { deleteFolder, deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
+import { deleteFolder } from '@/lib/cloudinary';
+import { updateDocumentAndCleanImages, deleteDocumentAndCleanImages } from '@/lib/crud-utils';
 
 export async function PUT(
   request: NextRequest,
@@ -13,13 +14,6 @@ export async function PUT(
     const id = (await params).id;
     const body = await request.json();
     
-    // Fetch existing book for image comparison
-    const existingBook = await SecretBook.findById(id).lean();
-    
-    if (!existingBook) {
-      return NextResponse.json({ error: 'Secret Book not found' }, { status: 404 });
-    }
-
     if (body.title && !body.slug) {
        body.slug = body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
@@ -28,19 +22,11 @@ export async function PUT(
       return NextResponse.json({ error: 'Secret Key must be exactly 6 characters or less' }, { status: 400 });
     }
 
-    // Step 2: Update in DB
-    const book = await SecretBook.findByIdAndUpdate(
-      id,
-      { $set: body },
-      { new: true, runValidators: true }
-    );
+    // Step 1: Update in DB and cleanup old image
+    const book = await updateDocumentAndCleanImages(SecretBook, { _id: id }, body);
     
-    // Step 3: Cleanup old image if changed
-    if (book && existingBook.coverImage && body.coverImage && existingBook.coverImage !== body.coverImage) {
-      const pid = getPublicIdFromUrl(existingBook.coverImage);
-      if (pid) {
-        await deleteImage(pid);
-      }
+    if (!book) {
+      return NextResponse.json({ error: 'Secret Book not found' }, { status: 404 });
     }
     
     return NextResponse.json({ book });
@@ -50,8 +36,6 @@ export async function PUT(
   }
 }
 
-
-
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -60,21 +44,16 @@ export async function DELETE(
     await connectDB();
     const id = (await params).id;
     
-    const book = await SecretBook.findByIdAndDelete(id);
+    // Deletes SecretBook and its coverImage from Cloudinary
+    const book = await deleteDocumentAndCleanImages(SecretBook, { _id: id });
     
     if (!book) {
       return NextResponse.json({ error: 'Secret Book not found' }, { status: 404 });
     }
     
-    // Delete the specific cover image from cloudinary if it exists
-    if (book.coverImage) {
-      const coverPublicId = getPublicIdFromUrl(book.coverImage);
-      if (coverPublicId) {
-         await deleteImage(coverPublicId);
-      }
-    }
-
     // Clean up all images associated with this book in the database
+    // Note: This does not delete the Cloudinary images for those SecretImages automatically using the utility,
+    // but the next step deletes the entire folder anyway.
     await SecretImage.deleteMany({ secretBook: id });
 
     // Delete the folder in Cloudinary

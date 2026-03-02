@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { SecretImage } from '@/models/SecretImage';
-import { deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
+import { updateDocumentAndCleanImages, deleteDocumentAndCleanImages } from '@/lib/crud-utils';
 
 export async function PUT(
   request: NextRequest,
@@ -12,39 +12,11 @@ export async function PUT(
     const id = (await params).id;
     const body = await request.json();
     
-    // Step 1: Fetch existing secret for image comparison
-    const existingSecret = await SecretImage.findById(id).lean();
+    // Step 1: Update in DB and cleanup old images
+    const secret = await updateDocumentAndCleanImages(SecretImage, { _id: id }, body);
     
-    if (!existingSecret) {
+    if (!secret) {
       return NextResponse.json({ error: 'Secret not found' }, { status: 404 });
-    }
-
-    // Step 2: Update in DB
-    const secret = await SecretImage.findByIdAndUpdate(
-      id,
-      { $set: body },
-      { new: true, runValidators: true }
-    );
-    
-    // Step 3: Cleanup old images if changed
-    if (secret) {
-      // Color Image
-      if (existingSecret.colorImageUrl && body.colorImageUrl && existingSecret.colorImageUrl !== body.colorImageUrl) {
-        const pid = getPublicIdFromUrl(existingSecret.colorImageUrl);
-        if (pid) await deleteImage(pid);
-      }
-      
-      // Uncolor Image
-      if (existingSecret.uncolorImageUrl && body.uncolorImageUrl && existingSecret.uncolorImageUrl !== body.uncolorImageUrl) {
-        const pid = getPublicIdFromUrl(existingSecret.uncolorImageUrl);
-        if (pid) await deleteImage(pid);
-      }
-      
-      // Original Image
-      if (existingSecret.originalImageUrl && body.originalImageUrl && existingSecret.originalImageUrl !== body.originalImageUrl) {
-        const pid = getPublicIdFromUrl(existingSecret.originalImageUrl);
-        if (pid) await deleteImage(pid);
-      }
     }
     
     return NextResponse.json({ secret });
@@ -62,25 +34,10 @@ export async function DELETE(
     await connectDB();
     const id = (await params).id;
     
-    const secret = await SecretImage.findByIdAndDelete(id);
+    const secret = await deleteDocumentAndCleanImages(SecretImage, { _id: id });
     
     if (!secret) {
       return NextResponse.json({ error: 'Secret not found' }, { status: 404 });
-    }
-
-    if (secret.colorImageUrl) {
-       const colorPublicId = getPublicIdFromUrl(secret.colorImageUrl);
-       if (colorPublicId) await deleteImage(colorPublicId);
-    }
-    
-    if (secret.uncolorImageUrl) {
-       const uncolorPublicId = getPublicIdFromUrl(secret.uncolorImageUrl);
-       if (uncolorPublicId) await deleteImage(uncolorPublicId);
-    }
-
-    if (secret.originalImageUrl) {
-       const originalPublicId = getPublicIdFromUrl(secret.originalImageUrl);
-       if (originalPublicId) await deleteImage(originalPublicId);
     }
     
     return NextResponse.json({ message: 'Secret deleted successfully' });

@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     await VerificationToken.findOneAndUpdate(
       { email: email.toLowerCase() },
       { code, expiresAt, used: false },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     // Send the email
