@@ -50,6 +50,8 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
         rating: '',
         reviewCount: '0',
         showRating: true,
+        dimensions: '',
+        printLength: '',
     });
 
     // A+ Content state
@@ -69,6 +71,8 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                 rating: product.rating?.toString() || '',
                 reviewCount: product.reviewCount?.toString() || '0',
                 showRating: product.showRating !== undefined ? product.showRating : true,
+                dimensions: product.dimensions || '',
+                printLength: product.printLength || '',
             });
             setCoverImage(product.coverImage || '');
             setGalleryImages(product.galleryImages || []);
@@ -446,6 +450,34 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                             <div className="text-sm text-neutral-600">
                                                 <p className="font-medium text-neutral-900 mb-1">A+ Content</p>
                                                 <p>Upload full-size images to enhance your product page below the main product info. Recommended size: 970 x 600 px.</p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="border-0 shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Product Specs</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="dimensions">Dimensions</Label>
+                                                <Input
+                                                    id="dimensions"
+                                                    value={formData.dimensions}
+                                                    onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
+                                                    placeholder="e.g., 8.5 x 0.26 x 11 inches"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="printLength">Print Length</Label>
+                                                <Input
+                                                    id="printLength"
+                                                    value={formData.printLength}
+                                                    onChange={(e) => setFormData({ ...formData, printLength: e.target.value })}
+                                                    placeholder="e.g., 107 pages"
+                                                />
                                             </div>
                                         </div>
                                     </CardContent>

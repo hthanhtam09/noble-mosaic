@@ -9,6 +9,8 @@ export interface IProduct {
   coverImage: string;
   galleryImages: string[];
   amazonLink: string;
+  dimensions?: string;
+  printLength?: string;
   aPlusContent: (string | {
     type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
     title?: string;
@@ -42,6 +44,8 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     coverImage: { type: String, required: true },
     galleryImages: [{ type: String }],
     amazonLink: { type: String, required: true },
+    dimensions: { type: String },
+    printLength: { type: String },
     aPlusContent: [{
       type: mongoose.Schema.Types.Mixed
     }],

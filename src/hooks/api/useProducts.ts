@@ -11,6 +11,8 @@ export interface Product {
   thumbnail?: string;
   coverImage: string;
   galleryImages?: string[];
+  dimensions?: string;
+  printLength?: string;
   price?: number | string;
   showRating?: boolean;
   description?: string;

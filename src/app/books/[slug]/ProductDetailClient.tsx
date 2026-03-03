@@ -32,14 +32,6 @@ import {
   BreadcrumbJsonLd,
 } from '@/components/seo/JsonLd';
 
-// Feature icons data
-const featureIcons = [
-  { icon: Book, label: 'Print length', sublabel: '107 pages' },
-  { icon: Ruler, label: 'Dimensions', sublabel: '8.5 x 0.26 x 11 inches' },
-  { icon: Grid3X3, label: 'Cell Size', sublabel: '5×5mm' },
-  { icon: Maximize, label: 'Bold Lines', sublabel: 'Easy to see' },
-];
-
 export default function ProductDetailClient() {
   const params = useParams();
   const slug = params.slug as string;
@@ -66,6 +58,14 @@ export default function ProductDetailClient() {
       });
     }
   };
+
+  // Feature icons data
+  const featureIcons = [
+    { icon: Book, label: 'Print length', sublabel: product?.printLength || '107 pages' },
+    { icon: Ruler, label: 'Dimensions', sublabel: product?.dimensions || '8.5 x 0.26 x 11 inches' },
+    { icon: Grid3X3, label: 'Cell Size', sublabel: '5×5mm' },
+    { icon: Maximize, label: 'Bold Lines', sublabel: 'Easy to see' },
+  ];
 
   // Determine cover image based on edition
   const currentCoverImage = selectedEdition !== null && product?.editions?.[selectedEdition]?.coverImage
@@ -448,14 +448,14 @@ export default function ProductDetailClient() {
 
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 6: "Part of the series" — Related Products Carousel   */}
+        {/* SECTION 6: "Products related to this item" — Related Products Carousel   */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {relatedProducts.length > 0 && (
           <section className="bg-white border-t border-neutral-100">
             <div className="layout-inner py-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-serif font-bold text-neutral-900">
-                  Part of the series
+                  Products related to this item
                 </h2>
                 <div className="flex items-center gap-2">
                   <button
