@@ -506,7 +506,7 @@ export default function AdminSecretsPage() {
         toast({
           title: "Upload failed",
           description:
-            "Could not upload any image pairs. Please check your connection and Cloudinary settings.",
+            "Could not upload any image pairs. Please check your connection and Cloudflare R2 settings.",
           variant: "destructive",
         });
       }

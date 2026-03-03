@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Settings, Globe, Mail, Shield, Database, 
+import {
+  Settings, Globe, Mail, Shield, Database,
   ImageIcon, Save, RefreshCw, ExternalLink, Check
 } from 'lucide-react';
 
@@ -33,7 +33,7 @@ export default function AdminSettingsPage() {
           <h1 className="text-2xl font-serif font-bold text-neutral-900">Settings</h1>
           <p className="text-neutral-500 text-sm mt-1">Configure your store settings</p>
         </div>
-        <Button 
+        <Button
           onClick={handleSave}
           disabled={isLoading}
           className="bg-neutral-900 hover:bg-neutral-800 text-white"
@@ -71,9 +71,9 @@ export default function AdminSettingsPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="storeDescription">Store Description</Label>
-            <Input 
-              id="storeDescription" 
-              defaultValue="Premium Mosaic Color By Number Books for mindful relaxation" 
+            <Input
+              id="storeDescription"
+              defaultValue="Premium Mosaic Color By Number Books for mindful relaxation"
             />
           </div>
         </CardContent>
@@ -103,14 +103,14 @@ export default function AdminSettingsPage() {
             <Badge className="bg-green-100 text-green-700">Connected</Badge>
           </div>
 
-          {/* Cloudinary */}
+          {/* Cloudflare R2 */}
           <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-lg">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                 <ImageIcon className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="font-medium text-neutral-900">Cloudinary</p>
+                <p className="font-medium text-neutral-900">Cloudflare R2</p>
                 <p className="text-xs text-neutral-500">Image storage & CDN</p>
               </div>
             </div>
@@ -185,12 +185,12 @@ export default function AdminSettingsPage() {
           <div className="space-y-2">
             <Label htmlFor="adminPassword">Admin Password</Label>
             <div className="flex gap-2">
-              <Input 
-                id="adminPassword" 
-                type="password" 
-                value="••••••" 
-                disabled 
-                className="flex-1" 
+              <Input
+                id="adminPassword"
+                type="password"
+                value="••••••"
+                disabled
+                className="flex-1"
               />
               <Button variant="outline">Change</Button>
             </div>
