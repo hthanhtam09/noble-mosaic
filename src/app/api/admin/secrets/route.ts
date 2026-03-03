@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { SecretImage } from '@/models/SecretImage';
-import { deleteImage, getPublicIdFromUrl } from '@/lib/cloudinary';
+import { deleteImage, getPublicIdFromUrl } from '@/lib/r2';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,7 +80,7 @@ export async function DELETE(request: NextRequest) {
     // Delete records from DB
     await SecretImage.deleteMany({ secretBook: bookId });
     
-    // Delete images from Cloudinary
+    // Delete images from R2
     if (imagesToDelete.length > 0) {
       await Promise.all(imagesToDelete.map(pid => deleteImage(pid)));
     }

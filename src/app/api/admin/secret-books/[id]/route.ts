@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { SecretBook } from '@/models/SecretBook';
 import { SecretImage } from '@/models/SecretImage';
-import { deleteFolder } from '@/lib/cloudinary';
+import { deleteFolder } from '@/lib/r2';
 import { updateDocumentAndCleanImages, deleteDocumentAndCleanImages } from '@/lib/crud-utils';
 
 export async function PUT(
@@ -44,7 +44,7 @@ export async function DELETE(
     await connectDB();
     const id = (await params).id;
     
-    // Deletes SecretBook and its coverImage from Cloudinary
+    // Deletes SecretBook and its coverImage from R2
     const book = await deleteDocumentAndCleanImages(SecretBook, { _id: id });
     
     if (!book) {
@@ -52,11 +52,11 @@ export async function DELETE(
     }
     
     // Clean up all images associated with this book in the database
-    // Note: This does not delete the Cloudinary images for those SecretImages automatically using the utility,
+    // Note: This does not delete the R2 images for those SecretImages automatically using the utility,
     // but the next step deletes the entire folder anyway.
     await SecretImage.deleteMany({ secretBook: id });
 
-    // Delete the folder in Cloudinary
+    // Delete the folder in R2
     await deleteFolder(`secrets/${book.slug}`);
 
     return NextResponse.json({ message: 'Secret book deleted successfully' });

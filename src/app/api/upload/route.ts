@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadImage } from '@/lib/cloudinary';
+import { uploadImage } from '@/lib/r2';
 import { withAuth } from '@/lib/auth';
 
 export const POST = withAuth(async (request: NextRequest) => {
