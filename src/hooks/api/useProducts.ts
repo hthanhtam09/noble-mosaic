@@ -52,18 +52,16 @@ export function useHomeProducts() {
   return useQuery({
     queryKey: [QUERY_KEYS.homeProducts],
     queryFn: async () => {
-      const [featuredData, bestData] = await Promise.all([
+      const [featuredData] = await Promise.all([
         api.get<any, HomeProductsResponse>('/products?featured=true&limit=4').catch(() => ({ products: [] })),
-        api.get<any, HomeProductsResponse>('/products?limit=4').catch(() => ({ products: [] })),
       ]);
 
       const featuredList = (featuredData.products?.length ?? 0) > 0
         ? featuredData.products
-        : bestData.products ?? [];
+        : [];
 
       return {
         featured: featuredList as Product[],
-        bestSeller: (bestData.products ?? []) as Product[],
       };
     },
   });

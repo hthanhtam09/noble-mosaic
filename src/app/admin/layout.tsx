@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Home, BookOpen, MessageSquare, LogOut, Menu, X,
-  Users, ShoppingBag, Settings, Lock, Gift
+  Users, ShoppingBag, Settings, Lock, Gift, Image as ImageIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession, useLogout } from '@/hooks/api/useAuth';
@@ -15,6 +15,7 @@ import { useAdminProducts } from '@/hooks/api/useAdmin';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
+  { name: 'Banners', href: '/admin/banners', icon: ImageIcon },
   { name: 'Products', href: '/admin/products', icon: ShoppingBag },
   { name: 'Secrets', href: '/admin/secrets', icon: Lock },
   { name: 'Gift Links', href: '/admin/gift-links', icon: Gift },
