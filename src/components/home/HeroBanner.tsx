@@ -1,5 +1,9 @@
 "use client";
 
+// Desktop (máy tính): tỷ lệ 21:9 - độ phân giải tối ưu tham khảo: 2100px x 900px hoặc 1920px x 822px
+// Tablet (máy tính bảng): tỷ lệ 16:9 - độ phân giải tối ưu tham khảo: 1920px x 1080px
+// Mobile (điện thoại): tỷ lệ 4:3 - độ phân giải tối ưu tham khảo: 1200px x 900px hoặc 800px x 600px
+
 import Link from "next/link";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -9,34 +13,23 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 
-const heroBanners = [
-  {
-    id: "1",
-    title: "Welcome to cozy world",
-    subtitle: "Discover therapeutic coloring books for mindful relaxation",
-    href: "/books",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&q=80",
-    alt: "Coloring books collection",
-  },
-  {
-    id: "2",
-    title: "Relax. Focus. Create.",
-    subtitle: "Hand-drawn with love, designed for soothing moments",
-    href: "/books",
-    image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1920&q=80",
-    alt: "Coloring pencils and book",
-  },
-  {
-    id: "3",
-    title: "New Release",
-    subtitle: "Explore our latest coloring book designs",
-    href: "/books",
-    image: "https://images.unsplash.com/photo-1589998059171-988d887df646?w=1920&q=80",
-    alt: "Open coloring book",
-  },
-];
+import { useBanners } from "@/hooks/api/useBanners";
 
 export default function HeroBanner() {
+  const { data: heroBanners = [], isLoading } = useBanners();
+
+  if (isLoading) {
+    return (
+      <section className="layout-inner hero-banner relative w-full pt-8 pb-10 md:pt-12 md:pb-16 flex justify-center items-center aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900" />
+      </section>
+    );
+  }
+
+  if (heroBanners.length === 0) {
+    return null;
+  }
+
   return (
     <section className="layout-inner hero-banner relative w-full pt-8 pb-10 md:pt-12 md:pb-16">
       <div className="mx-auto max-w-screen">
@@ -55,18 +48,18 @@ export default function HeroBanner() {
           className="w-full pb-14"
         >
           {heroBanners.map((banner) => (
-            <SwiperSlide key={banner.id}>
+            <SwiperSlide key={banner._id}>
               <Link
-                href={banner.href}
-                className="block w-full relative group rounded-[32px] overflow-hidden h-[60vh] md:h-[80vh] shadow-sm transform transition-transform duration-500"
+                href={banner.link}
+                className="block w-full relative group rounded-2xl md:rounded-[32px] overflow-hidden aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] bg-neutral-100 shadow-sm transform transition-transform duration-500"
               >
                 <Image
                   src={banner.image}
-                  alt={banner.alt}
+                  alt={banner.title || 'Banner'}
                   fill
                   priority
                   sizes="(max-width: 1280px) 100vw, 1280px"
-                  className="object-cover"
+                  className="object-contain"
                 />
                 {/* Keeps SEO structure but removes visual overlay */}
                 <div className="sr-only">

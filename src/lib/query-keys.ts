@@ -17,4 +17,6 @@ export const QUERY_KEYS = {
   adminGiftLinks: 'admin-gift-links',
   adminSecretBooks: 'admin-secret-books',
   adminSecrets: 'admin-secrets',
+  adminBanners: 'admin-banners',
+  banners: 'banners',
 } as const;
