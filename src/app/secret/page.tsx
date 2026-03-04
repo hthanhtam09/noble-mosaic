@@ -8,8 +8,19 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Lock, LockOpen, Palette } from 'lucide-react';
+import { Loader2, Lock, LockOpen, X } from 'lucide-react';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useFilterPagination } from '@/hooks/useFilterPagination';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface SecretBook {
   _id: string;
@@ -22,9 +33,14 @@ export default function SecretPage() {
   const { data: books = [], isLoading } = useSecretBooks();
 
   const [unlockedBooks, setUnlockedBooks] = useState<Record<string, boolean>>({});
-  const [displayLimit, setDisplayLimit] = useState(12);
 
-  const displayedBooks = books.slice(0, displayLimit);
+  const {
+    sortBy, setSortBy, itemsPerPage, setItemsPerPage,
+    currentPage, setCurrentPage, clearFilters, hasActiveFilters,
+    filteredItems: filteredBooks,
+    displayedItems: displayedBooks,
+    totalPages
+  } = useFilterPagination(books, '20');
 
   useEffect(() => {
     if (books.length > 0) {
@@ -62,8 +78,65 @@ export default function SecretPage() {
       <Header />
 
       <main className="flex-grow">
+        <div className="layout-inner pt-8">
+          <h1 className="text-3xl font-bold text-neutral-900 mb-4 text-center">Secret</h1>
+          <hr className="border-neutral-200 mb-8" />
+
+          {/* Filters Bar */}
+          {!isLoading && books.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-end mb-8 p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[200px] rounded-xl border-neutral-200">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date-desc" >Date: Newest to Oldest</SelectItem>
+                    <SelectItem value="date-asc" >Date: Oldest to Newest</SelectItem>
+                    <SelectItem value="alpha-asc" >Name: A to Z</SelectItem>
+                    <SelectItem value="alpha-desc" >Name: Z to A</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Items Per Page */}
+                <Select value={itemsPerPage} onValueChange={setItemsPerPage}>
+                  <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
+                    <SelectValue placeholder="Items Per Page" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 per page</SelectItem>
+                    <SelectItem value="20">20 per page</SelectItem>
+                    <SelectItem value="30">30 per page</SelectItem>
+                    <SelectItem value="40">40 per page</SelectItem>
+                    <SelectItem value="50">50 per page</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Clear Filters */}
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-neutral-500 hover:text-neutral-700 rounded-xl"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!isLoading && books.length > 0 && (
+            <p className="text-sm text-neutral-500 mb-6">
+              Showing <span className="font-medium text-neutral-900">{displayedBooks.length}</span> of <span className="font-medium text-neutral-900">{filteredBooks.length}</span> book{filteredBooks.length !== 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+
         {/* Books Grid */}
-        <section className="py-16">
+        <section className="pb-16">
           <div className="layout-inner">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
@@ -119,42 +192,60 @@ export default function SecretPage() {
                   ))}
                 </div>
 
-                {books.length > displayLimit && (
+                {totalPages > 1 && (
                   <div className="mt-12 flex justify-center">
-                    <Button
-                      onClick={() => setDisplayLimit(prev => prev + 12)}
-                      variant="outline"
-                      size="lg"
-                      className="rounded-full px-8 bg-white hover:bg-neutral-50"
-                    >
-                      Load More
-                    </Button>
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: totalPages }).map((_, i) => {
+                          const page = i + 1;
+                          if (
+                            page === 1 || 
+                            page === totalPages || 
+                            (page >= currentPage - 1 && page <= currentPage + 1)
+                          ) {
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink 
+                                  isActive={page === currentPage}
+                                  onClick={() => setCurrentPage(page)}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          } else if (
+                            page === currentPage - 2 || 
+                            page === currentPage + 2
+                          ) {
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            );
+                          }
+                          return null;
+                        })}
+
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </div>
                 )}
               </>
             )}
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-16">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="text-3xl font-serif font-bold mb-4">
-              Discover All Our Books
-            </h2>
-            <p className="text-lg text-neutral-500 mb-8">
-              Want to see the full collection? Browse our books for all mosaic color by number books.
-            </p>
-            <Button
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-neutral-800 to-neutral-700 text-white hover:opacity-90 rounded-full px-8 shadow-xl shadow-neutral-200"
-            >
-              <Link href="/books">
-                <Palette className="mr-2 h-5 w-5" />
-                Explore Books
-              </Link>
-            </Button>
           </div>
         </section>
       </main>

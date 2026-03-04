@@ -11,42 +11,28 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Grid3X3, LayoutGrid, X, Palette, Filter, Loader2 } from 'lucide-react';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+import { useFilterPagination } from '@/hooks/useFilterPagination';
 
 function BookContent() {
   const { data: products = [], isLoading } = useProducts();
 
-  const [sortBy, setSortBy] = useState('newest');
-  const [gridView, setGridView] = useState<'grid' | 'list'>('grid');
-  const [displayLimit, setDisplayLimit] = useState(12);
-
-  useEffect(() => {
-    setDisplayLimit(12);
-  }, [sortBy, gridView]);
-
-  const filteredProducts = useMemo(() => {
-    let filtered = [...products];
-
-    switch (sortBy) {
-      case 'popular':
-        filtered.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
-        break;
-      case 'rating':
-        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      default:
-        break;
-    }
-
-    return filtered;
-  }, [products, sortBy]);
-
-  const clearFilters = () => {
-    setSortBy('newest');
-  };
-
-  const hasActiveFilters = sortBy !== 'newest';
-
-  const displayedProducts = filteredProducts.slice(0, displayLimit);
+  const {
+    sortBy, setSortBy, itemsPerPage, setItemsPerPage,
+    currentPage, setCurrentPage, clearFilters, hasActiveFilters,
+    filteredItems: filteredProducts,
+    displayedItems: displayedProducts,
+    totalPages
+  } = useFilterPagination(products);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -67,23 +53,37 @@ function BookContent() {
 
       <main className="flex-grow">
         <div className="layout-inner py-8">
-          {/* SEO-friendly heading */}
-          <h1 className="sr-only">Mosaic Color By Number Books</h1>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-4 text-center">Books</h1>
+          <hr className="border-neutral-200 mb-8" />
 
           {/* Filters Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6 p-4 bg-white rounded-2xl shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-end mb-6 p-4">
             <div className="flex flex-wrap items-center gap-3">
-              <Filter className="h-5 w-5 text-neutral-400" />
-
-              {/* Sort */}
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
+                <SelectTrigger className="w-[200px] rounded-xl border-neutral-200">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="popular">Most Popular</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
+                  <SelectItem value="date-desc">Date: Newest to Oldest</SelectItem>
+                  <SelectItem value="date-asc">Date: Oldest to Newest</SelectItem>
+                  <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                  <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                  <SelectItem value="alpha-asc">Name: A to Z</SelectItem>
+                  <SelectItem value="alpha-desc">Name: Z to A</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Items Per Page */}
+              <Select value={itemsPerPage} onValueChange={setItemsPerPage}>
+                <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
+                  <SelectValue placeholder="Items Per Page" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="20">20 per page</SelectItem>
+                  <SelectItem value="30">30 per page</SelectItem>
+                  <SelectItem value="40">40 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -99,28 +99,6 @@ function BookContent() {
                   Clear
                 </Button>
               )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Grid Toggle */}
-              <div className="hidden sm:flex items-center border rounded-xl bg-white overflow-hidden">
-                <Button
-                  variant={gridView === 'grid' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => setGridView('grid')}
-                  className="rounded-none"
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={gridView === 'list' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => setGridView('list')}
-                  className="rounded-none"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           </div>
 
@@ -138,26 +116,63 @@ function BookContent() {
             <>
               <div className={`
                 grid gap-6
-                ${gridView === 'grid'
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                  : 'grid-cols-1 md:grid-cols-2'
-                }
+                grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
               `}>
                 {displayedProducts.map((product, index) => (
                   <ProductCard key={product._id} product={product} priority={index < 4} />
                 ))}
               </div>
 
-              {filteredProducts.length > displayLimit && (
+              {totalPages > 1 && (
                 <div className="mt-12 flex justify-center">
-                  <Button
-                    onClick={() => setDisplayLimit(prev => prev + 12)}
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full px-8 bg-white hover:bg-neutral-50"
-                  >
-                    Load More
-                  </Button>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: totalPages }).map((_, i) => {
+                        const page = i + 1;
+                        if (
+                          page === 1 || 
+                          page === totalPages || 
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationLink 
+                                isActive={page === currentPage}
+                                onClick={() => setCurrentPage(page)}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        } else if (
+                          page === currentPage - 2 || 
+                          page === currentPage + 2
+                        ) {
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        return null;
+                      })}
+
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </>

@@ -5,14 +5,14 @@ import { BreadcrumbJsonLd, CollectionPageJsonLd } from '@/components/seo/JsonLd'
 export const metadata: Metadata = {
   title: 'Mosaic Color By Number Books',
   description:
-    'Browse our complete collection of premium mosaic color by number books. Find the perfect coloring book for relaxation and creative expression.',
+    'Browse our complete collection of mosaic color by number books. Find the perfect coloring book for relaxation and creative expression.',
   alternates: {
     canonical: 'https://noblemosaic.com/books',
   },
   openGraph: {
     title: 'Mosaic Color By Number Books | Noble Mosaic',
     description:
-      'Browse our complete collection of premium mosaic color by number books for adults.',
+      'Browse our complete collection of mosaic color by number books for adults.',
     url: 'https://noblemosaic.com/books',
     type: 'website',
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Mosaic Color By Number Books | Noble Mosaic',
     description:
-      'Browse our complete collection of premium mosaic color by number books for adults.',
+      'Browse our complete collection of mosaic color by number books for adults.',
   },
 };
 
@@ -29,7 +29,7 @@ export default function BookPage() {
     <>
       <CollectionPageJsonLd
         name="Mosaic Color By Number Books"
-        description="Browse our complete collection of premium mosaic color by number books. Find the perfect coloring book for relaxation and creative expression."
+        description="Browse our complete collection of mosaic color by number books. Find the perfect coloring book for relaxation and creative expression."
         url="https://noblemosaic.com/books"
       />
       <BreadcrumbJsonLd

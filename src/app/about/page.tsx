@@ -10,14 +10,14 @@ import { FaqJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 export const metadata: Metadata = {
   title: 'About Us - Our Story & Mission',
   description:
-    'Learn about Noble Mosaic — we create premium mosaic color by number books designed for mindful relaxation and creative expression. Discover our mission, values, and the therapeutic benefits of coloring.',
+    'Learn about Noble Mosaic — we create mosaic color by number books designed for mindful relaxation and creative expression. Discover our mission, values, and the therapeutic benefits of coloring.',
   alternates: {
     canonical: 'https://noblemosaic.com/about',
   },
   openGraph: {
     title: 'About Noble Mosaic - Our Story & Mission',
     description:
-      'We create premium mosaic color by number books designed for mindful relaxation and creative expression.',
+      'We create mosaic color by number books designed for mindful relaxation and creative expression.',
     url: 'https://noblemosaic.com/about',
     type: 'website',
   },

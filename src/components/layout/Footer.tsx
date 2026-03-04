@@ -7,11 +7,11 @@ const footerLinks = {
     { name: 'Latest Releases', href: '/books?sort=newest' },
     { name: 'Most Popular', href: '/books?sort=popular' },
   ],
-  company: [
-    { name: 'About Us', href: '/about' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Contact', href: '/contact' },
-  ],
+  // company: [
+  //   { name: 'About Us', href: '/about' },
+  //   { name: 'Blog', href: '/blog' },
+  //   { name: 'Contact', href: '/contact' },
+  // ],
   resources: [
     { name: 'Secret', href: '/secret', highlight: true },
     { name: 'Gift', href: '/gift', highlight: true },
@@ -39,7 +39,7 @@ export default function Footer() {
       </div>
 
       <div className="relative layout-inner py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-12">
           <div className="lg:col-span-1">
             {/* Color palette */}
             <div className="flex gap-2">
@@ -86,7 +86,7 @@ export default function Footer() {
           </div>
 
           {/* Company Links */}
-          <div>
+          {/* <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider">Company</h3>
             <ul className="mt-4 space-y-3">
               {footerLinks.company.map((link) => (
@@ -100,7 +100,7 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           <div>
             {/* Resources Links */}

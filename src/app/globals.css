@@ -250,8 +250,14 @@ body > * {
 
 /* Scrollbar overlay - không chiếm không gian */
 html {
-  overflow-y: overlay;
-  scrollbar-gutter: auto;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+/* Ensure no layout shift on Select component interaction */
+body[data-scroll-locked] {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
 }
 
 /* Custom scrollbar */

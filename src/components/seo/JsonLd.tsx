@@ -12,7 +12,7 @@ export function OrganizationJsonLd() {
     url: BASE_URL,
     logo: `${BASE_URL}/logo.png`,
     description:
-      'Premium mosaic color by number books designed for mindful relaxation and creative expression.',
+      'Mosaic color by number books designed for mindful relaxation and creative expression.',
     sameAs: [
       'https://www.facebook.com/noblemosaic',
       'https://www.instagram.com/noblemosaic',
@@ -41,7 +41,7 @@ export function WebSiteJsonLd() {
     name: 'Noble Mosaic',
     url: BASE_URL,
     description:
-      'Discover premium mosaic color by number books designed for mindful relaxation and creative expression.',
+      'Discover mosaic color by number books designed for mindful relaxation and creative expression.',
     publisher: {
       '@type': 'Organization',
       name: 'Noble Mosaic',

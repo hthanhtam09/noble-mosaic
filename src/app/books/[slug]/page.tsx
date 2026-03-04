@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const description =
       product.shortDescription ||
       product.description ||
-      `${product.title} - Premium mosaic color by number book by Noble Mosaic`;
+      `${product.title} - Mosaic color by number book by Noble Mosaic`;
 
     return {
       title: product.title,
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch {
     return {
       title: 'Product',
-      description: 'Premium mosaic color by number book by Noble Mosaic',
+      description: 'Mosaic color by number book by Noble Mosaic',
     };
   }
 }

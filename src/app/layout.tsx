@@ -24,10 +24,10 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   metadataBase: new URL('https://noblemosaic.com'),
   title: {
-    default: "Noble Mosaic | Premium Mosaic Color By Number Books",
+    default: "Noble Mosaic | Mosaic Color By Number Books",
     template: "%s | Noble Mosaic"
   },
-  description: "Discover premium mosaic color by number books designed for mindful relaxation and creative expression. Relax, focus, and create beautiful artwork with our unique hidden-image coloring pages.",
+  description: "Discover mosaic color by number books designed for mindful relaxation and creative expression. Relax, focus, and create beautiful artwork with our unique hidden-image coloring pages.",
   keywords: [
     "color by number",
     "mosaic coloring books",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "relaxation coloring",
     "hidden image coloring",
     "therapeutic coloring",
-    "premium coloring books",
+    "coloring books",
   ],
   authors: [{ name: "Noble Mosaic" }],
   creator: "Noble Mosaic",
@@ -54,8 +54,8 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
   openGraph: {
-    title: "Noble Mosaic | Premium Mosaic Color By Number Books",
-    description: "Discover premium mosaic color by number books designed for mindful relaxation and creative expression. Unique hidden-image designs for adults.",
+    title: "Noble Mosaic | Mosaic Color By Number Books",
+    description: "Discover mosaic color by number books designed for mindful relaxation and creative expression. Unique hidden-image designs for adults.",
     url: "https://noblemosaic.com",
     siteName: "Noble Mosaic",
     type: "website",
@@ -65,14 +65,14 @@ export const metadata: Metadata = {
         url: "/logo.png",
         width: 1200,
         height: 630,
-        alt: "Noble Mosaic - Premium Mosaic Color By Number Books",
+        alt: "Noble Mosaic - Mosaic Color By Number Books",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Noble Mosaic | Premium Mosaic Color By Number Books",
-    description: "Discover premium mosaic color by number books designed for mindful relaxation and creative expression.",
+    title: "Noble Mosaic | Mosaic Color By Number Books",
+    description: "Discover mosaic color by number books designed for mindful relaxation and creative expression.",
     images: ["/logo.png"],
   },
   robots: {
