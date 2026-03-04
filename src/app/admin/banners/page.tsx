@@ -46,9 +46,13 @@ export default function AdminBannersPage() {
   const [newLink, setNewLink] = useState('');
   const [newOrder, setNewOrder] = useState('0');
   const [newIsActive, setNewIsActive] = useState(true);
-  const [newImage, setNewImage] = useState<File | null>(null);
+  const [newImagePc, setNewImagePc] = useState<File | null>(null);
+  const [newImageTablet, setNewImageTablet] = useState<File | null>(null);
+  const [newImageMobile, setNewImageMobile] = useState<File | null>(null);
   const isCreating = createBannerMutation.isPending || uploadMediaMutation.isPending;
-  const createImageRef = useRef<HTMLInputElement>(null);
+  const createImagePcRef = useRef<HTMLInputElement>(null);
+  const createImageTabletRef = useRef<HTMLInputElement>(null);
+  const createImageMobileRef = useRef<HTMLInputElement>(null);
 
   // Edit dialog state
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
@@ -57,9 +61,13 @@ export default function AdminBannersPage() {
   const [editLink, setEditLink] = useState('');
   const [editOrder, setEditOrder] = useState('0');
   const [editIsActive, setEditIsActive] = useState(true);
-  const [editImage, setEditImage] = useState<File | null>(null);
+  const [editImagePc, setEditImagePc] = useState<File | null>(null);
+  const [editImageTablet, setEditImageTablet] = useState<File | null>(null);
+  const [editImageMobile, setEditImageMobile] = useState<File | null>(null);
   const isEditing = updateBannerMutation.isPending || uploadMediaMutation.isPending;
-  const editImageRef = useRef<HTMLInputElement>(null);
+  const editImagePcRef = useRef<HTMLInputElement>(null);
+  const editImageTabletRef = useRef<HTMLInputElement>(null);
+  const editImageMobileRef = useRef<HTMLInputElement>(null);
 
   // Delete state
   const [bannerToDelete, setBannerToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -67,30 +75,31 @@ export default function AdminBannersPage() {
 
   // Create banner
   const handleCreate = async () => {
-    if (!newLink.trim() || !newImage) {
+    if (!newLink.trim() || !newImagePc || !newImageTablet || !newImageMobile) {
       toast({
         title: "Validation Error",
-        description: "Image and Link are required.",
+        description: "Link and all 3 device images (PC, Tablet, Mobile) are required.",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      let imageUrl = '';
-      if (newImage) {
-        const uploadResult: any = await uploadMediaMutation.mutateAsync({
-          file: newImage,
-          folder: 'banners'
-        });
-        imageUrl = uploadResult.url;
-      }
+      const uploadPromises = [
+        uploadMediaMutation.mutateAsync({ file: newImagePc, folder: 'banners' }),
+        uploadMediaMutation.mutateAsync({ file: newImageTablet, folder: 'banners' }),
+        uploadMediaMutation.mutateAsync({ file: newImageMobile, folder: 'banners' })
+      ];
+
+      const [pcResult, tabletResult, mobileResult]: any = await Promise.all(uploadPromises);
 
       createBannerMutation.mutate({
         title: newTitle.trim(),
         subtitle: newSubtitle.trim(),
         link: newLink.trim(),
-        image: imageUrl,
+        imagePc: pcResult.url,
+        imageTablet: tabletResult.url,
+        imageMobile: mobileResult.url,
         order: parseInt(newOrder) || 0,
         isActive: newIsActive
       }, {
@@ -125,13 +134,17 @@ export default function AdminBannersPage() {
     if (!editingBanner || !editLink.trim()) return;
 
     try {
-      let imageUrl = editingBanner.image;
-      if (editImage) {
-        const uploadResult: any = await uploadMediaMutation.mutateAsync({
-          file: editImage,
-          folder: 'banners'
-        });
-        imageUrl = uploadResult.url;
+      let imagePcUrl = editingBanner.imagePc || editingBanner.image || '';
+      let imageTabletUrl = editingBanner.imageTablet || editingBanner.image || '';
+      let imageMobileUrl = editingBanner.imageMobile || editingBanner.image || '';
+
+      const promises: Promise<any>[] = [];
+      if (editImagePc) promises.push(uploadMediaMutation.mutateAsync({ file: editImagePc, folder: 'banners' }).then((res: any) => imagePcUrl = res.url));
+      if (editImageTablet) promises.push(uploadMediaMutation.mutateAsync({ file: editImageTablet, folder: 'banners' }).then((res: any) => imageTabletUrl = res.url));
+      if (editImageMobile) promises.push(uploadMediaMutation.mutateAsync({ file: editImageMobile, folder: 'banners' }).then((res: any) => imageMobileUrl = res.url));
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
       }
 
       updateBannerMutation.mutate({
@@ -140,15 +153,21 @@ export default function AdminBannersPage() {
           title: editTitle.trim(),
           subtitle: editSubtitle.trim(),
           link: editLink.trim(),
-          image: imageUrl,
+          imagePc: imagePcUrl,
+          imageTablet: imageTabletUrl,
+          imageMobile: imageMobileUrl,
           order: parseInt(editOrder) || 0,
           isActive: editIsActive
         }
       }, {
         onSuccess: () => {
           setEditingBanner(null);
-          setEditImage(null);
-          if (editImageRef.current) editImageRef.current.value = '';
+          setEditImagePc(null);
+          setEditImageTablet(null);
+          setEditImageMobile(null);
+          if (editImagePcRef.current) editImagePcRef.current.value = '';
+          if (editImageTabletRef.current) editImageTabletRef.current.value = '';
+          if (editImageMobileRef.current) editImageMobileRef.current.value = '';
           toast({
             title: "Banner updated",
             description: "Banner details have been saved."
@@ -200,8 +219,12 @@ export default function AdminBannersPage() {
     setNewLink('');
     setNewOrder('0');
     setNewIsActive(true);
-    setNewImage(null);
-    if (createImageRef.current) createImageRef.current.value = '';
+    setNewImagePc(null);
+    setNewImageTablet(null);
+    setNewImageMobile(null);
+    if (createImagePcRef.current) createImagePcRef.current.value = '';
+    if (createImageTabletRef.current) createImageTabletRef.current.value = '';
+    if (createImageMobileRef.current) createImageMobileRef.current.value = '';
   };
 
   const openEditDialog = (banner: Banner) => {
@@ -211,7 +234,9 @@ export default function AdminBannersPage() {
     setEditLink(banner.link);
     setEditOrder(banner.order.toString());
     setEditIsActive(banner.isActive);
-    setEditImage(null);
+    setEditImagePc(null);
+    setEditImageTablet(null);
+    setEditImageMobile(null);
   };
 
   return (
@@ -282,7 +307,7 @@ export default function AdminBannersPage() {
             >
               <div className="relative aspect-video w-full bg-neutral-100 overflow-hidden">
                 <Image
-                  src={banner.image}
+                  src={banner.imagePc || banner.image || ''}
                   alt={banner.title || 'Banner'}
                   fill
                   className="object-contain group-hover:scale-105 transition-transform duration-500"
@@ -379,36 +404,50 @@ export default function AdminBannersPage() {
                   className="w-full px-4 py-2 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Banner Image *</label>
-                {newImage && (
-                  <div className="relative w-full aspect-[21/9] mb-2 rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
-                    <Image
-                      src={URL.createObjectURL(newImage)}
-                      alt="Preview"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNewImage(null);
-                        if (createImageRef.current) createImageRef.current.value = '';
-                      }}
-                      className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-                <Input
-                  ref={createImageRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setNewImage(e.target.files?.[0] || null)}
-                  className="cursor-pointer"
-                />
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-neutral-700">Banner Images *</label>
+                
+                {/* PC Image */}
+                <div className="p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
+                  <label className="block text-xs font-medium text-neutral-600 mb-2">PC Version (21:9)</label>
+                  {newImagePc && (
+                    <div className="relative w-full aspect-[21/9] mb-2 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                      <Image src={URL.createObjectURL(newImagePc)} alt="Preview" fill className="object-cover" unoptimized />
+                      <button type="button" onClick={() => { setNewImagePc(null); if (createImagePcRef.current) createImagePcRef.current.value = ''; }} className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                  <Input ref={createImagePcRef} type="file" accept="image/*" onChange={(e) => setNewImagePc(e.target.files?.[0] || null)} className="cursor-pointer bg-white" />
+                </div>
+
+                {/* Tablet Image */}
+                <div className="p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
+                  <label className="block text-xs font-medium text-neutral-600 mb-2">Tablet Version (16:9)</label>
+                  {newImageTablet && (
+                    <div className="relative w-1/2 aspect-[16/9] mb-2 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                      <Image src={URL.createObjectURL(newImageTablet)} alt="Preview" fill className="object-cover" unoptimized />
+                      <button type="button" onClick={() => { setNewImageTablet(null); if (createImageTabletRef.current) createImageTabletRef.current.value = ''; }} className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                  <Input ref={createImageTabletRef} type="file" accept="image/*" onChange={(e) => setNewImageTablet(e.target.files?.[0] || null)} className="cursor-pointer bg-white" />
+                </div>
+
+                {/* Mobile Image */}
+                <div className="p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
+                  <label className="block text-xs font-medium text-neutral-600 mb-2">Mobile Version (4:3)</label>
+                  {newImageMobile && (
+                    <div className="relative w-1/3 aspect-[4/3] mb-2 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                      <Image src={URL.createObjectURL(newImageMobile)} alt="Preview" fill className="object-cover" unoptimized />
+                      <button type="button" onClick={() => { setNewImageMobile(null); if (createImageMobileRef.current) createImageMobileRef.current.value = ''; }} className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                  <Input ref={createImageMobileRef} type="file" accept="image/*" onChange={(e) => setNewImageMobile(e.target.files?.[0] || null)} className="cursor-pointer bg-white" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Navigate Link *</label>
@@ -450,7 +489,7 @@ export default function AdminBannersPage() {
               </Button>
               <Button
                 onClick={handleCreate}
-                disabled={!newImage || !newLink.trim() || isCreating}
+                disabled={(!newImagePc || !newImageTablet || !newImageMobile) || !newLink.trim() || isCreating}
                 className="bg-neutral-900 hover:bg-neutral-800 text-white"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -492,38 +531,56 @@ export default function AdminBannersPage() {
                   className="w-full px-4 py-2 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Banner Image *</label>
-                {(editingBanner.image || editImage) && (
-                  <div className="relative w-full aspect-[21/9] mb-2 rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
-                    <Image
-                      src={editImage ? URL.createObjectURL(editImage) : editingBanner.image}
-                      alt="Preview"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                    {editImage && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditImage(null);
-                          if (editImageRef.current) editImageRef.current.value = '';
-                        }}
-                        className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                )}
-                <Input
-                  ref={editImageRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setEditImage(e.target.files?.[0] || null)}
-                  className="cursor-pointer"
-                />
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-neutral-700">Banner Images *</label>
+                
+                {/* PC Image */}
+                <div className="p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
+                  <label className="block text-xs font-medium text-neutral-600 mb-2">PC Version (21:9)</label>
+                  {(editingBanner.imagePc || editingBanner.image || editImagePc) && (
+                    <div className="relative w-full aspect-[21/9] mb-2 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                      <Image src={editImagePc ? URL.createObjectURL(editImagePc) : (editingBanner.imagePc || editingBanner.image || '')} alt="Preview" fill className="object-cover" unoptimized />
+                      {editImagePc && (
+                        <button type="button" onClick={() => { setEditImagePc(null); if (editImagePcRef.current) editImagePcRef.current.value = ''; }} className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <Input ref={editImagePcRef} type="file" accept="image/*" onChange={(e) => setEditImagePc(e.target.files?.[0] || null)} className="cursor-pointer bg-white" />
+                </div>
+
+                {/* Tablet Image */}
+                <div className="p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
+                  <label className="block text-xs font-medium text-neutral-600 mb-2">Tablet Version (16:9)</label>
+                  {(editingBanner.imageTablet || editingBanner.image || editImageTablet) && (
+                    <div className="relative w-1/2 aspect-[16/9] mb-2 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                      <Image src={editImageTablet ? URL.createObjectURL(editImageTablet) : (editingBanner.imageTablet || editingBanner.image || '')} alt="Preview" fill className="object-cover" unoptimized />
+                      {editImageTablet && (
+                        <button type="button" onClick={() => { setEditImageTablet(null); if (editImageTabletRef.current) editImageTabletRef.current.value = ''; }} className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <Input ref={editImageTabletRef} type="file" accept="image/*" onChange={(e) => setEditImageTablet(e.target.files?.[0] || null)} className="cursor-pointer bg-white" />
+                </div>
+
+                {/* Mobile Image */}
+                <div className="p-4 border border-neutral-100 rounded-xl bg-neutral-50/50">
+                  <label className="block text-xs font-medium text-neutral-600 mb-2">Mobile Version (4:3)</label>
+                  {(editingBanner.imageMobile || editingBanner.image || editImageMobile) && (
+                    <div className="relative w-1/3 aspect-[4/3] mb-2 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                      <Image src={editImageMobile ? URL.createObjectURL(editImageMobile) : (editingBanner.imageMobile || editingBanner.image || '')} alt="Preview" fill className="object-cover" unoptimized />
+                      {editImageMobile && (
+                        <button type="button" onClick={() => { setEditImageMobile(null); if (editImageMobileRef.current) editImageMobileRef.current.value = ''; }} className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <Input ref={editImageMobileRef} type="file" accept="image/*" onChange={(e) => setEditImageMobile(e.target.files?.[0] || null)} className="cursor-pointer bg-white" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Navigate Link *</label>

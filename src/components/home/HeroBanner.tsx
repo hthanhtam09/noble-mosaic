@@ -53,13 +53,32 @@ export default function HeroBanner() {
                 href={banner.link}
                 className="block w-full relative group rounded-2xl md:rounded-[32px] overflow-hidden aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] transform transition-transform duration-500"
               >
+                {/* PC */}
                 <Image
-                  src={banner.image}
-                  alt={banner.title || 'Banner'}
+                  src={banner.imagePc || banner.image || ''}
+                  alt={banner.title || 'Banner - PC'}
                   fill
                   priority
                   sizes="(max-width: 1280px) 100vw, 1280px"
-                  className="object-contain"
+                  className="hidden md:block object-cover"
+                />
+                {/* Tablet */}
+                <Image
+                  src={banner.imageTablet || banner.image || ''}
+                  alt={banner.title || 'Banner - Tablet'}
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="hidden sm:block md:hidden object-cover"
+                />
+                {/* Mobile */}
+                <Image
+                  src={banner.imageMobile || banner.image || ''}
+                  alt={banner.title || 'Banner - Mobile'}
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="block sm:hidden object-cover"
                 />
                 {/* Keeps SEO structure but removes visual overlay */}
                 <div className="sr-only">

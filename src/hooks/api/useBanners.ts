@@ -7,7 +7,10 @@ export interface Banner {
   _id: string;
   title?: string;
   subtitle?: string;
-  image: string;
+  image?: string;
+  imagePc: string;
+  imageTablet: string;
+  imageMobile: string;
   link: string;
   order: number;
   isActive: boolean;
