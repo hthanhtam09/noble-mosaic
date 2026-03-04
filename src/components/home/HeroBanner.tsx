@@ -45,13 +45,13 @@ export default function HeroBanner() {
           pagination={{
             clickable: true,
           }}
-          className="w-full pb-14"
+          className="w-full"
         >
           {heroBanners.map((banner) => (
             <SwiperSlide key={banner._id}>
               <Link
                 href={banner.link}
-                className="block w-full relative group rounded-2xl md:rounded-[32px] overflow-hidden aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] bg-neutral-100 shadow-sm transform transition-transform duration-500"
+                className="block w-full relative group rounded-2xl md:rounded-[32px] overflow-hidden aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] transform transition-transform duration-500"
               >
                 <Image
                   src={banner.image}

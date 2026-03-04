@@ -355,7 +355,9 @@ html {
 
 /* Hero Swiper Banner */
 .hero-banner .swiper-pagination {
-  bottom: 0 !important;
+  position: relative !important;
+  bottom: auto !important;
+  margin-top: 1.5rem !important;
 }
 
 .hero-banner .swiper-pagination-bullet {
