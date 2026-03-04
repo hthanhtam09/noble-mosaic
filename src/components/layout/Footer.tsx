@@ -173,14 +173,14 @@ export default function Footer() {
             <p className="text-sm text-neutral-400 flex items-center gap-2">
               Made with <Heart className="h-4 w-4 text-[var(--mosaic-rose)] fill-[var(--mosaic-rose)]" /> by Noble Mosaic
             </p>
-            <div className="flex gap-6">
+            {/* <div className="flex gap-6">
               <Link href="/privacy" className="text-sm text-neutral-400 hover:text-white transition-colors">
                 Privacy Policy
               </Link>
               <Link href="/terms" className="text-sm text-neutral-400 hover:text-white transition-colors">
                 Terms of Service
               </Link>
-            </div>
+            </div> */}
             <p className="text-sm text-neutral-500">
               © {new Date().getFullYear()} Noble Mosaic
             </p>

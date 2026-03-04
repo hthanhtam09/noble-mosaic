@@ -22,7 +22,7 @@ export default function HomePage() {
         <HeroBanner />
         <NewRelease />
         <SecretSection />
-        <BlogPosts />
+        {/* <BlogPosts /> */}
       </main>
 
       <Footer />
