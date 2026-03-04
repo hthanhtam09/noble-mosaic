@@ -8,6 +8,8 @@ import { useParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
+import { useWishlist } from '@/store/use-wishlist';
+import { cn } from '@/lib/utils';
 import {
   Star,
   ExternalLink,
@@ -20,7 +22,8 @@ import {
   ChevronDown,
   ChevronUp,
   Book,
-  Ruler
+  Ruler,
+  Heart
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -42,6 +45,13 @@ export default function ProductDetailClient() {
   const [selectedEdition, setSelectedEdition] = useState<number | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const { addItem, removeItem, isInWishlist } = useWishlist();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
@@ -396,6 +406,33 @@ export default function ProductDetailClient() {
                         Buy on Amazon
                         <ExternalLink className="h-4 w-4 text-neutral-600" />
                       </a>
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (!mounted) return;
+                        if (isInWishlist(product._id)) {
+                          removeItem(product._id);
+                        } else {
+                          addItem({
+                            _id: product._id,
+                            title: product.title,
+                            slug: product.slug,
+                            coverImage: product.coverImage,
+                            price: product.price,
+                          });
+                        }
+                      }}
+                      variant="outline"
+                      size="lg"
+                      className={cn(
+                        "w-full rounded-full h-12 border-2 text-base font-semibold transition-all",
+                        mounted && isInWishlist(product._id)
+                          ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700"
+                          : "border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"
+                      )}
+                    >
+                      <Heart className={cn("h-5 w-5 mr-2", mounted && isInWishlist(product._id) && "fill-current")} />
+                      {mounted && isInWishlist(product._id) ? "In Wishlist" : "Add to Wishlist"}
                     </Button>
                   </div>
                 </div>

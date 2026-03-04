@@ -1,5 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Heart } from 'lucide-react';
+import { useWishlist } from '@/store/use-wishlist';
+import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+
 
 interface ProductCardProps {
   product: {
@@ -20,9 +25,34 @@ interface ProductCardProps {
 
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
+  const { addItem, removeItem, isInWishlist } = useWishlist();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  const inWishlist = mounted ? isInWishlist(product._id) : false;
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (inWishlist) {
+      removeItem(product._id);
+    } else {
+      addItem({
+        _id: product._id,
+        title: product.title,
+        slug: product.slug,
+        coverImage: product.coverImage,
+        price: product.price,
+      });
+    }
+  };
+
   return (
     <div className="group relative bg-white overflow-hidden shadow-xl">
-      <Link href={`/books/${product.slug}`} className="block aspect-[3/4] relative overflow-hidden bg-neutral-50/50 p-6 sm:p-8">
+      <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="block aspect-[3/4] relative overflow-hidden bg-neutral-50/50 p-6 sm:p-8">
         <div className="relative w-full h-full">
           <Image
             src={product.coverImage}
@@ -36,9 +66,23 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <div className="absolute inset-0 bg-neutral-900/5 opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>
 
+      <button
+        onClick={handleWishlistClick}
+        className={cn(
+          "absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all z-10 cursor-pointer",
+          inWishlist
+            ? "bg-rose-50 text-rose-500 shadow-rose-200/50"
+            : "bg-white/80 text-neutral-400 hover:text-rose-500 hover:bg-white shadow-black/5",
+          "shadow-lg hover:scale-110 active:scale-95"
+        )}
+        aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+      >
+        <Heart className={cn("h-5 w-5", inWishlist && "fill-current")} />
+      </button>
+
       {/* Content */}
       <div className="p-4 text-center">
-        <Link href={`/books/${product.slug}`}>
+        <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`}>
           <h3 className="font-semibold text-neutral-900 group-hover:text-[var(--mosaic-purple)] transition-colors line-clamp-2 mb-1">
             {product.title}
           </h3>

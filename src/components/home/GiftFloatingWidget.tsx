@@ -143,7 +143,7 @@ export default function GiftFloatingWidget() {
                                 <div className="space-y-5">
                                     <div className="text-center">
                                         <h3 className="font-bold text-neutral-900 text-xl font-nunito">
-                                            🎁 Free Coloring Books
+                                            Free Coloring Books
                                         </h3>
                                         <p className="text-neutral-500 mt-2">
                                             Subscribe to unlock free coloring book downloads!

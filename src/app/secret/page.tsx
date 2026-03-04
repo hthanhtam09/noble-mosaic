@@ -8,7 +8,9 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Lock, LockOpen, X } from 'lucide-react';
+import { Loader2, Lock, LockOpen, X, Heart } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useWishlist } from '@/store/use-wishlist';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFilterPagination } from '@/hooks/useFilterPagination';
@@ -33,6 +35,13 @@ export default function SecretPage() {
   const { data: books = [], isLoading } = useSecretBooks();
 
   const [unlockedBooks, setUnlockedBooks] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  const { addItem, removeItem, isInWishlist } = useWishlist();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     sortBy, setSortBy, itemsPerPage, setItemsPerPage,
@@ -155,7 +164,7 @@ export default function SecretPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
                   {displayedBooks.map((book, index) => (
                     <Link href={`/secret/${book.slug}`} key={book._id} className="group block">
-                      <Card className="h-full border-0 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden bg-white/80 backdrop-blur-sm group-hover:-translate-y-1">
+                      <Card className="h-full border-0 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden bg-white/80 backdrop-blur-sm group-hover:-translate-y-1 relative">
                         <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
                           {/* Overlay gradient */}
                           <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
@@ -178,6 +187,31 @@ export default function SecretPage() {
                               )}
                             </div>
                           </div>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (!mounted) return;
+                              if (isInWishlist(book._id)) {
+                                removeItem(book._id);
+                              } else {
+                                addItem({
+                                  _id: book._id,
+                                  title: book.title,
+                                  slug: `/secret/${book.slug}`, // point to secret instead
+                                  coverImage: book.coverImage,
+                                });
+                              }
+                            }}
+                            className={cn(
+                              "absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all z-20",
+                              mounted && isInWishlist(book._id)
+                                ? "bg-rose-50 text-rose-500 shadow-rose-200/50"
+                                : "bg-white/80 text-neutral-400 hover:text-rose-500 hover:bg-white shadow-black/5",
+                              "shadow-lg hover:scale-110 active:scale-95"
+                            )}
+                          >
+                            <Heart className={cn("h-5 w-5", mounted && isInWishlist(book._id) && "fill-current")} />
+                          </button>
                         </div>
                         <CardContent className="p-5">
                           <h3 className="text-lg font-bold text-neutral-900 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-2 mb-2">
