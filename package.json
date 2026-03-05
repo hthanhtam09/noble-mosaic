@@ -53,6 +53,7 @@
     "@tanstack/react-query-devtools": "^5.91.3",
     "@tanstack/react-table": "^8.21.3",
     "@uiw/react-md-editor": "^4.0.11",
+    "@vercel/analytics": "^1.6.1",
     "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",
     "canvas": "^3.2.1",
