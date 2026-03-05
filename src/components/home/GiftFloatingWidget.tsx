@@ -31,6 +31,7 @@ export default function GiftFloatingWidget() {
     // --- mount: read localStorage ---
     useEffect(() => {
         const dismissed = localStorage.getItem("gift_widget_dismissed") === "true";
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsDismissed(dismissed);
 
         if (localStorage.getItem("gift_verified") === "true") {
@@ -120,7 +121,7 @@ export default function GiftFloatingWidget() {
                                         <Sparkles className="h-8 w-8 text-[var(--mosaic-purple)]" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-neutral-900 text-xl font-nunito">
+                                        <h3 className="font-bold text-neutral-900 text-xl">
                                             Your Gift is Ready!
                                         </h3>
                                         <p className="text-neutral-500 mt-2">
@@ -129,7 +130,7 @@ export default function GiftFloatingWidget() {
                                     </div>
                                     <Button
                                         asChild
-                                        className="w-full bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl h-12 text-base font-bold font-nunito group"
+                                        className="w-full bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] hover:opacity-90 text-white rounded-xl h-12 text-base font-bold group"
                                     >
                                         <Link href="/gift">
                                             <Gift className="mr-2 h-5 w-5" />
@@ -142,7 +143,7 @@ export default function GiftFloatingWidget() {
                                 /* --- Not subscribed --- */
                                 <div className="space-y-5">
                                     <div className="text-center">
-                                        <h3 className="font-bold text-neutral-900 text-xl font-nunito">
+                                        <h3 className="font-bold text-neutral-900 text-xl">
                                             Free Coloring Books
                                         </h3>
                                         <p className="text-neutral-500 mt-2">

@@ -37,7 +37,7 @@ export default function Header() {
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2 font-extrabold text-neutral-900 font-nunito text-xl hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 font-extrabold text-neutral-900 text-xl hover:opacity-80 transition-opacity"
             >
               <Image
                 src="/logo.png"
@@ -91,14 +91,14 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="px-4 py-2 text-sm font-extrabold text-neutral-600 hover:text-neutral-900 rounded-full hover:bg-neutral-100/80 transition-all font-nunito"
+                className="px-4 py-2 text-sm font-extrabold text-neutral-600 hover:text-neutral-900 rounded-full hover:bg-neutral-100/80 transition-all"
               >
                 {item.name}
               </Link>
             ))}
             <Link
               href="/gift"
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-extrabold text-white bg-neutral-900 rounded-full hover:bg-neutral-800 transition-colors font-nunito ml-2"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-extrabold text-white bg-neutral-900 rounded-full hover:bg-neutral-800 transition-colors ml-2"
             >
               <Gift className="h-4 w-4" />
               Gift
@@ -119,7 +119,7 @@ export default function Header() {
             <Link
               key={item.name}
               href={item.href}
-              className="block px-4 py-3 text-base font-extrabold text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-2xl font-nunito"
+              className="block px-4 py-3 text-base font-extrabold text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-2xl"
               onClick={() => setMobileMenuOpen(false)}
             >
               {item.name}
@@ -127,7 +127,7 @@ export default function Header() {
           ))}
           <Link
             href="/gift"
-            className="flex items-center gap-2 px-4 py-3 text-base font-extrabold text-white bg-neutral-900 rounded-2xl mt-2 font-nunito"
+            className="flex items-center gap-2 px-4 py-3 text-base font-extrabold text-white bg-neutral-900 rounded-2xl mt-2"
             onClick={() => setMobileMenuOpen(false)}
           >
             <Gift className="h-5 w-5" />

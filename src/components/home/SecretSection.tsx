@@ -78,7 +78,7 @@ export default function SecretSection() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
           {/* Left: Info */}
           <div className="lg:col-span-2 space-y-5">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-900 font-nunito leading-tight">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-900 leading-tight">
               Unlock Hidden{" "}
               <span className="bg-gradient-to-r from-[var(--mosaic-teal)] to-neutral-700 bg-clip-text text-transparent">
                 Coloring Secrets
@@ -93,7 +93,7 @@ export default function SecretSection() {
 
             <Link
               href="/secret"
-              className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-full text-sm font-bold font-nunito hover:bg-neutral-800 transition-colors group shadow-lg shadow-neutral-900/10"
+              className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-full text-sm font-bold hover:bg-neutral-800 transition-colors group shadow-lg shadow-neutral-900/10"
             >
               <Lock className="h-4 w-4" />
               Explore Secrets
@@ -138,7 +138,7 @@ export default function SecretSection() {
                       </div>
                     </div>
 
-                    <h3 className="mt-3 text-sm font-bold text-neutral-800 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-1 font-nunito">
+                    <h3 className="mt-3 text-sm font-bold text-neutral-800 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-1">
                       {book.title}
                     </h3>
                   </Link>

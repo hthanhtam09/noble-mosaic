@@ -39,7 +39,7 @@ export default function BlogPosts() {
   return (
     <section className="py-12 md:py-16">
       <div className="layout-inner">
-        <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800 mb-6 font-nunito">
+        <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800 mb-6">
           Blog Posts
         </h2>
         <div className="relative rounded-2xl bg-white p-8 md:p-12 shadow-sm border border-neutral-100 overflow-hidden">
@@ -54,7 +54,7 @@ export default function BlogPosts() {
                 key={post.title}
                 className="min-w-full flex-shrink-0 px-2"
               >
-                <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-4 font-nunito">
+                <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-4">
                   {post.title}
                 </h3>
                 <p className="text-neutral-600 mb-6 max-w-2xl">

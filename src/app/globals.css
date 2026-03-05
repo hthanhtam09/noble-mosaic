@@ -7,10 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  /* SINGLE SOURCE OF TRUTH FOR FONTS */
+  --font-sans: var(--font-primary);
   --font-mono: var(--font-geist-mono);
-  --font-nunito: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-  --font-family-nunito: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-nunito: var(--font-primary);
+  --font-family-nunito: var(--font-primary);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -79,7 +80,7 @@
   --sidebar-accent-foreground: oklch(0.25 0.04 250);
   --sidebar-border: oklch(0.9 0.01 250);
   --sidebar-ring: oklch(0.6 0.15 250);
-  
+
   /* Mosaic Colors */
   --mosaic-coral: oklch(0.7 0.18 25);
   --mosaic-teal: oklch(0.6 0.12 180);
@@ -134,12 +135,29 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply text-foreground;
+    --font-primary:
+      var(--font-ibm-plex-sans, "IBM Plex Sans"), ui-sans-serif, system-ui,
+      sans-serif;
+    @apply text-foreground font-sans;
+    font-family: var(--font-primary) !important;
+  }
+
+  /* Force font on ALL elements except code and icons */
+  *:not(code, pre, kbd, samp, .lucide, [class*="icon-"], .icon) {
+    font-family: var(--font-primary) !important;
+  }
+
+  /* Force font on all interactive elements specifically for extra safety */
+  input,
+  button,
+  textarea,
+  select {
+    font-family: var(--font-primary) !important;
   }
 }
 
 body {
-  background-image: url('/bg.png') !important;
+  background-image: url("/bg.png") !important;
   background-size: cover;
   background-attachment: fixed;
   background-position: center;
@@ -148,7 +166,7 @@ body {
 }
 
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   background: rgba(255, 255, 255, 0.75);
@@ -163,44 +181,108 @@ body > * {
 
 /* Mosaic Pattern Background */
 .mosaic-pattern {
-  background-image: 
-    linear-gradient(30deg, var(--mosaic-coral) 12%, transparent 12.5%, transparent 87%, var(--mosaic-coral) 87.5%, var(--mosaic-coral)),
-    linear-gradient(150deg, var(--mosaic-coral) 12%, transparent 12.5%, transparent 87%, var(--mosaic-coral) 87.5%, var(--mosaic-coral)),
-    linear-gradient(30deg, var(--mosaic-coral) 12%, transparent 12.5%, transparent 87%, var(--mosaic-coral) 87.5%, var(--mosaic-coral)),
-    linear-gradient(150deg, var(--mosaic-coral) 12%, transparent 12.5%, transparent 87%, var(--mosaic-coral) 87.5%, var(--mosaic-coral)),
-    linear-gradient(60deg, var(--mosaic-teal) 25%, transparent 25.5%, transparent 75%, var(--mosaic-teal) 75%, var(--mosaic-teal)),
-    linear-gradient(60deg, var(--mosaic-teal) 25%, transparent 25.5%, transparent 75%, var(--mosaic-teal) 75%, var(--mosaic-teal));
+  background-image:
+    linear-gradient(
+      30deg,
+      var(--mosaic-coral) 12%,
+      transparent 12.5%,
+      transparent 87%,
+      var(--mosaic-coral) 87.5%,
+      var(--mosaic-coral)
+    ),
+    linear-gradient(
+      150deg,
+      var(--mosaic-coral) 12%,
+      transparent 12.5%,
+      transparent 87%,
+      var(--mosaic-coral) 87.5%,
+      var(--mosaic-coral)
+    ),
+    linear-gradient(
+      30deg,
+      var(--mosaic-coral) 12%,
+      transparent 12.5%,
+      transparent 87%,
+      var(--mosaic-coral) 87.5%,
+      var(--mosaic-coral)
+    ),
+    linear-gradient(
+      150deg,
+      var(--mosaic-coral) 12%,
+      transparent 12.5%,
+      transparent 87%,
+      var(--mosaic-coral) 87.5%,
+      var(--mosaic-coral)
+    ),
+    linear-gradient(
+      60deg,
+      var(--mosaic-teal) 25%,
+      transparent 25.5%,
+      transparent 75%,
+      var(--mosaic-teal) 75%,
+      var(--mosaic-teal)
+    ),
+    linear-gradient(
+      60deg,
+      var(--mosaic-teal) 25%,
+      transparent 25.5%,
+      transparent 75%,
+      var(--mosaic-teal) 75%,
+      var(--mosaic-teal)
+    );
   background-size: 80px 140px;
-  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+  background-position:
+    0 0,
+    0 0,
+    40px 70px,
+    40px 70px,
+    0 0,
+    40px 70px;
   opacity: 0.08;
 }
 
 /* Mosaic Tile Pattern */
 .mosaic-tiles {
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       0deg,
       transparent,
       transparent 20px,
-      rgba(0,0,0,0.03) 20px,
-      rgba(0,0,0,0.03) 21px
+      rgba(0, 0, 0, 0.03) 20px,
+      rgba(0, 0, 0, 0.03) 21px
     ),
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 20px,
-      rgba(0,0,0,0.03) 20px,
-      rgba(0,0,0,0.03) 21px
+      rgba(0, 0, 0, 0.03) 20px,
+      rgba(0, 0, 0, 0.03) 21px
     );
 }
 
 /* Mosaic Hero Pattern */
 .mosaic-hero {
-  background: 
-    radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--mosaic-coral) 15%, transparent) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--mosaic-teal) 15%, transparent) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--mosaic-purple) 10%, transparent) 0%, transparent 40%),
-    radial-gradient(circle at 60% 70%, color-mix(in srgb, var(--mosaic-gold) 12%, transparent) 0%, transparent 45%),
+  background:
+    radial-gradient(
+      circle at 20% 80%,
+      color-mix(in srgb, var(--mosaic-coral) 15%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      color-mix(in srgb, var(--mosaic-teal) 15%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      color-mix(in srgb, var(--mosaic-purple) 10%, transparent) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 60% 70%,
+      color-mix(in srgb, var(--mosaic-gold) 12%, transparent) 0%,
+      transparent 45%
+    ),
     linear-gradient(180deg, oklch(0.99 0 0) 0%, oklch(0.97 0.005 250) 100%);
 }
 
@@ -215,7 +297,7 @@ body > * {
   height: 24px;
   border-radius: 4px;
   border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Mosaic Card Style */
@@ -228,13 +310,14 @@ body > * {
 }
 
 .mosaic-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, 
+  background: linear-gradient(
+    90deg,
     var(--mosaic-coral),
     var(--mosaic-gold),
     var(--mosaic-teal),
@@ -245,13 +328,15 @@ body > * {
 
 .mosaic-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
 }
 
 /* Scrollbar overlay - không chiếm không gian */
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.7 0.18 25) transparent;
 }
 
 /* Ensure no layout shift on Select component interaction */
@@ -271,18 +356,16 @@ body[data-scroll-locked] {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--mosaic-coral), var(--mosaic-purple));
+  background: linear-gradient(
+    180deg,
+    var(--mosaic-coral),
+    var(--mosaic-purple)
+  );
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, var(--mosaic-teal), var(--mosaic-coral));
-}
-
-/* Firefox: scrollbar mỏng, không chiếm chỗ */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: oklch(0.7 0.18 25) transparent;
 }
 
 /* Font serif fallback */
@@ -330,7 +413,7 @@ html {
   font-weight: 600;
   font-size: 14px;
   color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Rainbow Border */
@@ -339,20 +422,21 @@ html {
 }
 
 .rainbow-border::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(135deg, 
+  background: linear-gradient(
+    135deg,
     var(--mosaic-coral),
     var(--mosaic-gold),
     var(--mosaic-teal),
     var(--mosaic-purple),
     var(--mosaic-rose)
   );
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -395,15 +479,16 @@ html {
 }
 
 .btn-mosaic::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, 
+  background: linear-gradient(
+    90deg,
     transparent,
-    rgba(255,255,255,0.2),
+    rgba(255, 255, 255, 0.2),
     transparent
   );
   transition: left 0.5s ease;
@@ -415,7 +500,8 @@ html {
 
 /* Floating Animation */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -444,7 +530,7 @@ html {
   border: 4px solid var(--mosaic-gold);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .product-thumb-active {
@@ -460,21 +546,21 @@ html {
   justify-content: center;
   background: white;
   border: 2px solid oklch(0.9 0.01 250);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
 }
 
 .feature-icon-circle:hover {
   border-color: var(--mosaic-gold);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .spec-card {
   background: white;
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   border: 1px solid oklch(0.94 0.01 250);
 }
 
@@ -502,7 +588,7 @@ html {
 
 .annotation-label {
   position: absolute;
-  font-family: 'Caveat', cursive, Georgia, serif;
+  font-family: "Caveat", cursive, Georgia, serif;
   font-size: 1.1rem;
   color: oklch(0.25 0.02 250);
   white-space: nowrap;
@@ -544,14 +630,14 @@ html {
   background: white;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   border: 1px solid oklch(0.94 0.01 250);
   transition: all 0.3s ease;
 }
 
 .info-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
 /* Preview grid artwork */

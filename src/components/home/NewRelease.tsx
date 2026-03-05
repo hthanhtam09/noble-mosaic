@@ -13,7 +13,7 @@ export default function NewRelease() {
     <section className="py-12 md:py-16">
       <div className="layout-inner">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800 font-nunito">
+          <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800">
             New Release
           </h2>
           <Link

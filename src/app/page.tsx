@@ -5,7 +5,6 @@ import HeroBanner from "@/components/home/HeroBanner";
 import NewRelease from "@/components/home/NewRelease";
 import SecretSection from "@/components/home/SecretSection";
 import GiftFloatingWidget from "@/components/home/GiftFloatingWidget";
-import BlogPosts from "@/components/home/BlogPosts";
 
 export const metadata: Metadata = {
   alternates: {
@@ -18,11 +17,10 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-grow">
+      <main className="grow">
         <HeroBanner />
         <NewRelease />
         <SecretSection />
-        {/* <BlogPosts /> */}
       </main>
 
       <Footer />
