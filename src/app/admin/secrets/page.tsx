@@ -427,57 +427,48 @@ export default function AdminSecretsPage() {
       const total = colorImages.length;
       const failedIndices: number[] = [];
 
-      for (let i = 0; i < total; i += CHUNK_SIZE) {
-        const chunk = Array.from(
-          { length: Math.min(CHUNK_SIZE, total - i) },
-          (_, index) => i + index,
-        );
+      for (let i = 0; i < total; i++) {
+        try {
+          // Upload pairs strictly sequentially
+          const colorImageUrl = await uploadFile(
+            colorImages[i],
+            `secrets/${selectedBook.slug}/color`,
+          );
+          const uncolorImageUrl = await uploadFile(
+            uncolorImages[i],
+            `secrets/${selectedBook.slug}/uncolor`,
+          );
 
-        await Promise.all(
-          chunk.map(async (index) => {
-            try {
-              // Upload pairs
-              const colorImageUrl = await uploadFile(
-                colorImages[index],
-                `secrets/${selectedBook.slug}/color`,
-              );
-              const uncolorImageUrl = await uploadFile(
-                uncolorImages[index],
-                `secrets/${selectedBook.slug}/uncolor`,
-              );
+          // Use the number from the filename as the order, fallback to index + 1 if not found
+          const fileOrder = getNumberFromFilename(colorImages[i].name);
+          const order =
+            fileOrder !== 999999 ? fileOrder : existingMaxOrder + i + 1;
 
-              // Use the number from the filename as the order, fallback to index + 1 if not found
-              const fileOrder = getNumberFromFilename(colorImages[index].name);
-              const order =
-                fileOrder !== 999999 ? fileOrder : existingMaxOrder + index + 1;
+          const existingSecret = secrets.find((s) => s.order === order);
 
-              const existingSecret = secrets.find((s) => s.order === order);
+          // Save to DB using api (axios)
+          if (existingSecret) {
+            await api.put(`/admin/secrets/${existingSecret._id}`, {
+              colorImageUrl,
+              uncolorImageUrl,
+              order: order,
+            });
+          } else {
+            await api.post("/admin/secrets", {
+              secretBook: selectedBook._id,
+              colorImageUrl,
+              uncolorImageUrl,
+              order: order,
+              isActive: true,
+            });
+          }
 
-              // Save to DB using api (axios)
-              if (existingSecret) {
-                await api.put(`/admin/secrets/${existingSecret._id}`, {
-                  colorImageUrl,
-                  uncolorImageUrl,
-                  order: order,
-                });
-              } else {
-                await api.post("/admin/secrets", {
-                  secretBook: selectedBook._id,
-                  colorImageUrl,
-                  uncolorImageUrl,
-                  order: order,
-                  isActive: true,
-                });
-              }
-
-              successCount++;
-            } catch (err) {
-              console.error(`Failed to upload pair index ${index}`, err);
-              failedIndices.push(index);
-            }
-            setUploadProgress((prev) => prev + 1);
-          }),
-        );
+          successCount++;
+        } catch (err) {
+          console.error(`Failed to upload pair index ${i}`, err);
+          failedIndices.push(i);
+        }
+        setUploadProgress((prev) => prev + 1);
       }
 
       if (successCount > 0) {
