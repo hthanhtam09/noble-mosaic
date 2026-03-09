@@ -43,8 +43,6 @@ export default function SecretSection() {
     }
   }, [books, unlockedBooks]);
 
-  const unlockedCount = Object.values(unlockedBooks).filter(Boolean).length;
-
   return (
     <section className="py-12 md:py-16">
       <div className="layout-inner">
@@ -53,11 +51,6 @@ export default function SecretSection() {
             <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-800 text-center">
               Secret Pages
             </h2>
-            {unlockedCount > 0 && (
-              <span className="text-sm font-medium text-neutral-500">
-                ({unlockedCount}/{books.length} unlocked)
-              </span>
-            )}
           </div>
           <Link
             href="/secret"
