@@ -48,9 +48,9 @@ export default function SecretSection() {
   return (
     <section className="py-12 md:py-16">
       <div className="layout-inner">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800">
+        <div className="flex flex-col items-center justify-center gap-3 mb-2">
+          <div className="flex items-baseline gap-3 justify-center">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-800 text-center">
               Secret Pages
             </h2>
             {unlockedCount > 0 && (
@@ -61,7 +61,7 @@ export default function SecretSection() {
           </div>
           <Link
             href="/secret"
-            className="text-base font-medium text-neutral-600 hover:text-neutral-900 border-b border-neutral-600 pb-0.5 transition-colors"
+            className="text-sm md:text-base font-medium text-neutral-600 hover:text-neutral-900 border-b border-neutral-600 pb-0.5 transition-colors"
             aria-label="View all Secrets"
           >
             View more

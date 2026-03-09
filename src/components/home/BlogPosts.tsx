@@ -39,7 +39,7 @@ export default function BlogPosts() {
   return (
     <section className="py-12 md:py-16">
       <div className="layout-inner">
-        <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800 mb-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-800 mb-8 text-center">
           Blog Posts
         </h2>
         <div className="relative rounded-2xl bg-white p-8 md:p-12 shadow-sm border border-neutral-100 overflow-hidden">

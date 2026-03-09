@@ -21,8 +21,8 @@ export default function HomePage() {
       <main className="grow">
         <HeroBanner />
         <NewRelease />
-        <SecretSection />
         <PatternSection />
+        <SecretSection />
       </main>
 
       <Footer />

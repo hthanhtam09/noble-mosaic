@@ -12,13 +12,13 @@ export default function NewRelease() {
   return (
     <section className="py-12 md:py-16">
       <div className="layout-inner">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-xl md:text-2xl font-extrabold text-neutral-800">
+        <div className="flex flex-col items-center justify-center gap-3 mb-2">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-800 text-center">
             New Release
           </h2>
           <Link
             href="/books"
-            className="text-base font-medium text-neutral-600 hover:text-neutral-900 border-b border-neutral-600 pb-0.5 transition-colors"
+            className="text-sm md:text-base font-medium text-neutral-600 hover:text-neutral-900 border-b border-neutral-600 pb-0.5 transition-colors"
             aria-label="View more New Release"
           >
             View more
