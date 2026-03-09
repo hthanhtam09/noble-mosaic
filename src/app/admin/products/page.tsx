@@ -42,6 +42,7 @@ interface Product {
   reviewCount: number;
   price: string;
   featured: boolean;
+  isComingSoon?: boolean;
   createdAt: string;
 }
 
@@ -197,7 +198,14 @@ export default function AdminProductsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-semibold text-neutral-900 line-clamp-1">{product.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-neutral-900 line-clamp-1">{product.title}</h3>
+                          {product.isComingSoon && (
+                            <Badge variant="secondary" className="bg-[var(--mosaic-gold)] text-white hover:bg-[var(--mosaic-gold)]/90 uppercase tracking-wider text-[10px] shrink-0 shadow-sm border-none">
+                              Coming Soon
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-neutral-500 line-clamp-1 mt-0.5">{product.description}</p>
                       </div>
                       <div className="text-right flex-shrink-0">

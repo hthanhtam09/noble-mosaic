@@ -18,6 +18,7 @@ interface ProductCardProps {
     rating?: number;
     reviewCount?: number;
     price?: string | number;
+    isComingSoon?: boolean;
   };
   priority?: boolean;
 }
@@ -64,6 +65,12 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           />
         </div>
         <div className="absolute inset-0 bg-neutral-900/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        {product.isComingSoon && (
+          <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 bg-[var(--mosaic-gold)] backdrop-blur-sm text-white text-xs sm:text-sm font-bold uppercase tracking-widest py-3 px-4 shadow-xl z-20 flex items-center justify-center transform -rotate-3 border-y border-[var(--mosaic-gold)]/20">
+            Coming Soon
+          </div>
+        )}
       </Link>
 
       <button

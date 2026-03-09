@@ -48,6 +48,7 @@ export default function NewProductPage() {
     rating: '',
     reviewCount: '0',
     showRating: true,
+    isComingSoon: false,
     dimensions: '',
     printLength: '',
   });
@@ -373,16 +374,30 @@ export default function NewProductPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-100">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="showRating" className="text-base font-semibold text-amber-900">Show Rating</Label>
-                        <p className="text-sm text-amber-700">Display this rating on the public store pages</p>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-100">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="showRating" className="text-base font-semibold text-amber-900">Show Rating</Label>
+                          <p className="text-sm text-amber-700">Display this rating on the public store pages</p>
+                        </div>
+                        <Switch
+                          id="showRating"
+                          checked={formData.showRating}
+                          onCheckedChange={(checked) => setFormData({ ...formData, showRating: checked })}
+                        />
                       </div>
-                      <Switch
-                        id="showRating"
-                        checked={formData.showRating}
-                        onCheckedChange={(checked) => setFormData({ ...formData, showRating: checked })}
-                      />
+
+                      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="isComingSoon" className="text-base font-semibold text-blue-900">Coming Soon</Label>
+                          <p className="text-sm text-blue-700">Flag this product as coming soon</p>
+                        </div>
+                        <Switch
+                          id="isComingSoon"
+                          checked={formData.isComingSoon}
+                          onCheckedChange={(checked) => setFormData({ ...formData, isComingSoon: checked })}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

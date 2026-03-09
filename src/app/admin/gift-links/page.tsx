@@ -465,6 +465,7 @@ export default function AdminGiftLinksPage() {
         'Add New Gift Link',
         showCreateDialog,
         () => { setShowCreateDialog(false); setNewTitle(''); setNewDescription(''); setNewUrl(''); setNewImage(null); },
+        // eslint-disable-next-line react-hooks/refs
         handleCreate,
         newTitle,
         setNewTitle,
@@ -485,6 +486,7 @@ export default function AdminGiftLinksPage() {
         'Edit Gift Link',
         !!editingLink,
         () => { setEditingLink(null); setEditImage(null); },
+        // eslint-disable-next-line react-hooks/refs
         handleEdit,
         editTitle,
         setEditTitle,

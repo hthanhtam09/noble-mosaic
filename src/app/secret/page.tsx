@@ -40,6 +40,7 @@ export default function SecretPage() {
   const { addItem, removeItem, isInWishlist } = useWishlist();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -231,22 +232,22 @@ export default function SecretPage() {
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious 
+                          <PaginationPrevious
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
                         </PaginationItem>
-                        
+
                         {Array.from({ length: totalPages }).map((_, i) => {
                           const page = i + 1;
                           if (
-                            page === 1 || 
-                            page === totalPages || 
+                            page === 1 ||
+                            page === totalPages ||
                             (page >= currentPage - 1 && page <= currentPage + 1)
                           ) {
                             return (
                               <PaginationItem key={page}>
-                                <PaginationLink 
+                                <PaginationLink
                                   isActive={page === currentPage}
                                   onClick={() => setCurrentPage(page)}
                                   className="cursor-pointer"
@@ -256,7 +257,7 @@ export default function SecretPage() {
                               </PaginationItem>
                             );
                           } else if (
-                            page === currentPage - 2 || 
+                            page === currentPage - 2 ||
                             page === currentPage + 2
                           ) {
                             return (
@@ -269,7 +270,7 @@ export default function SecretPage() {
                         })}
 
                         <PaginationItem>
-                          <PaginationNext 
+                          <PaginationNext
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />

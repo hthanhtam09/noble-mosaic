@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export interface IProduct {
   _id: string;
@@ -11,25 +11,29 @@ export interface IProduct {
   amazonLink: string;
   dimensions?: string;
   printLength?: string;
-  aPlusContent: (string | {
-    type: 'fullWidth' | 'twoColumn' | 'featureHighlight' | 'lifestyle';
-    title?: string;
-    content?: string;
-    image?: string;
-    images?: string[];
-    items?: { title: string; description: string; icon?: string }[];
-  })[];
+  aPlusContent: (
+    | string
+    | {
+        type: "fullWidth" | "twoColumn" | "featureHighlight" | "lifestyle";
+        title?: string;
+        content?: string;
+        image?: string;
+        images?: string[];
+        items?: { title: string; description: string; icon?: string }[];
+      }
+  )[];
   rating?: number;
   reviewCount?: number;
   price?: string;
   featured?: boolean;
+  isComingSoon?: boolean;
   showRating: boolean;
   editions?: {
     name: string;
     link: string;
     price?: string;
     coverImage?: string;
-    aPlusContent?: (string | any)[];
+    aPlusContent?: any[];
   }[];
   createdAt: Date;
   updatedAt: Date;
@@ -46,30 +50,36 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     amazonLink: { type: String, required: true },
     dimensions: { type: String },
     printLength: { type: String },
-    aPlusContent: [{
-      type: mongoose.Schema.Types.Mixed
-    }],
+    aPlusContent: [
+      {
+        type: mongoose.Schema.Types.Mixed,
+      },
+    ],
     rating: { type: Number },
     reviewCount: { type: Number },
     price: { type: String },
     featured: { type: Boolean, default: false },
+    isComingSoon: { type: Boolean, default: false },
     showRating: { type: Boolean, default: true },
-    editions: [{
-      name: { type: String, required: true },
-      link: { type: String, required: true },
-      price: { type: String },
-      coverImage: { type: String },
-      aPlusContent: [{ type: mongoose.Schema.Types.Mixed }]
-    }],
+    editions: [
+      {
+        name: { type: String, required: true },
+        link: { type: String, required: true },
+        price: { type: String },
+        coverImage: { type: String },
+        aPlusContent: [{ type: mongoose.Schema.Types.Mixed }],
+      },
+    ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 ProductSchema.index({ slug: 1 });
 
 // For Next.js hot reloading: delete the model to force registration with updated schema
-if (process.env.NODE_ENV === 'development' && mongoose.models.Product) {
+if (process.env.NODE_ENV === "development" && mongoose.models.Product) {
   delete (mongoose.models as any).Product;
 }
 
-export const Product = mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);
+export const Product =
+  mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);

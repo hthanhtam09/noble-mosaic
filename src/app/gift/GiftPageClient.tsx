@@ -32,6 +32,7 @@ export default function GiftPageClient() {
 
   useEffect(() => {
     if (localStorage.getItem('gift_verified') === 'true') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSubscribed(true);
     }
   }, []);

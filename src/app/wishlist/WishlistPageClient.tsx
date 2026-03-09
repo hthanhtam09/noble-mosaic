@@ -14,6 +14,7 @@ export default function WishlistPageClient() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -49,7 +50,7 @@ export default function WishlistPageClient() {
             </Button>
           )}
         </div>
-        
+
         <hr className="border-neutral-200 mb-8" />
 
         {items.length === 0 ? (

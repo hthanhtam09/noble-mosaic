@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import {
   Star,
   ExternalLink,
-  Check,
   Loader2,
   Grid3X3,
   Maximize,
@@ -50,6 +49,7 @@ export default function ProductDetailClient() {
   const { addItem, removeItem, isInWishlist } = useWishlist();
 
   useEffect(() => {
+    // eslint-disable-next-line
     setMounted(true);
   }, []);
 
@@ -89,6 +89,7 @@ export default function ProductDetailClient() {
 
   // Reset to first image if edition changes
   useEffect(() => {
+    // eslint-disable-next-line
     setSelectedImage(0);
   }, [selectedEdition]);
 
@@ -139,7 +140,7 @@ export default function ProductDetailClient() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <div className="flex-grow flex items-center justify-center">
+        <div className="grow flex items-center justify-center">
           <Loader2 className="h-10 w-10 animate-spin text-neutral-400" />
         </div>
         <Footer />
@@ -151,7 +152,7 @@ export default function ProductDetailClient() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <div className="flex-grow flex flex-col items-center justify-center py-20">
+        <div className="grow flex flex-col items-center justify-center py-20">
           <h1 className="text-2xl font-serif font-bold text-neutral-900 mb-4">Product Not Found</h1>
           <p className="text-neutral-500 mb-6">The product you&apos;re looking for doesn&apos;t exist.</p>
           <Button asChild variant="outline">
@@ -173,9 +174,9 @@ export default function ProductDetailClient() {
         description={product.description || ''}
         image={product.coverImage}
         url={`https://noblemosaic.com/books/${product.slug}`}
-        price={product.price != null ? String(product.price) : undefined}
-        rating={product.showRating !== false ? product.rating : undefined}
-        reviewCount={product.showRating !== false ? product.reviewCount : undefined}
+        price={product.price == null ? undefined : String(product.price)}
+        rating={product.showRating === false ? undefined : product.rating}
+        reviewCount={product.showRating === false ? undefined : product.reviewCount}
       />
       <BreadcrumbJsonLd
         items={[
@@ -190,7 +191,7 @@ export default function ProductDetailClient() {
 
       <Header />
 
-      <main className="flex-grow">
+      <main className="grow">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-neutral-100">
           <div className="layout-inner py-3">
@@ -213,7 +214,7 @@ export default function ProductDetailClient() {
               {/* Left: Image Gallery */}
               <div className="space-y-4">
                 {/* Main Image */}
-                <div className="relative aspect-[3/4] bg-neutral-50 overflow-hidden rounded-sm">
+                <div className="relative aspect-3/4 bg-neutral-50 overflow-hidden rounded-sm">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={selectedImage}
@@ -263,6 +264,13 @@ export default function ProductDetailClient() {
               {/* Right: Product Info */}
               <div className="lg:pl-2 flex flex-col">
                 {/* Title */}
+                {product.isComingSoon && (
+                  <div className="mb-3">
+                    <span className="inline-flex items-center bg-[var(--mosaic-gold)] text-white text-xs font-bold uppercase tracking-widest py-1.5 px-3 rounded-full shadow-sm">
+                      Coming Soon
+                    </span>
+                  </div>
+                )}
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-neutral-900 leading-tight">
                   {product.title}
                 </h1>
@@ -275,7 +283,7 @@ export default function ProductDetailClient() {
                       {product.rating}
                     </span>
                     <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
+                      {[...new Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           className={`h-5 w-5 ${i < Math.floor(product.rating ?? 0)
@@ -335,7 +343,7 @@ export default function ProductDetailClient() {
 
 
                 {/* Spacer to push content down if needed */}
-                <div className="flex-grow min-h-4" />
+                <div className="grow min-h-4" />
               </div>
 
               {/* Right: Purchase Options Column */}
@@ -392,21 +400,25 @@ export default function ProductDetailClient() {
 
                   {/* CTA Section */}
                   <div className="space-y-3">
-                    <Button
-                      asChild
-                      size="lg"
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold rounded-full h-12 shadow-md btn-mosaic"
-                    >
-                      <a
-                        href={selectedEdition !== null && product.editions ? product.editions[selectedEdition].link : product.amazonLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2"
+                    {product.isComingSoon ? (
+                      null
+                    ) : (
+                      <Button
+                        asChild
+                        size="lg"
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold rounded-full h-12 shadow-md btn-mosaic"
                       >
-                        Buy on Amazon
-                        <ExternalLink className="h-4 w-4 text-neutral-600" />
-                      </a>
-                    </Button>
+                        <a
+                          href={selectedEdition !== null && product.editions ? product.editions[selectedEdition].link : product.amazonLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2"
+                        >
+                          Buy on Amazon
+                          <ExternalLink className="h-4 w-4 text-neutral-600" />
+                        </a>
+                      </Button>
+                    )}
                     <Button
                       onClick={() => {
                         if (!mounted) return;
@@ -464,11 +476,11 @@ export default function ProductDetailClient() {
         {/* SECTION 4: Simple A+ Content Layout                           */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
-          <div className="mx-auto max-w-[970px] py-16 space-y-12">
+          <div className="mx-auto max-w-242.5 py-16 space-y-12">
             {currentAPlusContent.length > 0 && (
               <div className="space-y-6">
                 {currentAPlusContent.map((imgSrc, i) => (
-                  <div key={i} className="relative w-full aspect-[97/60] bg-neutral-100 overflow-hidden">
+                  <div key={i} className="relative w-full aspect-97/60 bg-neutral-100 overflow-hidden">
                     <Image
                       src={imgSrc}
                       alt={`${product.title} - Preview Detail ${i + 1}`}
@@ -517,7 +529,7 @@ export default function ProductDetailClient() {
                     href={`/books/${relProduct.slug}`}
                     className="series-item group"
                   >
-                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-neutral-100 shadow-sm">
+                    <div className="relative aspect-3/4 rounded-lg overflow-hidden bg-neutral-100 shadow-sm">
                       <Image
                         src={relProduct.coverImage}
                         alt={relProduct.title}
