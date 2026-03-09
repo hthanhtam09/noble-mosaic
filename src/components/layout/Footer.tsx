@@ -1,5 +1,17 @@
 import Link from 'next/link';
-import { Facebook, Instagram, Twitter, Gift, Heart, Palette } from 'lucide-react';
+import { Facebook, Instagram, Gift, Heart, Palette, Youtube } from 'lucide-react';
+
+const TikTok = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 2.22-1.15 4.39-2.92 5.74-1.78 1.34-4.14 1.83-6.28 1.35-2.14-.49-4.04-1.87-5.11-3.79-1.07-1.93-1.21-4.32-.42-6.36.79-2.04 2.5-3.66 4.62-4.29 2.11-.63 4.41-.39 6.27.7.02 1.48-.02 2.96.02 4.45-.88-.5-1.92-.7-2.95-.5-1.03.19-1.95.77-2.6 1.62-.64.84-.92 1.94-.78 2.98.15 1.04.75 1.97 1.62 2.57.87.61 2.02.84 3.06.6 1.05-.23 1.96-.86 2.55-1.73.59-.87.87-1.96.78-3.02-.02-3.87-.01-7.75-.01-11.62-.01-2.01.01-4.02-.02-6.03z"/>
+  </svg>
+);
+
+const Pinterest = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.951-7.252 4.182 0 7.433 2.977 7.433 6.953 0 4.155-2.616 7.493-6.251 7.493-1.22 0-2.368-.636-2.763-1.385l-.756 2.872c-.274 1.042-1.018 2.348-1.518 3.143 1.166.353 2.405.544 3.684.544 6.621 0 11.988-5.367 11.988-11.987C24.005 5.367 18.638 0 12.017 0z"/>
+  </svg>
+);
 
 const footerLinks = {
   books: [
@@ -15,18 +27,9 @@ const footerLinks = {
   resources: [
     { name: 'Secret', href: '/secret', highlight: true },
     { name: 'Gift', href: '/gift', highlight: true },
-    { name: 'FAQ', href: '/contact' },
-    { name: 'Shipping', href: '/contact' },
+    { name: 'FAQ', href: '/faq' },
   ],
 };
-
-const colorDots = [
-  { color: 'var(--mosaic-coral)' },
-  { color: 'var(--mosaic-gold)' },
-  { color: 'var(--mosaic-teal)' },
-  { color: 'var(--mosaic-purple)' },
-  { color: 'var(--mosaic-rose)' },
-];
 
 export default function Footer() {
   return (
@@ -39,31 +42,8 @@ export default function Footer() {
       </div>
 
       <div className="relative layout-inner py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-12">
-          <div className="lg:col-span-1">
-            {/* Color palette */}
-            <div className="flex gap-2">
-              {colorDots.map((dot, index) => (
-                <div
-                  key={index}
-                  className="w-6 h-6 rounded-md shadow-inner"
-                  style={{ backgroundColor: dot.color }}
-                />
-              ))}
-            </div>
-
-            <div className="mt-6 flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-coral)] flex items-center justify-center transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-purple)] flex items-center justify-center transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-teal)] flex items-center justify-center transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8 lg:gap-12">
+        
 
           {/* Books Links */}
           <div>
@@ -127,63 +107,30 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
               <Heart className="h-4 w-4 text-[var(--mosaic-rose)]" />
-              Stay Updated
+              Contact
             </h3>
             <p className="mt-4 text-sm text-neutral-400">
-              Subscribe for new releases and exclusive offers.
+              Email us at <a href="mailto:noblemosaic@gmail.com" className="text-[var(--mosaic-teal)] hover:underline">noblemosaic@gmail.com</a>
             </p>
-            <form className="mt-4">
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 px-4 py-2.5 text-sm bg-neutral-800 border border-neutral-700 rounded-xl focus:outline-none focus:border-[var(--mosaic-teal)] text-white placeholder:text-neutral-500"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2.5 text-sm font-medium bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-purple)] text-white rounded-xl hover:shadow-lg hover:shadow-[var(--mosaic-purple)]/25 transition-all"
-                >
-                  Join
-                </button>
-              </div>
-            </form>
-
-            {/* Gift Promo */}
-            <div className="mt-6 p-4 bg-gradient-to-br from-neutral-800 to-neutral-800/50 rounded-xl border border-neutral-700">
-              <div className="flex items-center gap-2 text-[var(--mosaic-gold)] mb-2">
-                <Gift className="h-5 w-5" />
-                <span className="font-medium text-sm">Gift</span>
-              </div>
-              <p className="text-xs text-neutral-400 mb-3">
-                Get your gift when you subscribe!
-              </p>
-              <Link
-                href="/gift"
-                className="inline-flex items-center gap-2 text-xs font-medium text-white bg-gradient-to-r from-[var(--mosaic-coral)] to-[var(--mosaic-gold)] px-4 py-2 rounded-lg hover:shadow-lg transition-all"
-              >
-                Download Now
-                <span className="text-lg">→</span>
-              </Link>
+              <div className="lg:col-span-1">
+            <div className="mt-6 flex gap-4">
+              <a href="https://www.facebook.com/noblemosaiccoloring" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-coral)] flex items-center justify-center transition-colors">
+                <Facebook className="h-5 w-5" />
+              </a>
+              <a href="https://www.instagram.com/noblemosaic/" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-purple)] flex items-center justify-center transition-colors">
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a href="https://www.tiktok.com/@noblemosaic" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-teal)] flex items-center justify-center transition-colors">
+                <TikTok className="h-5 w-5" />
+              </a>
+              <a href="https://www.youtube.com/@noblemosaic" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-rose)] flex items-center justify-center transition-colors">
+                <Youtube className="h-5 w-5" />
+              </a>
+              <a href="https://www.pinterest.com/noblemosaic/" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-[var(--mosaic-gold)] flex items-center justify-center transition-colors">
+                <Pinterest className="h-5 w-5" />
+              </a>
             </div>
           </div>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-neutral-800">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-neutral-400 flex items-center gap-2">
-              Made with <Heart className="h-4 w-4 text-[var(--mosaic-rose)] fill-[var(--mosaic-rose)]" /> by Noble Mosaic
-            </p>
-            {/* <div className="flex gap-6">
-              <Link href="/privacy" className="text-sm text-neutral-400 hover:text-white transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="text-sm text-neutral-400 hover:text-white transition-colors">
-                Terms of Service
-              </Link>
-            </div> */}
-            <p className="text-sm text-neutral-500">
-              © {new Date().getFullYear()} Noble Mosaic
-            </p>
           </div>
         </div>
       </div>

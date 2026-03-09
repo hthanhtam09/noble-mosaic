@@ -5,6 +5,7 @@ import HeroBanner from "@/components/home/HeroBanner";
 import NewRelease from "@/components/home/NewRelease";
 import SecretSection from "@/components/home/SecretSection";
 import PatternSection from "@/components/home/PatternSection";
+import FAQSection from "@/components/home/FAQSection";
 import GiftFloatingWidget from "@/components/home/GiftFloatingWidget";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function HomePage() {
         <NewRelease />
         <PatternSection />
         <SecretSection />
+        <FAQSection />
       </main>
 
       <Footer />
