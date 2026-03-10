@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSecretBooks } from '@/hooks/api/useSecrets';
 import Link from 'next/link';
 import Image from 'next/image';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Loader2, Lock, LockOpen, X, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -73,7 +72,7 @@ export default function SecretPage() {
   }, [books]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <CollectionPageJsonLd
         name="Secret Hidden Images"
         description="Unlock secret hidden images from our mosaic color by number books. Enter your secret key to reveal the final colored masterpieces."
@@ -85,9 +84,8 @@ export default function SecretPage() {
           { name: 'Secret', url: 'https://noblemosaic.com/secret' },
         ]}
       />
-      <Header />
 
-      <main className="flex-grow">
+      <div className="grow">
         <div className="layout-inner pt-8">
           <h1 className="text-3xl font-bold text-neutral-900 mb-4 text-center">Secret</h1>
           <hr className="border-neutral-200 mb-8" />
@@ -97,7 +95,7 @@ export default function SecretPage() {
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-end mb-8 p-4">
               <div className="flex flex-wrap items-center gap-3">
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[200px] rounded-xl border-neutral-200">
+                  <SelectTrigger className="w-50 rounded-xl border-neutral-200">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -110,7 +108,7 @@ export default function SecretPage() {
 
                 {/* Items Per Page */}
                 <Select value={itemsPerPage} onValueChange={setItemsPerPage}>
-                  <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
+                  <SelectTrigger className="w-35 rounded-xl border-neutral-200">
                     <SelectValue placeholder="Items Per Page" />
                   </SelectTrigger>
                   <SelectContent>
@@ -140,7 +138,7 @@ export default function SecretPage() {
 
           {!isLoading && books.length > 0 && (
             <p className="text-sm text-neutral-500 mb-6">
-              Showing <span className="font-medium text-neutral-900">{displayedBooks.length}</span> of <span className="font-medium text-neutral-900">{filteredBooks.length}</span> book{filteredBooks.length !== 1 ? 's' : ''}
+              Showing <span className="font-medium text-neutral-900">{displayedBooks.length}</span> of <span className="font-medium text-neutral-900">{filteredBooks.length}</span> book{filteredBooks.length === 1 ? '' : 's'}
             </p>
           )}
         </div>
@@ -154,7 +152,7 @@ export default function SecretPage() {
               </div>
             ) : books.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-20 h-20 bg-gradient-to-br from-neutral-100 to-neutral-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-neutral-200">
+                <div className="w-20 h-20 bg-linear-to-br from-neutral-100 to-neutral-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-neutral-200">
                   <Lock className="h-10 w-10 text-neutral-300" />
                 </div>
                 <h3 className="text-xl font-medium text-neutral-900 mb-2">No Secrets Revealed Yet</h3>
@@ -166,9 +164,9 @@ export default function SecretPage() {
                   {displayedBooks.map((book, index) => (
                     <Link href={`/secret/${book.slug}`} key={book._id} className="group block">
                       <Card className="h-full border-0 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden bg-white/80 backdrop-blur-sm group-hover:-translate-y-1 relative">
-                        <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
+                        <div className="relative aspect-3/4 overflow-hidden bg-neutral-100">
                           {/* Overlay gradient */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
+                          <div className="absolute inset-0 bg-linear-to-t from-neutral-900/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
 
                           <Image
                             src={book.coverImage}
@@ -180,7 +178,7 @@ export default function SecretPage() {
                           />
 
                           <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-end items-end">
-                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-[var(--mosaic-teal)] transition-colors">
+                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-(--mosaic-teal) transition-colors">
                               {unlockedBooks[book.slug] ? (
                                 <LockOpen className="h-4 w-4" />
                               ) : (
@@ -215,12 +213,9 @@ export default function SecretPage() {
                           </button>
                         </div>
                         <CardContent className="p-5">
-                          <h3 className="text-lg font-bold text-neutral-900 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-2 mb-2">
+                          <h3 className="text-lg font-bold text-neutral-900 group-hover:text-(--mosaic-teal) transition-colors line-clamp-2 mb-2">
                             {book.title}
                           </h3>
-                          <p className="text-sm text-neutral-500 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-y-2 group-hover:translate-y-0">
-                            Click to reveal secrets <span className="text-[var(--mosaic-coral)]">→</span>
-                          </p>
                         </CardContent>
                       </Card>
                     </Link>
@@ -283,9 +278,7 @@ export default function SecretPage() {
             )}
           </div>
         </section>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

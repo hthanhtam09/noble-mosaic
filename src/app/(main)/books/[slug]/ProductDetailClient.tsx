@@ -5,9 +5,8 @@ import { useProduct } from '@/hooks/api/useProducts';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
+
 import { useWishlist } from '@/store/use-wishlist';
 import { cn } from '@/lib/utils';
 import {
@@ -138,20 +137,17 @@ export default function ProductDetailClient() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="grow flex items-center justify-center">
+      <>
+        <div className="grow flex items-center justify-center py-20">
           <Loader2 className="h-10 w-10 animate-spin text-neutral-400" />
         </div>
-        <Footer />
-      </div>
+      </>
     );
   }
 
   if (notFound || !product) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
+      <>
         <div className="grow flex flex-col items-center justify-center py-20">
           <h1 className="text-2xl font-serif font-bold text-neutral-900 mb-4">Product Not Found</h1>
           <p className="text-neutral-500 mb-6">The product you&apos;re looking for doesn&apos;t exist.</p>
@@ -159,15 +155,14 @@ export default function ProductDetailClient() {
             <Link href="/books">Back to Books</Link>
           </Button>
         </div>
-        <Footer />
-      </div>
+      </>
     );
   }
 
 
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       {/* Structured Data */}
       <ProductJsonLd
         name={product.title}
@@ -189,9 +184,7 @@ export default function ProductDetailClient() {
         ]}
       />
 
-      <Header />
-
-      <main className="grow">
+      <div className="grow">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-neutral-100">
           <div className="layout-inner py-3">
@@ -550,9 +543,7 @@ export default function ProductDetailClient() {
             </div>
           </section>
         )}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

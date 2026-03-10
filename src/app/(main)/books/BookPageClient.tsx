@@ -3,9 +3,8 @@
 import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useProducts } from '@/hooks/api/useProducts';
 import { useSearchParams } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/products/ProductCard';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,7 +34,7 @@ function BookContent() {
   } = useFilterPagination(products);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       {/* Structured Data */}
       <CollectionPageJsonLd
         name="All Mosaic Color By Number Books"
@@ -49,9 +48,7 @@ function BookContent() {
         ]}
       />
 
-      <Header />
-
-      <main className="flex-grow">
+      <div className="flex-grow">
         <div className="layout-inner py-8">
           <h1 className="text-3xl font-bold text-neutral-900 mb-4 text-center">Books</h1>
           <hr className="border-neutral-200 mb-8" />
@@ -128,22 +125,22 @@ function BookContent() {
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
+                        <PaginationPrevious
                           onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                           className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
-                      
+
                       {Array.from({ length: totalPages }).map((_, i) => {
                         const page = i + 1;
                         if (
-                          page === 1 || 
-                          page === totalPages || 
+                          page === 1 ||
+                          page === totalPages ||
                           (page >= currentPage - 1 && page <= currentPage + 1)
                         ) {
                           return (
                             <PaginationItem key={page}>
-                              <PaginationLink 
+                              <PaginationLink
                                 isActive={page === currentPage}
                                 onClick={() => setCurrentPage(page)}
                                 className="cursor-pointer"
@@ -153,7 +150,7 @@ function BookContent() {
                             </PaginationItem>
                           );
                         } else if (
-                          page === currentPage - 2 || 
+                          page === currentPage - 2 ||
                           page === currentPage + 2
                         ) {
                           return (
@@ -166,7 +163,7 @@ function BookContent() {
                       })}
 
                       <PaginationItem>
-                        <PaginationNext 
+                        <PaginationNext
                           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                           className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
@@ -192,17 +189,15 @@ function BookContent() {
             </div>
           )}
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }
 
 export default function BookPageClient() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-20">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--mosaic-purple)] border-t-transparent" />
       </div>
     }>

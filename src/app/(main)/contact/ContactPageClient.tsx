@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
+
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -39,7 +38,7 @@ export default function ContactPageClient() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
@@ -67,9 +66,7 @@ export default function ContactPageClient() {
         ]}
       />
 
-      <Header />
-
-      <main className="flex-grow bg-stone-50">
+      <div className="flex-grow bg-stone-50">
         {/* Page Header */}
         <div className="bg-white border-b border-neutral-100">
           <div className="layout-inner py-8">
@@ -226,9 +223,7 @@ export default function ContactPageClient() {
             </div>
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

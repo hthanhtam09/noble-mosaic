@@ -5,9 +5,8 @@ import { useSecretBookDetails } from '@/hooks/api/useSecrets';
 import { api } from '@/lib/api';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
+
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Loader2, ArrowLeft, Image as ImageIcon, LockOpen, Lock, KeyRound } from 'lucide-react';
@@ -119,10 +118,8 @@ function SecretBookContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-
-      <main className="flex-grow pb-24">
+    <>
+      <div className="flex-grow pb-24">
         {/* Header Section */}
         <section className="bg-white border-b border-neutral-200 py-10 shadow-sm">
           <div className="layout-inner">
@@ -318,11 +315,7 @@ function SecretBookContent() {
             </div>
           </section>
         )}
-      </main>
-
-      <Footer />
-
-      {/* Modal */}
+      </div>
       {selectedSecret && book && (
         <SecretImageViewerModal
           isOpen={!!selectedSecret}
@@ -332,13 +325,13 @@ function SecretBookContent() {
           title={`${book.title} - Secret #${selectedSecret.order || 1}`}
         />
       )}
-    </div>
+    </>
   );
 }
 
 export default function SecretBookPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-neutral-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-neutral-400" /></div>}>
+    <Suspense fallback={<div className="bg-neutral-50 flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-neutral-400" /></div>}>
       <SecretBookContent />
     </Suspense>
   );

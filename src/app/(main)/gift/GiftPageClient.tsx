@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { useGiftLinks } from '@/hooks/api/useGift';
 import { useSubscribeNewsletter, useSendVerificationCode } from '@/hooks/api/useSubscribers';
 import Image from 'next/image';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
+
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -85,7 +84,7 @@ export default function GiftPageClient() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://noblemosaic.com' },
@@ -93,9 +92,7 @@ export default function GiftPageClient() {
         ]}
       />
 
-      <Header />
-
-      <main className="flex-grow">
+      <div className="flex-grow">
         {/* SEO heading */}
         <h1 className="sr-only">Free Mosaic Coloring Books - Download Your Gift</h1>
 
@@ -358,9 +355,7 @@ export default function GiftPageClient() {
             </Button>
           </div>
         </section>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

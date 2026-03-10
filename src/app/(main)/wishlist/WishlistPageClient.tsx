@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/products/ProductCard';
+
 import { Button } from '@/components/ui/button';
 import { useWishlist } from '@/store/use-wishlist';
 import { Heart, HeartCrack, ShoppingBag } from 'lucide-react';
@@ -20,21 +19,15 @@ export default function WishlistPageClient() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--mosaic-purple)] border-t-transparent" />
-        </main>
-        <Footer />
+      <div className="flex-grow flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--mosaic-purple)] border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-
-      <main className="flex-grow layout-inner py-12">
+    <>
+      <div className="flex-grow layout-inner py-12">
         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
           <h1 className="text-3xl font-bold text-neutral-900 flex items-center gap-3">
             My Wishlist
@@ -82,9 +75,7 @@ export default function WishlistPageClient() {
             ))}
           </div>
         )}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

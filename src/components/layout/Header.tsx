@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Menu, X, Gift, Lock, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Menu, X, Gift, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useWishlist } from "@/store/use-wishlist";
-import { useEffect } from "react";
 
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Books", href: "/books" },
   { name: "Secret", href: "/secret" },
-  // { name: "About", href: "/about" },
+  { name: "About", href: "/about" },
   // { name: "Blog", href: "/blog" },
   // { name: "Contact", href: "/contact" },
 ];
@@ -58,7 +56,7 @@ export default function Header() {
               >
                 <Heart className="h-6 w-6" />
                 {mounted && wishlistItems.length > 0 && (
-                  <span className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center -translate-x-0 translate-y-0 border border-white">
+                  <span className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center translate-x-0 translate-y-0 border border-white">
                     {wishlistItems.length}
                   </span>
                 )}

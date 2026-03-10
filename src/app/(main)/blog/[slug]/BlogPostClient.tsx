@@ -4,9 +4,8 @@ import { useBlogPost } from '@/hooks/api/useBlog';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Badge } from '@/components/ui/badge';
+
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, ArrowLeft, Facebook, Twitter, Linkedin, Loader2 } from 'lucide-react';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
@@ -34,7 +33,7 @@ interface RelatedPost {
 export default function BlogPostClient() {
   const params = useParams();
   const slug = params.slug as string;
-  
+
   const { data, isLoading, isError: notFound } = useBlogPost(slug);
   const post = data?.post || null;
   const relatedPosts = data?.relatedPosts || [];
@@ -44,20 +43,17 @@ export default function BlogPostClient() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-grow flex items-center justify-center">
+      <>
+        <div className="flex-grow flex items-center justify-center py-20">
           <Loader2 className="h-10 w-10 animate-spin text-neutral-400" />
         </div>
-        <Footer />
-      </div>
+      </>
     );
   }
 
   if (notFound || !post) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
+      <>
         <div className="flex-grow flex flex-col items-center justify-center py-20">
           <h1 className="text-2xl font-serif font-bold text-neutral-900 mb-4">Post Not Found</h1>
           <p className="text-neutral-500 mb-6">The blog post you&apos;re looking for doesn&apos;t exist.</p>
@@ -65,13 +61,12 @@ export default function BlogPostClient() {
             <Link href="/blog">Back to Blog</Link>
           </Button>
         </div>
-        <Footer />
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       {/* Structured Data */}
       <ArticleJsonLd
         title={post.title}
@@ -90,9 +85,7 @@ export default function BlogPostClient() {
         ]}
       />
 
-      <Header />
-      
-      <main className="flex-grow bg-white">
+      <div className="flex-grow bg-white">
         {/* Breadcrumb */}
         <div className="border-b border-neutral-100">
           <div className="mx-auto max-w-4xl py-3">
@@ -108,8 +101,8 @@ export default function BlogPostClient() {
 
         {/* Article Header */}
         <div className="mx-auto max-w-4xl py-8">
-          <Link 
-            href="/blog" 
+          <Link
+            href="/blog"
             className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -165,8 +158,8 @@ export default function BlogPostClient() {
         {/* Article Content */}
         <div className="mx-auto max-w-4xl">
           <article className="prose prose-lg prose-neutral max-w-none">
-            <div 
-              dangerouslySetInnerHTML={{ 
+            <div
+              dangerouslySetInnerHTML={{
                 __html: (post.content || '')
                   .replace(/## (.*)/g, '<h2 class="text-2xl font-serif font-bold text-neutral-900 mt-8 mb-4">$1</h2>')
                   .replace(/### (.*)/g, '<h3 class="text-xl font-semibold text-neutral-900 mt-6 mb-3">$1</h3>')
@@ -176,7 +169,7 @@ export default function BlogPostClient() {
                   .replace(/(\d+)\. \*\*(.*?)\*\* - (.*)/g, '<li class="mb-2"><strong>$2</strong> - $3</li>')
                   .replace(/\n\n/g, '</p><p class="text-neutral-600 leading-relaxed mb-4">')
                   .replace(/^(.+)$/gm, '<p class="text-neutral-600 leading-relaxed mb-4">$1</p>')
-              }} 
+              }}
             />
           </article>
 
@@ -261,9 +254,7 @@ export default function BlogPostClient() {
             </div>
           </div>
         )}
-      </main>
-      
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react';
 import { useBlogPosts } from '@/hooks/api/useBlog';
 import Link from 'next/link';
 import Image from 'next/image';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, ArrowRight, Loader2 } from 'lucide-react';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 export default function BlogPageClient() {
@@ -30,7 +29,7 @@ export default function BlogPageClient() {
   const displayedPosts = filteredPosts.slice(0, displayLimit);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       {/* Structured Data */}
       <CollectionPageJsonLd
         name="Noble Mosaic Blog"
@@ -44,9 +43,7 @@ export default function BlogPageClient() {
         ]}
       />
 
-      <Header />
-
-      <main className="flex-grow bg-stone-50">
+      <div className="grow bg-stone-50">
         <div className="layout-inner py-8">
           {/* SEO heading */}
           <h1 className="sr-only">Noble Mosaic Blog - Coloring Tips & Inspiration</h1>
@@ -69,8 +66,8 @@ export default function BlogPageClient() {
                       key={category}
                       onClick={() => setSelectedCategory(category)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${category === selectedCategory
-                          ? 'bg-neutral-900 text-white'
-                          : 'bg-white text-neutral-600 hover:bg-neutral-100'
+                        ? 'bg-neutral-900 text-white'
+                        : 'bg-white text-neutral-600 hover:bg-neutral-100'
                         }`}
                     >
                       {category}
@@ -85,7 +82,7 @@ export default function BlogPageClient() {
                   <Link href={`/blog/${displayedPosts[0].slug}`} className="group block">
                     <div className="grid md:grid-cols-2 gap-6 bg-white rounded-xl overflow-hidden shadow-sm">
                       {displayedPosts[0].thumbnail && (
-                        <div className="relative aspect-[16/10] md:aspect-auto">
+                        <div className="relative aspect-16/10 md:aspect-auto">
                           <Image
                             src={displayedPosts[0].thumbnail}
                             alt={displayedPosts[0].title}
@@ -132,7 +129,7 @@ export default function BlogPageClient() {
                       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                     >
                       {post.thumbnail && (
-                        <div className="relative aspect-[16/10]">
+                        <div className="relative aspect-16/10">
                           <Image
                             src={post.thumbnail}
                             alt={post.title}
@@ -188,9 +185,7 @@ export default function BlogPageClient() {
             </>
           )}
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }
