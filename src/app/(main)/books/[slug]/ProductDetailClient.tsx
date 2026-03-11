@@ -21,8 +21,14 @@ import {
   ChevronUp,
   Book,
   Ruler,
-  Heart
+  Heart,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -58,6 +64,54 @@ export default function ProductDetailClient() {
   const product = data?.product || null;
   const relatedProducts = data?.relatedProducts || [];
 
+  const AMAZON_MARKETPLACES = [
+    { code: 'US', domain: 'amazon.com', name: 'United States', flag: '🇺🇸' },
+    { code: 'UK', domain: 'amazon.co.uk', name: 'United Kingdom', flag: '🇬🇧' },
+    { code: 'CA', domain: 'amazon.ca', name: 'Canada', flag: '🇨🇦' },
+    { code: 'AU', domain: 'amazon.com.au', name: 'Australia', flag: '🇦🇺' },
+    { code: 'DE', domain: 'amazon.de', name: 'Germany', flag: '🇩🇪' },
+    { code: 'FR', domain: 'amazon.fr', name: 'France', flag: '🇫🇷' },
+    { code: 'ES', domain: 'amazon.es', name: 'Spain', flag: '🇪🇸' },
+    { code: 'IT', domain: 'amazon.it', name: 'Italy', flag: '🇮🇹' },
+    { code: 'NL', domain: 'amazon.nl', name: 'Netherlands', flag: '🇳🇱' },
+    { code: 'PL', domain: 'amazon.pl', name: 'Poland', flag: '🇵🇱' },
+    { code: 'SE', domain: 'amazon.se', name: 'Sweden', flag: '🇸🇪' },
+    { code: 'BE', domain: 'amazon.com.be', name: 'Belgium', flag: '🇧🇪' },
+    { code: 'IE', domain: 'amazon.co.uk', name: 'Ireland', flag: '🇮🇪' },
+    { code: 'JP', domain: 'amazon.co.jp', name: 'Japan', flag: '🇯🇵' },
+  ];
+
+  const getProductUrl = (regionCode: string) => {
+    let asin = selectedEdition !== null && product?.editions?.[selectedEdition]?.asin
+      ? product.editions[selectedEdition].asin
+      : product?.asin;
+
+    const fallbackLink = selectedEdition !== null && product?.editions?.[selectedEdition]?.link
+      ? product.editions[selectedEdition].link
+      : product?.amazonLink;
+
+    if (!asin && fallbackLink) {
+      const match = fallbackLink.match(/\/(?:dp|product)\/([A-Z0-9]{10})/i);
+      if (match) asin = match[1];
+    }
+
+    if (asin) {
+      const marketplace = AMAZON_MARKETPLACES.find(m => m.code === regionCode);
+      if (marketplace) {
+        return `https://www.${marketplace.domain}/dp/${asin}`;
+      }
+    }
+
+    return fallbackLink || '#';
+  };
+
+  const handleRegionChange = (region: string) => {
+    const urlToOpen = getProductUrl(region);
+    if (urlToOpen && urlToOpen !== '#') {
+      window.open(urlToOpen, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
       const scrollAmount = 300;
@@ -76,21 +130,19 @@ export default function ProductDetailClient() {
     { icon: Maximize, label: 'Bold Lines', sublabel: 'Easy to see' },
   ];
 
-  // Determine cover image based on edition
-  const currentCoverImage = selectedEdition !== null && product?.editions?.[selectedEdition]?.coverImage
-    ? product.editions[selectedEdition].coverImage
-    : product?.coverImage;
+  // Determine cover image
+  const currentCoverImage = product?.coverImage;
 
   // All images (cover + gallery)
   const allImages = product
     ? [currentCoverImage, ...(product.galleryImages || [])].filter(Boolean) as string[]
     : [];
 
-  // Reset to first image if edition changes
-  useEffect(() => {
-    // eslint-disable-next-line
-    setSelectedImage(0);
-  }, [selectedEdition]);
+  const specificDescription = selectedEdition !== null && product?.editions?.[selectedEdition]?.description
+    ? product.editions[selectedEdition].description
+    : product?.description;
+
+  const fullDescription = `${specificDescription || ''}\n\n${product?.generalDescription || ''}`.trim();
 
   // Check if description needs Read More button
   useEffect(() => {
@@ -99,16 +151,17 @@ export default function ProductDetailClient() {
       if (descriptionRef.current) {
         if (descriptionRef.current.scrollHeight > 450) {
           setShowReadMore(true);
+        } else {
+          setShowReadMore(false);
+          setIsDescriptionExpanded(false);
         }
       }
     }, 100);
     return () => clearTimeout(timer);
-  }, [product?.description]);
+  }, [fullDescription, selectedEdition]);
 
   // Extract A+ Content
-  const rawAPlusContent = selectedEdition !== null && product?.editions?.[selectedEdition]?.aPlusContent?.length
-    ? product.editions[selectedEdition].aPlusContent
-    : product?.aPlusContent;
+  const rawAPlusContent = product?.aPlusContent;
 
   const currentAPlusContent: string[] = [];
   if (rawAPlusContent && Array.isArray(rawAPlusContent)) {
@@ -137,25 +190,21 @@ export default function ProductDetailClient() {
 
   if (isLoading) {
     return (
-      <>
-        <div className="grow flex items-center justify-center py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-neutral-400" />
-        </div>
-      </>
+      <div className="grow flex items-center justify-center py-20">
+        <Loader2 className="h-10 w-10 animate-spin text-neutral-400" />
+      </div>
     );
   }
 
   if (notFound || !product) {
     return (
-      <>
-        <div className="grow flex flex-col items-center justify-center py-20">
-          <h1 className="text-2xl font-serif font-bold text-neutral-900 mb-4">Product Not Found</h1>
-          <p className="text-neutral-500 mb-6">The product you&apos;re looking for doesn&apos;t exist.</p>
-          <Button asChild variant="outline">
-            <Link href="/books">Back to Books</Link>
-          </Button>
-        </div>
-      </>
+      <div className="grow flex flex-col items-center justify-center py-20">
+        <h1 className="text-2xl font-serif font-bold text-neutral-900 mb-4">Product Not Found</h1>
+        <p className="text-neutral-500 mb-6">The product you&apos;re looking for doesn&apos;t exist.</p>
+        <Button asChild variant="outline">
+          <Link href="/books">Back to Books</Link>
+        </Button>
+      </div>
     );
   }
 
@@ -166,7 +215,7 @@ export default function ProductDetailClient() {
       {/* Structured Data */}
       <ProductJsonLd
         name={product.title}
-        description={product.description || ''}
+        description={fullDescription || ''}
         image={product.coverImage}
         url={`https://noblemosaic.com/books/${product.slug}`}
         price={product.price == null ? undefined : String(product.price)}
@@ -236,7 +285,7 @@ export default function ProductDetailClient() {
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`relative w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImage === index
+                        className={`relative w-16 h-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImage === index
                           ? 'border-black shadow-md'
                           : 'border-neutral-200 hover:border-neutral-400'
                           }`}
@@ -259,7 +308,7 @@ export default function ProductDetailClient() {
                 {/* Title */}
                 {product.isComingSoon && (
                   <div className="mb-3">
-                    <span className="inline-flex items-center bg-[var(--mosaic-gold)] text-white text-xs font-bold uppercase tracking-widest py-1.5 px-3 rounded-full shadow-sm">
+                    <span className="inline-flex items-center bg-(--mosaic-gold) text-white text-xs font-bold uppercase tracking-widest py-1.5 px-3 rounded-full shadow-sm">
                       Coming Soon
                     </span>
                   </div>
@@ -310,7 +359,7 @@ export default function ProductDetailClient() {
                         remarkPlugins={[remarkGfm, remarkBreaks]}
                         rehypePlugins={[rehypeRaw]}
                       >
-                        {product.description}
+                        {fullDescription}
                       </ReactMarkdown>
                     </div>
                   </motion.div>
@@ -319,7 +368,7 @@ export default function ProductDetailClient() {
                     <div className="mt-4 flex justify-start">
                       <button
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                        className="text-sm font-semibold text-[var(--mosaic-teal)] hover:text-neutral-900 transition-colors flex items-center gap-1 cursor-pointer"
+                        className="text-sm font-semibold text-(--mosaic-teal) hover:text-neutral-900 transition-colors flex items-center gap-1 cursor-pointer"
                       >
                         {isDescriptionExpanded ? (
                           <>Show less <ChevronUp className="h-4 w-4" /></>
@@ -343,39 +392,36 @@ export default function ProductDetailClient() {
               <div className="lg:pl-6 flex flex-col pt-4 lg:pt-0 sticky top-24">
                 <div className="p-6 rounded-2xl border border-neutral-200 bg-white shadow-sm flex flex-col">
                   {/* Product Editions */}
-                  {product.editions && product.editions.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
-                        Choose Edition
-                      </h3>
-                      <div className="flex flex-wrap gap-3">
-                        {/* Original / Standard Edition */}
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
+                      Choose Edition
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {/* Original / Standard Edition */}
+                      <button
+                        onClick={() => setSelectedEdition(null)}
+                        className={`relative px-5 py-3 rounded-xl border-2 text-sm font-bold transition-all overflow-hidden ${selectedEdition === null
+                          ? 'border-black bg-black text-white shadow-md transform scale-[1.02]'
+                          : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
+                          }`}
+                      >
+                        Standard Edition
+                      </button>
+
+                      {/* Premium Edition */}
+                      {product.editions?.[0] && (
                         <button
-                          onClick={() => setSelectedEdition(null)}
-                          className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === null
-                            ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
-                            : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                          onClick={() => setSelectedEdition(0)}
+                          className={`relative px-5 py-3 rounded-xl border-2 text-sm font-bold transition-all overflow-hidden ${selectedEdition === 0
+                            ? 'border-black bg-black text-white shadow-md transform scale-[1.02]'
+                            : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
                             }`}
                         >
-                          Standard Edition
+                          {product.editions[0].name}
                         </button>
-
-                        {/* Other Editions */}
-                        {product.editions.map((edition: any, index: number) => (
-                          <button
-                            key={index}
-                            onClick={() => setSelectedEdition(index)}
-                            className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selectedEdition === index
-                              ? 'border-[var(--mosaic-purple)] bg-[var(--mosaic-purple)]/5 text-[var(--mosaic-purple)] shadow-sm'
-                              : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
-                              }`}
-                          >
-                            {edition.name}
-                          </button>
-                        ))}
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   {/* Price */}
                   <div>
@@ -396,21 +442,36 @@ export default function ProductDetailClient() {
                     {product.isComingSoon ? (
                       null
                     ) : (
-                      <Button
-                        asChild
-                        size="lg"
-                        className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold rounded-full h-12 shadow-md btn-mosaic"
-                      >
-                        <a
-                          href={selectedEdition !== null && product.editions ? product.editions[selectedEdition].link : product.amazonLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-2"
-                        >
-                          Buy on Amazon
-                          <ExternalLink className="h-4 w-4 text-neutral-600" />
-                        </a>
-                      </Button>
+                      <div className="space-y-2">
+                        <DropdownMenu modal={false}>
+                          <DropdownMenuTrigger asChild>
+                            <Button className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold rounded-xl h-12 shadow-sm border-0 focus:ring-amber-500 focus:border-amber-500 transition-colors flex items-center justify-center gap-2 relative">
+                              <span className="flex-1 flex items-center justify-center gap-2">
+                                Buy on Amazon <ExternalLink className="h-4 w-4 text-neutral-800" />
+                              </span>
+                              <ChevronDown className="h-4 w-4 absolute right-4 text-neutral-800" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center" className="max-h-75 w-64 md:w-[--radix-dropdown-menu-trigger-width]">
+                            {AMAZON_MARKETPLACES.map((market) => (
+                              <DropdownMenuItem
+                                key={market.code}
+                                onClick={() => handleRegionChange(market.code)}
+                                className="cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between gap-2 w-full pr-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-base leading-none">{market.flag}</span>
+                                    <span className="font-medium">{market.name}</span>
+                                  </div>
+                                  <span className="text-neutral-400 text-xs">({market.domain})</span>
+                                </div>
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <p className="text-center text-[10px] text-neutral-400 mt-1">Select your Amazon marketplace</p>
+                      </div>
                     )}
                     <Button
                       onClick={() => {

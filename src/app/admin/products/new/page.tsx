@@ -19,7 +19,6 @@ import {
   ArrowLeft, Plus, X, Loader2, Upload, Image as ImageIcon,
   Star, Check, ExternalLink, Info, Trash2
 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from "@/hooks/use-toast";
 import dynamic from 'next/dynamic';
 
@@ -29,7 +28,6 @@ export default function NewProductPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('basic');
 
   const createProductMutation = useCreateProduct();
   const uploadMediaMutation = useUploadMedia();
@@ -42,8 +40,10 @@ export default function NewProductPage() {
 
   const [formData, setFormData] = useState({
     title: '',
+    generalDescription: '',
     description: '',
     amazonLink: '',
+    asin: '',
     price: '',
     rating: '',
     reviewCount: '0',
@@ -57,7 +57,15 @@ export default function NewProductPage() {
   const [aplusImages, setAplusImages] = useState<string[]>([]);
 
   // Editions state
-  const [editions, setEditions] = useState<{ name: string; link: string; price: string; coverImage?: string; aPlusContent?: string[] }[]>([]);
+  const [editions, setEditions] = useState<{ name: string; link: string; asin: string; price: string; description?: string; coverImage?: string; aPlusContent?: string[] }[]>([{
+    name: 'Premium',
+    link: '',
+    asin: '',
+    price: '',
+    description: '',
+    coverImage: '',
+    aPlusContent: []
+  }]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery' | 'aplus') => {
     const files = Array.from(e.target.files || []);
@@ -93,57 +101,22 @@ export default function NewProductPage() {
     }
   };
 
-  const handleEditionImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number, type: 'cover' | 'aplus') => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
 
-    try {
-      const uploadPromises = files.map(file =>
-        uploadMediaMutation.mutateAsync({ file, folder: 'noble-mosaic/products/editions' })
-      );
 
-      const results = await Promise.all(uploadPromises);
-      const urls = results.map((data: any) => data.url);
 
-      setEditions(prev => {
-        const next = [...prev];
-        if (type === 'cover') {
-          next[index] = { ...next[index], coverImage: urls[0] };
-        } else if (type === 'aplus') {
-          const existing = next[index].aPlusContent || [];
-          next[index] = { ...next[index], aPlusContent: [...existing, ...urls] };
-        }
-        return next;
-      });
 
-      toast({
-        title: "Upload Successful",
-        description: `${urls.length} image(s) uploaded for edition.`,
-      });
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Upload Failed",
-        description: error.message || "An unexpected error occurred during edition image upload.",
-        variant: "destructive"
-      });
+
+  const formatPrice = (value: string) => {
+    let cleanValue = value.replace(/[^0-9.]/g, '');
+    if (cleanValue) {
+      return value.startsWith('$') ? value : `$${cleanValue}`;
     }
+    return '';
   };
 
-
-
-
-  const addEdition = () => {
-    setEditions([...editions, { name: '', link: '', price: '', coverImage: '', aPlusContent: [] }]);
-  };
-
-  const removeEdition = (index: number) => {
-    setEditions(editions.filter((_, i) => i !== index));
-  };
-
-  const updateEdition = (index: number, field: string, value: string) => {
+  const updateEdition = (field: string, value: string) => {
     const updated = [...editions];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[0] = { ...updated[0], [field]: value };
     setEditions(updated);
   };
 
@@ -200,17 +173,9 @@ export default function NewProductPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white border border-neutral-200">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="images">Images</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="aplus">A+ Content</TabsTrigger>
-                <TabsTrigger value="editions">Editions</TabsTrigger>
-              </TabsList>
-
-              {/* Basic Info Tab */}
-              <TabsContent value="basic" className="mt-4 space-y-4">
+            <div className="space-y-8">
+              {/* Basic Info Section */}
+              <div className="space-y-4">
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-6 space-y-4">
                     <div className="space-y-2">
@@ -226,21 +191,39 @@ export default function NewProductPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Description</Label>
+                      <Label>General Description (Mô tả chung) *</Label>
+                      <MarkdownEditor
+                        value={formData.generalDescription}
+                        onChange={(val) => setFormData({ ...formData, generalDescription: val || '' })}
+                        height={200}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Standard Description (Mô tả standard) *</Label>
                       <MarkdownEditor
                         value={formData.description}
                         onChange={(val) => setFormData({ ...formData, description: val || '' })}
-                        height={300}
+                        height={250}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Premium Description (Mô tả Premium) *</Label>
+                      <MarkdownEditor
+                        value={editions[0]?.description || ''}
+                        onChange={(val) => updateEdition('description', val || '')}
+                        height={250}
                       />
                     </div>
 
 
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </div>
 
-              {/* Images Tab */}
-              <TabsContent value="images" className="mt-4 space-y-4">
+              {/* Images Section */}
+              <div className="space-y-4">
                 <Card className="border-0 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-base">Cover Image</CardTitle>
@@ -316,47 +299,62 @@ export default function NewProductPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </div>
 
-              {/* Details Tab */}
-              <TabsContent value="details" className="mt-4 space-y-4">
+              {/* Details Section */}
+              <div className="space-y-4">
                 <Card className="border-0 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-base">Amazon & Pricing</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="amazonLink">Amazon Product Link *</Label>
-                      <div className="flex gap-2">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="asin">Standard Amazon ASIN *</Label>
                         <Input
-                          id="amazonLink"
-                          value={formData.amazonLink}
-                          onChange={(e) => setFormData({ ...formData, amazonLink: e.target.value })}
-                          placeholder="https://amazon.com/dp/..."
+                          id="asin"
+                          value={formData.asin}
+                          onChange={(e) => setFormData({ ...formData, asin: e.target.value.trim() })}
+                          placeholder="e.g., B0GS1TS5HF"
                           required
                           className="flex-1"
                         />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => window.open(formData.amazonLink, '_blank')}
-                          disabled={!formData.amazonLink}
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="premiumAsin">Premium Amazon ASIN *</Label>
+                        <Input
+                          id="premiumAsin"
+                          value={editions[0]?.asin || ''}
+                          onChange={(e) => updateEdition('asin', e.target.value.trim())}
+                          placeholder="e.g., B0GS1TS5HF"
+                          required
+                          className="flex-1"
+                        />
                       </div>
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="price">Price (optional)</Label>
+                        <Label htmlFor="price">Standard Price (optional)</Label>
                         <Input
                           id="price"
                           value={formData.price}
-                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, price: formatPrice(e.target.value) })}
                           placeholder="$12.99"
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="premiumPrice">Premium Price (optional)</Label>
+                        <Input
+                          id="premiumPrice"
+                          value={editions[0]?.price || ''}
+                          onChange={(e) => updateEdition('price', formatPrice(e.target.value))}
+                          placeholder="$19.99"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="rating">Initial Rating</Label>
                         <div className="flex items-center gap-2">
@@ -401,10 +399,10 @@ export default function NewProductPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </div>
 
-              {/* A+ Content Tab */}
-              <TabsContent value="aplus" className="mt-4 space-y-4">
+              {/* A+ Content Section */}
+              <div className="space-y-4">
                 <Card className="border-0 shadow-sm bg-neutral-50">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-3">
@@ -478,142 +476,10 @@ export default function NewProductPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </div>
 
-              {/* Editions Tab */}
-              <TabsContent value="editions" className="mt-4 space-y-4">
-                <Card className="border-0 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Product Editions</CardTitle>
-                    <CardDescription>Add different editions of this book (e.g., Standard, Premium)</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {editions.map((edition, index) => (
-                      <div key={index} className="p-4 border border-neutral-200 rounded-xl space-y-3 relative bg-neutral-50/50">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeEdition(index)}
-                          className="absolute top-2 right-2 text-red-500 hover:text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Edition Name *</Label>
-                            <Input
-                              value={edition.name}
-                              onChange={(e) => updateEdition(index, 'name', e.target.value)}
-                              placeholder="e.g., Premium Edition"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Price (optional)</Label>
-                            <Input
-                              value={edition.price}
-                              onChange={(e) => updateEdition(index, 'price', e.target.value)}
-                              placeholder="e.g., $19.99"
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Amazon Link *</Label>
-                          <Input
-                            value={edition.link}
-                            onChange={(e) => updateEdition(index, 'link', e.target.value)}
-                            placeholder="https://amazon.com/dp/..."
-                            required
-                          />
-                        </div>
-                        <div className="pt-4 border-t border-neutral-200 grid sm:grid-cols-2 gap-6">
-                          {/* Cover Image Upload */}
-                          <div className="space-y-3">
-                            <Label className="text-sm font-semibold text-neutral-700">Edition Cover Image</Label>
-                            <div className="flex items-start gap-3">
-                              {edition.coverImage ? (
-                                <div className="relative w-20 h-28 rounded-md overflow-hidden bg-white border border-neutral-200 group flex-shrink-0">
-                                  <Image src={edition.coverImage} alt="Cover" fill className="object-cover" />
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const next = [...editions];
-                                      next[index].coverImage = '';
-                                      setEditions(next);
-                                    }}
-                                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                  >
-                                    <Trash2 className="h-4 w-4 text-white" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <label className="w-20 h-28 rounded-md border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-white transition-colors flex-shrink-0">
-                                  <Upload className="h-4 w-4 text-neutral-400 mb-1" />
-                                  <span className="text-[10px] text-neutral-500">Upload</span>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => handleEditionImageUpload(e, index, 'cover')}
-                                  />
-                                </label>
-                              )}
-                              <p className="text-xs text-neutral-500">Override general cover image when this edition is selected.</p>
-                            </div>
-                          </div>
 
-                          {/* A+ Content Upload */}
-                          <div className="space-y-3">
-                            <Label className="text-sm font-semibold text-neutral-700">Edition A+ Images</Label>
-                            <div className="flex flex-wrap gap-2">
-                              {(edition.aPlusContent || []).map((img, i) => (
-                                <div key={i} className="relative w-16 h-10 rounded overflow-hidden bg-white border border-neutral-200 group">
-                                  <Image src={img} alt={`A+ ${i}`} fill className="object-cover" />
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const next = [...editions];
-                                      const arr = [...(next[index].aPlusContent || [])];
-                                      arr.splice(i, 1);
-                                      next[index].aPlusContent = arr;
-                                      setEditions(next);
-                                    }}
-                                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                  >
-                                    <Trash2 className="h-3 w-3 text-white" />
-                                  </button>
-                                </div>
-                              ))}
-                              <label className="w-16 h-10 rounded border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-white transition-colors">
-                                <Plus className="h-4 w-4 text-neutral-400" />
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  multiple
-                                  className="hidden"
-                                  onChange={(e) => handleEditionImageUpload(e, index, 'aplus')}
-                                />
-                              </label>
-                            </div>
-                            <p className="text-[11px] text-neutral-500 leading-tight">Override A+ contents (970x600px). If empty, falls back to general A+ contents.</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addEdition}
-                      className="w-full border-dashed"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Another Edition
-                    </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -644,7 +510,7 @@ export default function NewProductPage() {
                 <div className="pt-4 border-t border-neutral-100 space-y-2">
                   <Button
                     type="submit"
-                    disabled={isLoading || !formData.title || !formData.amazonLink || !coverImage}
+                    disabled={isLoading || !formData.title || !formData.asin || !coverImage}
                     className="w-full bg-neutral-900 hover:bg-neutral-800 text-white"
                   >
                     {isLoading ? (
@@ -664,15 +530,15 @@ export default function NewProductPage() {
                   </Button>
                 </div>
 
-                {(!formData.title || !formData.amazonLink || !coverImage) && (
+                {(!formData.title || !formData.asin || !coverImage) && (
                   <div className="text-xs text-neutral-500 space-y-1">
                     <p className="font-medium">Required fields:</p>
                     <ul className="space-y-0.5">
                       <li className={formData.title ? 'text-green-600' : 'text-red-500'}>
                         {formData.title ? '✓' : '○'} Title
                       </li>
-                      <li className={formData.amazonLink ? 'text-green-600' : 'text-red-500'}>
-                        {formData.amazonLink ? '✓' : '○'} Amazon Link
+                      <li className={formData.asin ? 'text-green-600' : 'text-red-500'}>
+                        {formData.asin ? '✓' : '○'} ASIN
                       </li>
                       <li className={coverImage ? 'text-green-600' : 'text-red-500'}>
                         {coverImage ? '✓' : '○'} Cover Image

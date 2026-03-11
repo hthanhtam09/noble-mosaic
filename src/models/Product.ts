@@ -5,10 +5,12 @@ export interface IProduct {
   title: string;
   slug: string;
   description: string;
+  generalDescription?: string;
   shortDescription?: string;
   coverImage: string;
   galleryImages: string[];
   amazonLink: string;
+  asin?: string;
   dimensions?: string;
   printLength?: string;
   aPlusContent: (
@@ -30,7 +32,9 @@ export interface IProduct {
   showRating: boolean;
   editions?: {
     name: string;
+    description?: string;
     link: string;
+    asin?: string;
     price?: string;
     coverImage?: string;
     aPlusContent?: any[];
@@ -44,10 +48,12 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     title: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
+    generalDescription: { type: String },
     shortDescription: { type: String },
     coverImage: { type: String, required: true },
     galleryImages: [{ type: String }],
     amazonLink: { type: String, required: true },
+    asin: { type: String },
     dimensions: { type: String },
     printLength: { type: String },
     aPlusContent: [
@@ -64,7 +70,9 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     editions: [
       {
         name: { type: String, required: true },
+        description: { type: String },
         link: { type: String, required: true },
+        asin: { type: String },
         price: { type: String },
         coverImage: { type: String },
         aPlusContent: [{ type: mongoose.Schema.Types.Mixed }],

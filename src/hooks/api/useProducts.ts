@@ -8,6 +8,7 @@ export interface Product {
   slug: string;
   amazonUrl?: string;
   amazonLink?: string;
+  asin?: string;
   thumbnail?: string;
   coverImage: string;
   galleryImages?: string[];
@@ -15,6 +16,7 @@ export interface Product {
   printLength?: string;
   price?: number | string;
   showRating?: boolean;
+  generalDescription?: string;
   description?: string;
   shortDescription?: string;
   isComingSoon?: boolean;
@@ -34,7 +36,9 @@ export interface Product {
   editions?: {
     name: string;
     link: string;
+    asin?: string;
     price?: string;
+    description?: string;
     coverImage?: string;
     aPlusContent?: string[];
   }[];
