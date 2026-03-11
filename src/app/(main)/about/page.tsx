@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { patterns } from '@/utils/patternsData';
@@ -83,10 +84,14 @@ export default function AboutPage() {
         {/* 1. Hero Section */}
         <section className="relative bg-linear-to-b from-stone-50 to-white pt-12 pb-16 lg:pb-24">
           <div className="layout-inner max-w-5xl mx-auto flex flex-col items-center text-center">
-
-            {/* Image Placeholder: Mosaic coloring or book mockup */}
-            {/* <div className="relative aspect-21/9 w-full bg-stone-200 rounded-2xl mb-12 flex items-center justify-center text-stone-400 border border-stone-200 shadow-sm overflow-hidden">
-            </div> */}
+            <div className="relative aspect-21/12 w-full bg-stone-200 rounded-2xl mb-12 flex items-center justify-center text-stone-400 border border-stone-200 shadow-sm overflow-hidden">
+              <Image
+                src="/banner.png"
+                alt="Noble Mosaic - A quiet space for creativity"
+                fill
+                className="object-cover"
+              />
+            </div>
             <h1 className="text-4xl md:text-5xl lg:text-showcase font-serif text-neutral-900 mb-6 max-w-3xl leading-tight">
               A quiet space for creativity
             </h1>
@@ -135,10 +140,14 @@ export default function AboutPage() {
                   </p>
                 </div>
               </div>
-              {/* Image Placeholder: Books or Mosaic Artwork */}
-              {/* <div className="relative aspect-3/4 md:aspect-4/5 w-full bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400 border border-stone-200">
-                <span className="font-medium tracking-wide">Image: Brand Story</span>
-              </div> */}
+              <div className="relative aspect-3/4 md:aspect-4/5 w-full flex items-center justify-center">
+                <Image
+                  src="/banner-1.png"
+                  alt="Noble Mosaic - A quiet space for creativity"
+                  fill
+                  className="object-cover"
+                />
+              </div>
             </div>
           </div>
         </section>
