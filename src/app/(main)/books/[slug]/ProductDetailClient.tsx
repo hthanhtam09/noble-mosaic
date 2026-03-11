@@ -39,6 +39,23 @@ import {
   BreadcrumbJsonLd,
 } from '@/components/seo/JsonLd';
 
+const AMAZON_MARKETPLACES = [
+  { code: 'US', domain: 'amazon.com', name: 'United States', countryCode: 'us' },
+  { code: 'UK', domain: 'amazon.co.uk', name: 'United Kingdom', countryCode: 'gb' },
+  { code: 'CA', domain: 'amazon.ca', name: 'Canada', countryCode: 'ca' },
+  { code: 'AU', domain: 'amazon.com.au', name: 'Australia', countryCode: 'au' },
+  { code: 'DE', domain: 'amazon.de', name: 'Germany', countryCode: 'de' },
+  { code: 'FR', domain: 'amazon.fr', name: 'France', countryCode: 'fr' },
+  { code: 'ES', domain: 'amazon.es', name: 'Spain', countryCode: 'es' },
+  { code: 'IT', domain: 'amazon.it', name: 'Italy', countryCode: 'it' },
+  { code: 'NL', domain: 'amazon.nl', name: 'Netherlands', countryCode: 'nl' },
+  { code: 'PL', domain: 'amazon.pl', name: 'Poland', countryCode: 'pl' },
+  { code: 'SE', domain: 'amazon.se', name: 'Sweden', countryCode: 'se' },
+  { code: 'BE', domain: 'amazon.com.be', name: 'Belgium', countryCode: 'be' },
+  { code: 'IE', domain: 'amazon.co.uk', name: 'Ireland', countryCode: 'ie' },
+  { code: 'JP', domain: 'amazon.co.jp', name: 'Japan', countryCode: 'jp' },
+];
+
 export default function ProductDetailClient() {
   const params = useParams();
   const slug = params.slug as string;
@@ -50,12 +67,19 @@ export default function ProductDetailClient() {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [selectedRegionCode, setSelectedRegionCode] = useState<string>('US');
 
   const { addItem, removeItem, isInWishlist } = useWishlist();
 
   useEffect(() => {
     // eslint-disable-next-line
     setMounted(true);
+    try {
+      const savedRegion = localStorage.getItem('mosaic_amazon_region');
+      if (savedRegion && AMAZON_MARKETPLACES.some(m => m.code === savedRegion)) {
+        setSelectedRegionCode(savedRegion);
+      }
+    } catch(e) {}
   }, []);
 
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -63,23 +87,6 @@ export default function ProductDetailClient() {
 
   const product = data?.product || null;
   const relatedProducts = data?.relatedProducts || [];
-
-  const AMAZON_MARKETPLACES = [
-    { code: 'US', domain: 'amazon.com', name: 'United States', flag: '🇺🇸' },
-    { code: 'UK', domain: 'amazon.co.uk', name: 'United Kingdom', flag: '🇬🇧' },
-    { code: 'CA', domain: 'amazon.ca', name: 'Canada', flag: '🇨🇦' },
-    { code: 'AU', domain: 'amazon.com.au', name: 'Australia', flag: '🇦🇺' },
-    { code: 'DE', domain: 'amazon.de', name: 'Germany', flag: '🇩🇪' },
-    { code: 'FR', domain: 'amazon.fr', name: 'France', flag: '🇫🇷' },
-    { code: 'ES', domain: 'amazon.es', name: 'Spain', flag: '🇪🇸' },
-    { code: 'IT', domain: 'amazon.it', name: 'Italy', flag: '🇮🇹' },
-    { code: 'NL', domain: 'amazon.nl', name: 'Netherlands', flag: '🇳🇱' },
-    { code: 'PL', domain: 'amazon.pl', name: 'Poland', flag: '🇵🇱' },
-    { code: 'SE', domain: 'amazon.se', name: 'Sweden', flag: '🇸🇪' },
-    { code: 'BE', domain: 'amazon.com.be', name: 'Belgium', flag: '🇧🇪' },
-    { code: 'IE', domain: 'amazon.co.uk', name: 'Ireland', flag: '🇮🇪' },
-    { code: 'JP', domain: 'amazon.co.jp', name: 'Japan', flag: '🇯🇵' },
-  ];
 
   const getProductUrl = (regionCode: string) => {
     let asin = selectedEdition !== null && product?.editions?.[selectedEdition]?.asin
@@ -106,6 +113,11 @@ export default function ProductDetailClient() {
   };
 
   const handleRegionChange = (region: string) => {
+    try {
+      localStorage.setItem('mosaic_amazon_region', region);
+    } catch(e) {}
+    setSelectedRegionCode(region);
+
     const urlToOpen = getProductUrl(region);
     if (urlToOpen && urlToOpen !== '#') {
       window.open(urlToOpen, '_blank', 'noopener,noreferrer');
@@ -443,33 +455,57 @@ export default function ProductDetailClient() {
                       null
                     ) : (
                       <div className="space-y-2">
-                        <DropdownMenu modal={false}>
-                          <DropdownMenuTrigger asChild>
-                            <Button className="w-full bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold rounded-xl h-12 shadow-sm border-0 focus:ring-amber-500 focus:border-amber-500 transition-colors flex items-center justify-center gap-2 relative">
-                              <span className="flex-1 flex items-center justify-center gap-2">
-                                Buy on Amazon <ExternalLink className="h-4 w-4 text-neutral-800" />
-                              </span>
-                              <ChevronDown className="h-4 w-4 absolute right-4 text-neutral-800" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center" className="max-h-75 w-64 md:w-[--radix-dropdown-menu-trigger-width]">
-                            {AMAZON_MARKETPLACES.map((market) => (
-                              <DropdownMenuItem
-                                key={market.code}
-                                onClick={() => handleRegionChange(market.code)}
-                                className="cursor-pointer"
-                              >
-                                <div className="flex items-center justify-between gap-2 w-full pr-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-base leading-none">{market.flag}</span>
-                                    <span className="font-medium">{market.name}</span>
+                        <div className="flex w-full rounded-xl shadow-sm h-12">
+                          <Button 
+                            className="flex-1 rounded-r-none bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold h-full border-0 focus:ring-amber-500 focus:border-amber-500 transition-colors flex items-center justify-center gap-2"
+                            onClick={() => handleRegionChange(selectedRegionCode)}
+                          >
+                            Buy on Amazon
+                            {mounted && (() => {
+                              const m = AMAZON_MARKETPLACES.find(m => m.code === selectedRegionCode) || AMAZON_MARKETPLACES[0];
+                              return (
+                                <img 
+                                  src={`https://flagcdn.com/w20/${m.countryCode}.png`}
+                                  srcSet={`https://flagcdn.com/w40/${m.countryCode}.png 2x`}
+                                  width="20" 
+                                  alt={m.name} 
+                                  className="rounded-[2px] object-cover shadow-[0_0_2px_rgba(0,0,0,0.3)]"
+                                />
+                              )
+                            })()}
+                            <ExternalLink className="h-4 w-4 text-neutral-800 ml-1" />
+                          </Button>
+                          <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger asChild>
+                              <Button className="rounded-l-none bg-amber-500 hover:bg-amber-600 border-l border-amber-600/30 text-neutral-900 h-full w-12 px-0 focus:ring-amber-500 focus:border-amber-500 transition-colors flex items-center justify-center">
+                                <ChevronDown className="h-5 w-5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="max-h-75 w-64">
+                              {AMAZON_MARKETPLACES.map((market) => (
+                                <DropdownMenuItem
+                                  key={market.code}
+                                  onClick={() => handleRegionChange(market.code)}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="flex items-center justify-between gap-2 w-full pr-2">
+                                    <div className="flex items-center gap-2">
+                                      <img 
+                                        src={`https://flagcdn.com/w20/${market.countryCode}.png`}
+                                        srcSet={`https://flagcdn.com/w40/${market.countryCode}.png 2x`}
+                                        width="20" 
+                                        alt={market.name} 
+                                        className="rounded-[2px] object-cover shadow-sm"
+                                      />
+                                      <span className={cn("font-medium", selectedRegionCode === market.code ? "text-amber-600 font-bold" : "")}>{market.name}</span>
+                                    </div>
+                                    <span className="text-neutral-400 text-xs">({market.domain})</span>
                                   </div>
-                                  <span className="text-neutral-400 text-xs">({market.domain})</span>
-                                </div>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                         <p className="text-center text-[10px] text-neutral-400 mt-1">Select your Amazon marketplace</p>
                       </div>
                     )}
