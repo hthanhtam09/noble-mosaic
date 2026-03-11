@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 
 import { Button } from '@/components/ui/button';
-import { Loader2, Lock, LockOpen, X, Heart } from 'lucide-react';
+import { Loader2, Lock, LockOpen, X, Heart, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWishlist } from '@/store/use-wishlist';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
@@ -92,10 +92,10 @@ export default function SecretPage() {
 
           {/* Filters Bar */}
           {!isLoading && books.length > 0 && (
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-end mb-8 p-4">
-              <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-end mb-8 pb-4 border-b border-neutral-100">
+              <div className="flex flex-wrap items-center justify-center gap-3 order-1 md:order-2 w-full md:w-auto">
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-50 rounded-xl border-neutral-200">
+                  <SelectTrigger className="w-50 rounded-xl border-neutral-200 bg-white">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -108,7 +108,7 @@ export default function SecretPage() {
 
                 {/* Items Per Page */}
                 <Select value={itemsPerPage} onValueChange={setItemsPerPage}>
-                  <SelectTrigger className="w-35 rounded-xl border-neutral-200">
+                  <SelectTrigger className="w-32 rounded-xl border-neutral-200 bg-white text-xs">
                     <SelectValue placeholder="Items Per Page" />
                   </SelectTrigger>
                   <SelectContent>
@@ -135,12 +135,6 @@ export default function SecretPage() {
               </div>
             </div>
           )}
-
-          {!isLoading && books.length > 0 && (
-            <p className="text-sm text-neutral-500 mb-6">
-              Showing <span className="font-medium text-neutral-900">{displayedBooks.length}</span> of <span className="font-medium text-neutral-900">{filteredBooks.length}</span> book{filteredBooks.length === 1 ? '' : 's'}
-            </p>
-          )}
         </div>
 
         {/* Books Grid */}
@@ -160,30 +154,43 @@ export default function SecretPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10 [content-visibility:auto]">
                   {displayedBooks.map((book, index) => (
-                    <Link href={`/secret/${book.slug}`} key={book._id} className="group block">
-                      <Card className="h-full border-0 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden bg-white/80 backdrop-blur-sm group-hover:-translate-y-1 relative">
-                        <div className="relative aspect-3/4 overflow-hidden bg-neutral-100">
+                    <div key={book._id} className="flex flex-col items-center group/card">
+                      <Link href={`/secret/${book.slug}`} className="group relative w-full transition-[transform] duration-500 hover:-translate-y-2 block transform-gpu">
+                        <div className="relative aspect-3/4 overflow-hidden rounded-2xl shadow-sm group-hover/card:shadow-xl group-hover/card:shadow-orange-500/10 transition-all duration-500">
                           {/* Overlay gradient */}
-                          <div className="absolute inset-0 bg-linear-to-t from-neutral-900/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-80 transition-opacity" />
+                          <div className="absolute inset-0 bg-linear-to-t from-neutral-900/60 via-neutral-900/20 to-transparent z-10 opacity-40 group-hover:opacity-60 transition-opacity" />
 
                           <Image
                             src={book.coverImage}
                             alt={book.title}
                             fill
                             priority={index < 4}
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-110 transform-gpu"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
                           />
 
-                          <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-end items-end">
-                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-(--mosaic-teal) transition-colors">
+                          <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-between items-center">
+                            <div className={cn(
+                              "text-xs px-2 py-1 rounded-md backdrop-blur-md text-white font-medium flex items-center gap-1.5 transition-colors",
+                              unlockedBooks[book.slug] ? "bg-green-500/80" : "bg-black/60"
+                            )}>
                               {unlockedBooks[book.slug] ? (
-                                <LockOpen className="h-4 w-4" />
+                                <>
+                                  <LockOpen className="h-3 w-3" />
+                                  <span>Unlocked</span>
+                                </>
                               ) : (
-                                <Lock className="h-4 w-4" />
+                                <>
+                                  <Lock className="h-3 w-3" />
+                                  <span>Locked</span>
+                                </>
                               )}
+                            </div>
+                            
+                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white scale-90 group-hover:scale-100 transition-transform">
+                               <ArrowLeft className="h-4 w-4 rotate-180" />
                             </div>
                           </div>
                           <button
@@ -202,23 +209,25 @@ export default function SecretPage() {
                               }
                             }}
                             className={cn(
-                              "absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all z-20",
+                              "absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all z-20",
                               mounted && isInWishlist(book._id)
-                                ? "bg-rose-50 text-rose-500 shadow-rose-200/50"
-                                : "bg-white/80 text-neutral-400 hover:text-rose-500 hover:bg-white shadow-black/5",
-                              "shadow-lg hover:scale-110 active:scale-95"
+                                ? "bg-orange-50 text-orange-500 shadow-orange-200/50"
+                                : "bg-white/80 text-neutral-400 hover:text-orange-500 hover:bg-white shadow-black/5",
+                              "shadow-md hover:scale-110 active:scale-95"
                             )}
                           >
-                            <Heart className={cn("h-5 w-5", mounted && isInWishlist(book._id) && "fill-current")} />
+                            <Heart className={cn("h-4 w-4", mounted && isInWishlist(book._id) && "fill-current")} />
                           </button>
                         </div>
-                        <CardContent className="p-5">
-                          <h3 className="text-lg font-bold text-neutral-900 group-hover:text-(--mosaic-teal) transition-colors line-clamp-2 mb-2">
+                      </Link>
+                      <div className="p-3 text-center w-full max-w-[200px] sm:max-w-[240px]">
+                        <Link href={`/secret/${book.slug}`} className="group">
+                          <h3 className="text-lg font-bold text-neutral-900 group-hover:text-(--mosaic-teal) transition-colors line-clamp-2 mb-1">
                             {book.title}
                           </h3>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                        </Link>
+                      </div>
+                    </div>
                   ))}
                 </div>
 

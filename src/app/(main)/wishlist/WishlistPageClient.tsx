@@ -36,7 +36,7 @@ export default function WishlistPageClient() {
             <Button
               variant="outline"
               onClick={clearWishlist}
-              className="rounded-xl text-neutral-500 hover:text-rose-600 hover:bg-rose-50 border-neutral-200"
+              className="rounded-xl text-neutral-500 hover:text-orange-600 hover:bg-orange-50 border-neutral-200"
             >
               <HeartCrack className="h-4 w-4 mr-2" />
               Clear Wishlist
@@ -48,8 +48,8 @@ export default function WishlistPageClient() {
 
         {items.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-rose-50 flex items-center justify-center">
-              <Heart className="h-12 w-12 text-rose-300" />
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-orange-50 flex items-center justify-center">
+              <Heart className="h-12 w-12 text-orange-300" />
             </div>
             <h2 className="text-2xl font-bold text-neutral-900 mb-2">Your wishlist is empty</h2>
             <p className="text-neutral-500 mb-8 max-w-md mx-auto">

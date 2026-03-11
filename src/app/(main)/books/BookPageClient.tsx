@@ -54,10 +54,10 @@ function BookContent() {
           <hr className="border-neutral-200 mb-8" />
 
           {/* Filters Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-end mb-6 p-4">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-end mb-8 pb-4 border-b border-neutral-100">
+            <div className="flex flex-wrap items-center justify-center gap-3 order-1 md:order-2 w-full md:w-auto">
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[200px] rounded-xl border-neutral-200">
+                <SelectTrigger className="w-50 rounded-xl border-neutral-200 bg-white">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -72,7 +72,7 @@ function BookContent() {
 
               {/* Items Per Page */}
               <Select value={itemsPerPage} onValueChange={setItemsPerPage}>
-                <SelectTrigger className="w-[140px] rounded-xl border-neutral-200">
+                <SelectTrigger className="w-[130px] rounded-xl border-neutral-200 bg-white text-xs">
                   <SelectValue placeholder="Items Per Page" />
                 </SelectTrigger>
                 <SelectContent>
@@ -99,11 +99,6 @@ function BookContent() {
             </div>
           </div>
 
-          {/* Results Count */}
-          <p className="text-sm text-neutral-500 mb-6">
-            Showing <span className="font-medium text-neutral-900">{displayedProducts.length}</span> of <span className="font-medium text-neutral-900">{filteredProducts.length}</span> book{filteredProducts.length !== 1 ? 's' : ''}
-          </p>
-
           {/* Products Grid */}
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
@@ -112,8 +107,8 @@ function BookContent() {
           ) : filteredProducts.length > 0 ? (
             <>
               <div className={`
-                grid gap-6
-                grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+                grid gap-x-6 gap-y-10
+                grid-cols-2 lg:grid-cols-3 xl:grid-cols-5
               `}>
                 {displayedProducts.map((product, index) => (
                   <ProductCard key={product._id} product={product} priority={index < 4} />

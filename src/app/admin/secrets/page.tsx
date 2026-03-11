@@ -10,22 +10,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
+import { Switch } from "@/components/ui/switch";import {
   Trash2,
   ArrowLeft,
   Upload,
   Loader2,
   Edit2,
-  ImageIcon,
   Plus,
   BookOpen,
   KeyRound,
   LockOpen,
+  EyeOff,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -50,6 +49,7 @@ interface SecretBook {
   secretPageNumber?: number;
   amazonUrlStandard?: string;
   amazonUrlPremium?: string;
+  isActive?: boolean;
 }
 
 interface SecretImage {
@@ -80,6 +80,7 @@ export default function AdminSecretsPage() {
   const [newBookSecretPageNumber, setNewBookSecretPageNumber] = useState("86");
   const [newBookAmazonUrlStandard, setNewBookAmazonUrlStandard] = useState("");
   const [newBookAmazonUrlPremium, setNewBookAmazonUrlPremium] = useState("");
+  const [newBookIsActive, setNewBookIsActive] = useState(true);
   const [isCreatingBook, setIsCreatingBook] = useState(false);
 
   // Upload Secrets state
@@ -115,6 +116,7 @@ export default function AdminSecretsPage() {
   const [editSecretPageNumber, setEditSecretPageNumber] = useState("86");
   const [editAmazonUrlStandard, setEditAmazonUrlStandard] = useState("");
   const [editAmazonUrlPremium, setEditAmazonUrlPremium] = useState("");
+  const [editIsActive, setEditIsActive] = useState(true);
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
   // Delete All state
@@ -232,6 +234,7 @@ export default function AdminSecretsPage() {
           : undefined,
         amazonUrlStandard: newBookAmazonUrlStandard || undefined,
         amazonUrlPremium: newBookAmazonUrlPremium || undefined,
+        isActive: newBookIsActive,
       });
 
       setShowCreateBook(false);
@@ -241,6 +244,7 @@ export default function AdminSecretsPage() {
       setNewBookSecretPageNumber("86");
       setNewBookAmazonUrlStandard("");
       setNewBookAmazonUrlPremium("");
+      setNewBookIsActive(true);
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.adminSecretBooks],
       });
@@ -325,6 +329,7 @@ export default function AdminSecretsPage() {
           : undefined,
         amazonUrlStandard: editAmazonUrlStandard || undefined,
         amazonUrlPremium: editAmazonUrlPremium || undefined,
+        isActive: editIsActive,
       });
 
       setShowBookSettingsModal(false);
@@ -338,6 +343,7 @@ export default function AdminSecretsPage() {
           : undefined,
         amazonUrlStandard: editAmazonUrlStandard || undefined,
         amazonUrlPremium: editAmazonUrlPremium || undefined,
+        isActive: editIsActive,
       };
       setSelectedBook(updatedBook);
       queryClient.invalidateQueries({
@@ -622,6 +628,7 @@ export default function AdminSecretsPage() {
                       setEditAmazonUrlPremium(
                         selectedBook.amazonUrlPremium || "",
                       );
+                      setEditIsActive(selectedBook.isActive ?? true);
                       setShowBookSettingsModal(true);
                     }}
                   >
@@ -1004,6 +1011,25 @@ export default function AdminSecretsPage() {
                   onChange={(e) => setEditAmazonUrlPremium(e.target.value)}
                 />
               </div>
+
+              <div className="pt-2">
+                <label className="block text-sm font-medium mb-2">
+                  Visibility
+                </label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-book-visibility"
+                    checked={editIsActive}
+                    onCheckedChange={setEditIsActive}
+                  />
+                  <label
+                    htmlFor="edit-book-visibility"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {editIsActive ? "Visible in List" : "Hidden from List"}
+                  </label>
+                </div>
+              </div>
             </div>
             <AlertDialogFooter className="border-t border-neutral-100 pt-4 mt-2">
               <AlertDialogCancel disabled={isUpdatingSettings}>
@@ -1274,6 +1300,24 @@ export default function AdminSecretsPage() {
                 onChange={(e) => setNewBookAmazonUrlPremium(e.target.value)}
               />
             </div>
+            <div className="flex flex-col gap-2">
+              <label className="block text-sm font-medium mb-1">
+                Visibility
+              </label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="new-book-visibility"
+                  checked={newBookIsActive}
+                  onCheckedChange={setNewBookIsActive}
+                />
+                <label
+                  htmlFor="new-book-visibility"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {newBookIsActive ? "Visible in List" : "Hidden from List"}
+                </label>
+              </div>
+            </div>
           </div>
           <div className="flex justify-end pt-4 mt-2 border-t border-neutral-100">
             <Button
@@ -1356,9 +1400,18 @@ export default function AdminSecretsPage() {
                 <p className="text-sm font-semibold text-neutral-900 line-clamp-2">
                   {book.title}
                 </p>
-                {!book.secretKey && (
-                  <LockOpen className="h-4 w-4 text-neutral-300 flex-none ml-2" />
-                )}
+                <div className="flex items-center">
+                  {book.isActive === false && (
+                    <div title="Hidden">
+                      <EyeOff className="h-4 w-4 text-neutral-400 flex-none ml-2" />
+                    </div>
+                  )}
+                  {!book.secretKey && (
+                    <div title="Public">
+                      <LockOpen className="h-4 w-4 text-neutral-300 flex-none ml-2" />
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

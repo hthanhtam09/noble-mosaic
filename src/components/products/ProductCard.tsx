@@ -52,44 +52,46 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   };
 
   return (
-    <div className="group relative bg-white overflow-hidden shadow-xl">
-      <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="block aspect-[3/4] relative overflow-hidden bg-neutral-50/50 p-6 sm:p-8">
-        <div className="relative w-full h-full">
-          <Image
-            src={product.coverImage}
-            alt={product.title}
-            fill
-            priority={priority}
-            className="object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-        </div>
-        <div className="absolute inset-0 bg-neutral-900/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-        {product.isComingSoon && (
-          <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 bg-[var(--mosaic-gold)] backdrop-blur-sm text-white text-xs sm:text-sm font-bold uppercase tracking-widest py-3 px-4 shadow-xl z-20 flex items-center justify-center transform -rotate-3 border-y border-[var(--mosaic-gold)]/20">
-            Coming Soon
+    <div className="p-2 flex flex-col items-center">
+      <div className="relative w-full max-w-[200px] sm:max-w-[240px]">
+        <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="group block aspect-[3/4] relative overflow-hidden rounded-2xl">
+          <div className="relative w-full h-full">
+            <Image
+              src={product.coverImage}
+              alt={product.title}
+              fill
+              priority={priority}
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
           </div>
-        )}
-      </Link>
+          <div className="absolute inset-0 bg-neutral-900/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-      <button
-        onClick={handleWishlistClick}
-        className={cn(
-          "absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all z-10 cursor-pointer",
-          inWishlist
-            ? "bg-rose-50 text-rose-500 shadow-rose-200/50"
-            : "bg-white/80 text-neutral-400 hover:text-rose-500 hover:bg-white shadow-black/5",
-          "shadow-lg hover:scale-110 active:scale-95"
-        )}
-        aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
-      >
-        <Heart className={cn("h-5 w-5", inWishlist && "fill-current")} />
-      </button>
+          {product.isComingSoon && (
+            <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 bg-[var(--mosaic-gold)] backdrop-blur-sm text-white text-xs sm:text-sm font-bold uppercase tracking-widest py-3 px-4 shadow-xl z-20 flex items-center justify-center transform -rotate-3 border-y border-[var(--mosaic-gold)]/20">
+              Coming Soon
+            </div>
+          )}
+        </Link>
+
+        <button
+          onClick={handleWishlistClick}
+          className={cn(
+            "absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all z-10 cursor-pointer",
+            inWishlist
+              ? "bg-orange-50 text-orange-500 shadow-orange-200/50"
+              : "bg-white/80 text-neutral-400 hover:text-orange-500 hover:bg-white shadow-black/5",
+            "shadow-md hover:scale-110 active:scale-95"
+          )}
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart className={cn("h-4 w-4", inWishlist && "fill-current")} />
+        </button>
+      </div>
 
       {/* Content */}
-      <div className="p-4 text-center">
-        <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`}>
+      <div className="p-3 text-center w-full max-w-[200px] sm:max-w-[240px]">
+        <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="group">
           <h3 className="font-semibold text-neutral-900 group-hover:text-[var(--mosaic-purple)] transition-colors line-clamp-2 mb-1">
             {product.title}
           </h3>

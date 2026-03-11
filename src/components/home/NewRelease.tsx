@@ -30,7 +30,7 @@ export default function NewRelease() {
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
           </div>
         ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-6">
             {featuredProducts.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}

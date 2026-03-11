@@ -137,8 +137,8 @@ export default function ContactPageClient() {
                 <CardContent className="p-8">
                   {isSubmitted ? (
                     <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="h-8 w-8 text-green-600" />
+                      <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle className="h-8 w-8 text-neutral-800" />
                       </div>
                       <h2 className="text-2xl font-serif font-bold text-neutral-900 mb-2">
                         Thank You!

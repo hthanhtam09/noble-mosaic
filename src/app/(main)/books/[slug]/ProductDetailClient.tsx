@@ -341,7 +341,7 @@ export default function ProductDetailClient() {
                         <Star
                           key={i}
                           className={`h-5 w-5 ${i < Math.floor(product.rating ?? 0)
-                            ? 'text-amber-400 fill-amber-400'
+                            ? 'text-orange-500 fill-orange-500'
                             : 'text-neutral-200'
                             }`}
                         />
@@ -457,27 +457,29 @@ export default function ProductDetailClient() {
                       <div className="space-y-2">
                         <div className="flex w-full rounded-xl shadow-sm h-12">
                           <Button 
-                            className="flex-1 rounded-r-none bg-amber-500 hover:bg-amber-600 text-neutral-900 text-base font-semibold h-full border-0 focus:ring-amber-500 focus:border-amber-500 transition-colors flex items-center justify-center gap-2"
+                            className="flex-1 rounded-r-none bg-primary hover:bg-primary/90 text-white text-base font-semibold h-full border-0 focus:ring-primary/50 transition-colors flex items-center justify-center relative px-10"
                             onClick={() => handleRegionChange(selectedRegionCode)}
                           >
                             Buy on Amazon
-                            {mounted && (() => {
-                              const m = AMAZON_MARKETPLACES.find(m => m.code === selectedRegionCode) || AMAZON_MARKETPLACES[0];
-                              return (
-                                <img 
-                                  src={`https://flagcdn.com/w20/${m.countryCode}.png`}
-                                  srcSet={`https://flagcdn.com/w40/${m.countryCode}.png 2x`}
-                                  width="20" 
-                                  alt={m.name} 
-                                  className="rounded-[2px] object-cover shadow-[0_0_2px_rgba(0,0,0,0.3)]"
-                                />
-                              )
-                            })()}
-                            <ExternalLink className="h-4 w-4 text-neutral-800 ml-1" />
+                            <div className="absolute right-4 flex items-center gap-2">
+                              {mounted && (() => {
+                                const m = AMAZON_MARKETPLACES.find(m => m.code === selectedRegionCode) || AMAZON_MARKETPLACES[0];
+                                return (
+                                  <img 
+                                    src={`https://flagcdn.com/w20/${m.countryCode}.png`}
+                                    srcSet={`https://flagcdn.com/w40/${m.countryCode}.png 2x`}
+                                    width="20" 
+                                    alt={m.name} 
+                                    className="rounded-[2px] object-cover shadow-[0_0_2px_rgba(0,0,0,0.3)]"
+                                  />
+                                )
+                              })()}
+                              <ExternalLink className="h-4 w-4 text-white/90" />
+                            </div>
                           </Button>
                           <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                              <Button className="rounded-l-none bg-amber-500 hover:bg-amber-600 border-l border-amber-600/30 text-neutral-900 h-full w-12 px-0 focus:ring-amber-500 focus:border-amber-500 transition-colors flex items-center justify-center">
+                              <Button className="rounded-l-none bg-primary hover:bg-primary/90 border-l border-white/20 text-white h-full w-12 px-0 focus:ring-primary/50 transition-colors flex items-center justify-center">
                                 <ChevronDown className="h-5 w-5" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -497,7 +499,7 @@ export default function ProductDetailClient() {
                                         alt={market.name} 
                                         className="rounded-[2px] object-cover shadow-sm"
                                       />
-                                      <span className={cn("font-medium", selectedRegionCode === market.code ? "text-amber-600 font-bold" : "")}>{market.name}</span>
+                                      <span className={cn("font-medium", selectedRegionCode === market.code ? "text-orange-600 font-bold" : "")}>{market.name}</span>
                                     </div>
                                     <span className="text-neutral-400 text-xs">({market.domain})</span>
                                   </div>
@@ -506,7 +508,7 @@ export default function ProductDetailClient() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                        <p className="text-center text-[10px] text-neutral-400 mt-1">Select your Amazon marketplace</p>
+                        <p className="text-center text-xs text-neutral-500 mt-2 font-medium">Select your Amazon marketplace</p>
                       </div>
                     )}
                     <Button
@@ -529,7 +531,7 @@ export default function ProductDetailClient() {
                       className={cn(
                         "w-full rounded-full h-12 border-2 text-base font-semibold transition-all",
                         mounted && isInWishlist(product._id)
-                          ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700"
+                          ? "border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700"
                           : "border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"
                       )}
                     >

@@ -132,7 +132,7 @@ export default function GiftPageClient() {
                       </div>
 
                       {error && (
-                        <p className="text-sm text-red-600 text-center bg-red-50 p-3 rounded-xl">{error}</p>
+                        <p className="text-sm text-orange-600 text-center bg-orange-50 p-3 rounded-xl">{error}</p>
                       )}
 
                       <Button
@@ -183,7 +183,7 @@ export default function GiftPageClient() {
                       </div>
 
                       {error && (
-                        <p className="text-sm text-red-600 text-center bg-red-50 p-3 rounded-xl">{error}</p>
+                        <p className="text-sm text-orange-600 text-center bg-orange-50 p-3 rounded-xl">{error}</p>
                       )}
 
                       <Button
@@ -242,7 +242,7 @@ export default function GiftPageClient() {
               </div>
             ) : giftLinks.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-50 to-[var(--mosaic-coral)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neutral-100">
+                <div className="w-20 h-20 bg-gradient-to-br from-neutral-50 to-[var(--mosaic-coral)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neutral-100">
                   <Gift className="h-10 w-10 text-neutral-300" />
                 </div>
                 <p className="text-neutral-500 text-lg">No gifts available yet. Check back soon!</p>

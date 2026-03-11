@@ -350,7 +350,7 @@ export default function AboutPage() {
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-6 md:gap-10 mb-12">
               <a href="https://instagram.com/noblemosaic" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-neutral-600 hover:text-neutral-900 transition-colors bg-white px-6 py-3 rounded-full shadow-sm hover:shadow border border-stone-200">
-                <Instagram className="w-5 h-5 text-pink-600" />
+                <Instagram className="w-5 h-5 text-neutral-800" />
                 <span className="font-medium">Instagram</span>
               </a>
               <a href="https://tiktok.com/@noblemosaic" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-neutral-600 hover:text-neutral-900 transition-colors bg-white px-6 py-3 rounded-full shadow-sm hover:shadow border border-stone-200">
@@ -358,7 +358,7 @@ export default function AboutPage() {
                 <span className="font-medium">TikTok</span>
               </a>
               <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-neutral-600 hover:text-neutral-900 transition-colors bg-white px-6 py-3 rounded-full shadow-sm hover:shadow border border-stone-200">
-                <Facebook className="w-5 h-5 text-blue-600" />
+                <Facebook className="w-5 h-5 text-neutral-800" />
                 <span className="font-medium">Facebook Group</span>
               </a>
             </div>

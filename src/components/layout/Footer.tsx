@@ -109,23 +109,23 @@ export default function Footer() {
               Contact
             </h3>
             <p className="mt-4 text-sm text-neutral-400">
-              Email us at <a href="mailto:noblemosaic@gmail.com" className="text-(--mosaic-teal) hover:underline">noblemosaic@gmail.com</a>
+              Email us at <a href="mailto:noblemosaic@gmail.com" className="text-orange-500 hover:underline">noblemosaic@gmail.com</a>
             </p>
             <div className="lg:col-span-1">
               <div className="mt-6 flex gap-4">
                 <a href="https://www.facebook.com/noblemosaiccoloring" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-coral) flex items-center justify-center transition-colors">
                   <Facebook className="h-5 w-5" />
                 </a>
-                <a href="https://www.instagram.com/noblemosaic/" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-purple) flex items-center justify-center transition-colors">
+                <a href="https://www.instagram.com/noblemosaic/" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-coral) flex items-center justify-center transition-colors">
                   <Instagram className="h-5 w-5" />
                 </a>
-                <a href="https://www.tiktok.com/@noblemosaic" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-teal) flex items-center justify-center transition-colors">
+                <a href="https://www.tiktok.com/@noblemosaic" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-coral) flex items-center justify-center transition-colors">
                   <TikTok className="w-5 h-5" />
                 </a>
-                <a href="https://www.youtube.com/@noblemosaic" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-rose) flex items-center justify-center transition-colors">
+                <a href="https://www.youtube.com/@noblemosaic" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-coral) flex items-center justify-center transition-colors">
                   <Youtube className="h-5 w-5" />
                 </a>
-                <a href="https://www.pinterest.com/noblemosaic/" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-gold) flex items-center justify-center transition-colors">
+                <a href="https://www.pinterest.com/noblemosaic/" className="w-10 h-10 rounded-full bg-neutral-800 hover:bg-(--mosaic-coral) flex items-center justify-center transition-colors">
                   <Pinterest className="h-5 w-5" />
                 </a>
               </div>

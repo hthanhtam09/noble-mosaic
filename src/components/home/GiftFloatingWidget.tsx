@@ -166,7 +166,7 @@ export default function GiftFloatingWidget() {
                                             </div>
 
                                             {error && (
-                                                <p className="text-sm text-red-600 bg-red-50 p-2.5 rounded-xl text-center">
+                                                <p className="text-sm text-orange-600 bg-orange-50 p-2.5 rounded-xl text-center">
                                                     {error}
                                                 </p>
                                             )}
@@ -215,7 +215,7 @@ export default function GiftFloatingWidget() {
                                             />
 
                                             {error && (
-                                                <p className="text-sm text-red-600 bg-red-50 p-2.5 rounded-xl text-center">
+                                                <p className="text-sm text-orange-600 bg-orange-50 p-2.5 rounded-xl text-center">
                                                     {error}
                                                 </p>
                                             )}
