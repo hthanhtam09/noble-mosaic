@@ -55,6 +55,18 @@ export const PUT = withAuth(async (
       }
     }
 
+    // Auto-generate links from ASIN if missing
+    if (!body.amazonLink && body.asin) {
+      body.amazonLink = `https://www.amazon.com/dp/${body.asin}`;
+    }
+
+    if (body.editions && Array.isArray(body.editions)) {
+      body.editions = body.editions.map((edition: any) => ({
+        ...edition,
+        link: (!edition.link && edition.asin) ? `https://www.amazon.com/dp/${edition.asin}` : edition.link
+      }));
+    }
+
     // Perform DB update and clean images
     const product = await updateDocumentAndCleanImages(Product, { slug }, body);
     

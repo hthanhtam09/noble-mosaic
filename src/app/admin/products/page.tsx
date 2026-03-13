@@ -83,35 +83,6 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleDuplicate = async (product: Product) => {
-    setProcessingSlug(product.slug);
-    try {
-      // Simulate API call for now since duplicate logic is client-side in the original code,
-      // but we should still show feedback.
-      const newProduct: Product = {
-        ...product,
-        _id: Date.now().toString(),
-        slug: `${product.slug}-copy`,
-        title: `${product.title} (Copy)`,
-        createdAt: new Date().toISOString(),
-      };
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.adminProducts] });
-      toast({
-        title: "Product Duplicated",
-        description: "A copy of the product has been created."
-      });
-    } catch (error) {
-      console.error('Error duplicating product:', error);
-      toast({
-        title: "Error",
-        description: "Failed to duplicate the product.",
-        variant: "destructive"
-      });
-    } finally {
-      setProcessingSlug(null);
-    }
-  };
-
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -253,10 +224,6 @@ export default function AdminProductsPage() {
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit Product
                           </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicate(product)} disabled={processingSlug === product.slug}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Duplicate
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

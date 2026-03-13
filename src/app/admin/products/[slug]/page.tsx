@@ -24,6 +24,15 @@ import dynamic from 'next/dynamic';
 
 const MarkdownEditor = dynamic(() => import('@/components/ui/markdown-editor'), { ssr: false });
 
+const DEFAULT_STANDARD_DESCRIPTION = `This is the **Standard Edition**, printed on Amazon KDP’s regular paper.
+If you’d love thicker, higher-quality pages with sharper details and more vibrant colors, we invite you to check out the **Premium Edition**.`;
+
+const DEFAULT_PREMIUM_DESCRIPTION = `**Premium Print Edition:**
+- Crisp, vibrant colors that bring every detail to life
+- Thick, glossy paper for a luxurious feel
+- Sharp, high-resolution printing
+- Durable, glossy cover finish`;
+
 export default function EditProductPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
     const router = useRouter();
@@ -43,8 +52,6 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
     const [formData, setFormData] = useState({
         title: '',
         generalDescription: '',
-        description: '',
-        amazonLink: '',
         asin: '',
         price: '',
         rating: '',
@@ -68,8 +75,6 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
             setFormData({
                 title: product.title || '',
                 generalDescription: product.generalDescription || '',
-                description: product.description || '',
-                amazonLink: product.amazonLink || '',
                 asin: product.asin || '',
                 price: product.price?.toString() || '',
                 rating: product.rating?.toString() || '',
@@ -168,12 +173,13 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
 
         updateProductMutation.mutate({
             ...formData,
+            description: DEFAULT_STANDARD_DESCRIPTION,
             coverImage,
             galleryImages,
             rating: formData.rating ? parseFloat(formData.rating) : undefined,
             reviewCount: formData.reviewCount ? parseInt(formData.reviewCount) : undefined,
             aPlusContent: aplusImages,
-            editions,
+            editions: editions.map((ed, i) => i === 0 ? { ...ed, description: DEFAULT_PREMIUM_DESCRIPTION } : ed),
         }, {
             onSuccess: () => {
                 toast({
@@ -247,24 +253,6 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                                 value={formData.generalDescription}
                                                 onChange={(val) => setFormData({ ...formData, generalDescription: val || '' })}
                                                 height={200}
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>Standard Description (Mô tả standard) *</Label>
-                                            <MarkdownEditor
-                                                value={formData.description}
-                                                onChange={(val) => setFormData({ ...formData, description: val || '' })}
-                                                height={250}
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>Premium Description (Mô tả Premium) *</Label>
-                                            <MarkdownEditor
-                                                value={editions[0]?.description || ''}
-                                                onChange={(val) => updateEdition('description', val || '')}
-                                                height={250}
                                             />
                                         </div>
                                     </CardContent>
@@ -559,7 +547,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                 <div className="pt-4 border-t border-neutral-100 space-y-2">
                                     <Button
                                         type="submit"
-                                        disabled={isLoading || !formData.title || !formData.asin || !coverImage}
+                                        disabled={isLoading || !formData.title || !formData.generalDescription || !formData.asin || !coverImage}
                                         className="w-full bg-neutral-900 hover:bg-neutral-800 text-white"
                                     >
                                         {isLoading ? (
@@ -578,6 +566,26 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                         <Link href="/admin/products">Cancel</Link>
                                     </Button>
                                 </div>
+
+                                {(!formData.title || !formData.generalDescription || !formData.asin || !coverImage) && (
+                                    <div className="text-xs text-neutral-500 space-y-1">
+                                        <p className="font-medium">Required fields:</p>
+                                        <ul className="space-y-0.5">
+                                            <li className={formData.title ? 'text-green-600' : 'text-red-500'}>
+                                                {formData.title ? '✓' : '○'} Title
+                                            </li>
+                                            <li className={formData.generalDescription ? 'text-green-600' : 'text-red-500'}>
+                                                {formData.generalDescription ? '✓' : '○'} General Description
+                                            </li>
+                                            <li className={formData.asin ? 'text-green-600' : 'text-red-500'}>
+                                                {formData.asin ? '✓' : '○'} ASIN
+                                            </li>
+                                            <li className={coverImage ? 'text-green-600' : 'text-red-500'}>
+                                                {coverImage ? '✓' : '○'} Cover Image
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
