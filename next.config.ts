@@ -40,6 +40,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/books/mystery-mosaics-color-by-number-mythic-beasts',
+        destination: '/books/mythic-beasts',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -6,10 +6,11 @@ import { api } from '@/lib/api';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Loader2, ArrowLeft, Image as ImageIcon, LockOpen, Lock, KeyRound, ExternalLink, X } from 'lucide-react';
+import { Loader2, ArrowLeft, Image as ImageIcon, LockOpen, Lock, KeyRound, ArrowRight, X } from 'lucide-react';
 import SecretImageViewerModal from '@/components/secret/SecretImageViewerModal';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -235,34 +236,19 @@ function SecretBookContent() {
                       </Button>
                     </form>
 
-                    {(book?.amazonUrlStandard || book?.amazonUrlPremium) && (
+                    {book?.slug && (
                       <div className="pt-10 border-t border-neutral-100 w-full mt-2">
-                        <p className="text-[11px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-6">Don't have the book yet?</p>
+                        <p className="text-[11px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-6">Want to unlock all secret images?</p>
                         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                          {book.amazonUrlStandard && (
-                            <a
-                              href={book.amazonUrlStandard}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center w-full sm:w-auto py-3 px-6 text-sm font-bold rounded-2xl bg-white border-2 border-orange-400/30 hover:border-orange-500 text-neutral-800 hover:text-orange-600 transition-all hover:bg-orange-50 group shadow-sm hover:shadow-md"
+                            <Link
+                              href={`/books/${book.slug}`}
+                              title={`Get the full ${book.title} coloring book version`}
+                              className="inline-flex items-center justify-center w-full sm:w-auto py-3 px-8 text-base font-bold rounded-2xl bg-white border-2 border-orange-400/30 hover:border-orange-500 text-neutral-800 hover:text-orange-600 transition-all hover:bg-orange-50 group shadow-sm hover:shadow-md"
                             >
                               <span className="flex items-center gap-2">
-                                Standard <ExternalLink className="w-4 h-4 text-orange-400 group-hover:text-orange-600 transition-colors" />
+                                Get the Full Coloring Book <ArrowRight className="w-4 h-4 text-orange-400 group-hover:text-orange-600 transition-colors" />
                               </span>
-                            </a>
-                          )}
-                          {book.amazonUrlPremium && (
-                            <a
-                              href={book.amazonUrlPremium}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center w-full sm:w-auto py-3 px-6 text-sm font-bold rounded-2xl bg-white border-2 border-neutral-200 hover:border-neutral-900 text-neutral-800 hover:text-neutral-900 transition-all hover:bg-neutral-50 group shadow-sm hover:shadow-md"
-                            >
-                              <span className="flex items-center gap-2">
-                                Premium <ExternalLink className="w-4 h-4 text-neutral-400 group-hover:text-black transition-colors" />
-                              </span>
-                            </a>
-                          )}
+                            </Link>
                         </div>
                       </div>
                     )}
