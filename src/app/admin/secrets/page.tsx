@@ -59,6 +59,7 @@ interface SecretImage {
   uncolorImageUrl: string;
   order: number;
   isActive: boolean;
+  answer?: string;
 }
 
 export default function AdminSecretsPage() {
@@ -91,6 +92,8 @@ export default function AdminSecretsPage() {
 
   const colorInputRef = useRef<HTMLInputElement>(null);
   const uncolorInputRef = useRef<HTMLInputElement>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
+  const [isImportingCsv, setIsImportingCsv] = useState(false);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -104,6 +107,7 @@ export default function AdminSecretsPage() {
   const [editColorImage, setEditColorImage] = useState<File | null>(null);
   const [editUncolorImage, setEditUncolorImage] = useState<File | null>(null);
   const [editSecretOrder, setEditSecretOrder] = useState<string>("0");
+  const [editAnswer, setEditAnswer] = useState<string>("");
   const [isUpdatingSecret, setIsUpdatingSecret] = useState(false);
 
   // Book Settings state
@@ -137,6 +141,7 @@ export default function AdminSecretsPage() {
     setEditColorImage(null);
     setEditUncolorImage(null);
     setEditSecretOrder(secret.order.toString());
+    setEditAnswer(secret.answer || "");
     setShowEditSecretModal(true);
   };
 
@@ -158,6 +163,7 @@ export default function AdminSecretsPage() {
         colorImageUrl,
         uncolorImageUrl,
         order: Number(editSecretOrder),
+        answer: editAnswer
       });
 
       setShowEditSecretModal(false);
@@ -386,6 +392,86 @@ export default function AdminSecretsPage() {
             getNumberFromFilename(a.name) - getNumberFromFilename(b.name),
         );
       setUncolorImages(fileArray);
+    }
+  };
+
+  const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedBook) return;
+
+    setIsImportingCsv(true);
+    try {
+      const text = await file.text();
+      // handle carriage returns on windows
+      const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(l => l !== '');
+      if (lines.length > 0 && lines[0].toLowerCase() === 'text') {
+        lines.shift();
+      }
+
+      let successCount = 0;
+      for (let i = 0; i < lines.length; i++) {
+        const answer = lines[i].replace(/"/g, '').trim();
+        // The prompt: Tượng trưng cho ảnh 1, 2, 3... => lines[0] is order 1
+        const order = i + 1;
+        const secret = secrets.find(s => s.order === order);
+        if (secret) {
+          await api.put(`/admin/secrets/${secret._id}`, { answer });
+          successCount++;
+        }
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id],
+      });
+
+      toast({
+        title: "CSV Imported",
+        description: `Successfully updated answers for ${successCount} images.`,
+      });
+    } catch (error) {
+      console.error("Error importing CSV:", error);
+      toast({
+        title: "Import Error",
+        description: "Failed to import answers from CSV.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImportingCsv(false);
+      if (csvInputRef.current) {
+        csvInputRef.current.value = "";
+      }
+    }
+  };
+
+  const [isClearingAnswers, setIsClearingAnswers] = useState(false);
+
+  const handleClearAnswers = async () => {
+    if (!selectedBook || !window.confirm("Are you sure you want to clear all imported answers for this book?")) return;
+    setIsClearingAnswers(true);
+    try {
+      const updatePromises = secrets
+        .filter(s => s.answer)
+        .map(secret => api.put(`/admin/secrets/${secret._id}`, { answer: "" }));
+      
+      await Promise.all(updatePromises);
+
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.adminSecrets, selectedBook._id],
+      });
+
+      toast({
+        title: "Answers Cleared",
+        description: `Successfully cleared answers for ${updatePromises.length} images.`,
+      });
+    } catch (error) {
+      console.error("Error clearing answers:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear answers.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsClearingAnswers(false);
     }
   };
 
@@ -633,6 +719,30 @@ export default function AdminSecretsPage() {
                 <Trash2 className="h-4 w-4 mr-2" /> Delete All
               </Button>
             )}
+            <input
+              type="file"
+              accept=".csv"
+              ref={csvInputRef}
+              className="hidden"
+              onChange={handleCsvImport}
+            />
+            <Button
+              onClick={() => csvInputRef.current?.click()}
+              variant="outline"
+              disabled={isImportingCsv || isClearingAnswers}
+            >
+              {isImportingCsv ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />} CSV (Answers)
+            </Button>
+            {secrets.some(s => s.answer) && (
+              <Button
+                onClick={handleClearAnswers}
+                variant="outline"
+                className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+                disabled={isClearingAnswers || isImportingCsv}
+              >
+                {isClearingAnswers ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />} Clear Answers
+              </Button>
+            )}
             <Button
               onClick={() => setShowAddForm(!showAddForm)}
               className="bg-[var(--mosaic-teal)] hover:bg-[var(--mosaic-teal)]/90 text-white"
@@ -809,7 +919,14 @@ export default function AdminSecretsPage() {
                   </div>
                 </div>
                 <CardContent className="p-3 flex items-center justify-between border-t border-neutral-100">
-                  <Badge variant="outline">Order: {secret.order}</Badge>
+                  <div className="flex flex-col gap-1.5 w-full min-w-0 pr-2">
+                    <Badge variant="outline" className="w-fit">Order: {secret.order}</Badge>
+                    {secret.answer && (
+                      <div className="bg-orange-50 w-fit text-orange-700 text-xs px-2 py-1 rounded border border-orange-200 font-medium truncate max-w-full uppercase" title={secret.answer}>
+                        A: {secret.answer}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex gap-1">
                     <Button
                       variant="ghost"
@@ -1108,6 +1225,18 @@ export default function AdminSecretsPage() {
                     }
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Answer (Optional)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Ghost"
+                  value={editAnswer}
+                  onChange={(e) => setEditAnswer(e.target.value)}
+                />
               </div>
 
               <div>

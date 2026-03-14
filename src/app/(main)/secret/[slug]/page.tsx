@@ -20,6 +20,7 @@ interface SecretImage {
   colorImageUrl: string;
   uncolorImageUrl: string;
   order: number;
+  answer?: string;
 }
 
 interface SecretBookInfo {
@@ -306,6 +307,7 @@ function SecretBookContent() {
             uncolorImageUrl={selectedSecret.uncolorImageUrl}
             title={`${book.title} - Secret #${selectedSecret.order || 1}`}
             number={selectedSecret.order}
+            answer={selectedSecret.answer}
           />
         )}
       </AnimatePresence>

@@ -6,6 +6,7 @@ export interface ISecretImage {
   colorImageUrl: string;
   uncolorImageUrl: string;
   order: number;
+  answer?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -17,6 +18,7 @@ const SecretImageSchema = new mongoose.Schema<ISecretImage>(
     colorImageUrl: { type: String, required: true },
     uncolorImageUrl: { type: String, required: true },
     order: { type: Number, default: 0 },
+    answer: { type: String },
     isActive: { type: Boolean, default: true }
   },
   { timestamps: true }
