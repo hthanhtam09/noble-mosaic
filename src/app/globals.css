@@ -154,6 +154,14 @@
   select {
     font-family: var(--font-primary) !important;
   }
+
+  /* Ensure old devices (especially old iOS Safari) register clicks correctly */
+  a,
+  button,
+  [role="button"] {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
 }
 
 body {
@@ -176,7 +184,7 @@ body::before {
   position: fixed;
   inset: 0;
   background: rgba(255, 255, 255, 0.75);
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
