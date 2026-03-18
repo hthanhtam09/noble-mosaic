@@ -28,7 +28,7 @@ const SecretBookSchema = new mongoose.Schema<ISecretBook>(
   { timestamps: true }
 );
 
-SecretBookSchema.index({ slug: 1 });
+
 SecretBookSchema.index({ isActive: 1 });
 
 export const SecretBook =

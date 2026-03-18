@@ -18,7 +18,7 @@ const SubscriberSchema = new mongoose.Schema<ISubscriber>(
   { timestamps: true }
 );
 
-SubscriberSchema.index({ email: 1 });
+
 SubscriberSchema.index({ createdAt: -1 });
 
 export const Subscriber = mongoose.models.Subscriber || mongoose.model<ISubscriber>('Subscriber', SubscriberSchema);

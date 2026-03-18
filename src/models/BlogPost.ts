@@ -28,7 +28,7 @@ const BlogPostSchema = new mongoose.Schema<IBlogPost>(
   { timestamps: true }
 );
 
-BlogPostSchema.index({ slug: 1 });
+
 BlogPostSchema.index({ category: 1 });
 BlogPostSchema.index({ published: 1 });
 
