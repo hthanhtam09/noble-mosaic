@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { X, Eye, EyeOff, ImageIcon } from 'lucide-react';
+import { X, Eye, EyeOff, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 interface SecretImageViewerModalProps {
   onClose: () => void;
@@ -156,59 +156,77 @@ export default function SecretImageViewerModal({
       </motion.div>
 
       {/* Image Container */}
-      <div className="relative w-full h-full max-w-5xl mx-auto flex items-center justify-center pt-32 pb-24 lg:pt-24 lg:pb-8 flex-1">
-        <motion.div 
-          layout
-          className="relative w-full aspect-[3/4] max-h-[70vh] sm:max-h-[70vh] lg:max-h-[85vh] group"
+      <div className="relative w-full h-full max-w-5xl mx-auto flex items-center justify-center pt-32 pb-24 lg:pt-24 lg:pb-8 flex-1 overflow-hidden z-[100]">
+        <TransformWrapper
+          initialScale={1}
+          minScale={0.5}
+          maxScale={8}
+          centerOnInit={true}
+          wheel={{ wheelDisabled: false }}
+          pinch={{ disabled: false }}
+          doubleClick={{ disabled: false }}
         >
-          {/* Glass Effect Shadow */}
-          <div className="absolute -inset-4 bg-[var(--mosaic-teal)]/5 blur-3xl rounded-full opacity-50 pointer-events-none" />
-          
-          <AnimatePresence mode="wait">
-            {viewMode === 'uncolor' ? (
-              <motion.div
-                key="uncolor"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.05 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src={uncolorImageUrl}
-                  alt={`${title} - Uncolored`}
-                  fill
-                  className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
-                  sizes="100vw"
-                  quality={100}
-                  priority
-                  unoptimized={true}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="color"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.05 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src={colorImageUrl}
-                  alt={`${title} - Colored`}
-                  fill
-                  className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
-                  sizes="100vw"
-                  quality={100}
-                  priority
-                  unoptimized={true}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              {/* Zoom Controls */}
+              <div className="absolute right-4 sm:right-8 bottom-32 lg:bottom-12 z-[120] flex flex-col gap-2 pointer-events-auto">
+                <Button variant="outline" size="icon" onClick={() => zoomIn()} className="bg-black/50 hover:bg-black/70 border-white/20 text-white rounded-full backdrop-blur-md shadow-xl h-10 w-10 sm:h-12 sm:w-12 transition-all">
+                  <ZoomIn className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => zoomOut()} className="bg-black/50 hover:bg-black/70 border-white/20 text-white rounded-full backdrop-blur-md shadow-xl h-10 w-10 sm:h-12 sm:w-12 transition-all">
+                  <ZoomOut className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => resetTransform()} className="bg-black/50 hover:bg-black/70 border-white/20 text-white rounded-full backdrop-blur-md shadow-xl h-10 w-10 sm:h-12 sm:w-12 transition-all">
+                  <Maximize className="h-5 w-5" />
+                </Button>
+              </div>
 
+              <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                <motion.div 
+                  layout
+                  className="relative w-full h-full flex items-center justify-center group"
+                >
+                  {/* Glass Effect Shadow */}
+                  <div className="absolute -inset-4 bg-[var(--mosaic-teal)]/5 blur-3xl rounded-full opacity-50 pointer-events-none" />
+                  
+                  <AnimatePresence mode="wait">
+                    {viewMode === 'uncolor' ? (
+                      <motion.div
+                        key="uncolor"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.05 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className="w-full h-full flex items-center justify-center"
+                      >
+                        <img
+                          src={uncolorImageUrl}
+                          alt={`${title} - Uncolored`}
+                          className="max-w-full max-h-[70vh] sm:max-h-[70vh] lg:max-h-[85vh] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="color"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.05 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className="w-full h-full flex items-center justify-center"
+                      >
+                        <img
+                          src={colorImageUrl}
+                          alt={`${title} - Colored`}
+                          className="max-w-full max-h-[70vh] sm:max-h-[70vh] lg:max-h-[85vh] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
       </div>
     </motion.div>
   );
