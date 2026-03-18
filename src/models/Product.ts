@@ -82,7 +82,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
   { timestamps: true },
 );
 
-ProductSchema.index({ slug: 1 });
+
 
 // For Next.js hot reloading: delete the model to force registration with updated schema
 if (process.env.NODE_ENV === "development" && mongoose.models.Product) {
