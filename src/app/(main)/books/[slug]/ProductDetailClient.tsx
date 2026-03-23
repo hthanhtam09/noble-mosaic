@@ -79,7 +79,7 @@ export default function ProductDetailClient() {
       if (savedRegion && AMAZON_MARKETPLACES.some(m => m.code === savedRegion)) {
         setSelectedRegionCode(savedRegion);
       }
-    } catch(e) {}
+    } catch (e) { }
   }, []);
 
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -115,7 +115,7 @@ export default function ProductDetailClient() {
   const handleRegionChange = (region: string) => {
     try {
       localStorage.setItem('mosaic_amazon_region', region);
-    } catch(e) {}
+    } catch (e) { }
     setSelectedRegionCode(region);
 
     const urlToOpen = getProductUrl(region);
@@ -199,6 +199,19 @@ export default function ProductDetailClient() {
 
     return () => clearInterval(interval);
   }, [allImages.length]);
+
+  // Set default edition if standard ASIN is missing
+  useEffect(() => {
+    if (product && !product.asin && selectedEdition === null) {
+      if (product.editions && product.editions.length > 0) {
+        const firstWithAsin = product.editions.findIndex(e => !!e.asin);
+        if (firstWithAsin !== -1) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSelectedEdition(firstWithAsin);
+        }
+      }
+    }
+  }, [product]);
 
   if (isLoading) {
     return (
@@ -404,36 +417,33 @@ export default function ProductDetailClient() {
               <div className="lg:pl-6 flex flex-col pt-4 lg:pt-0 sticky top-24">
                 <div className="p-6 rounded-2xl border border-neutral-200 bg-white shadow-sm flex flex-col">
                   {/* Product Editions */}
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
-                      Choose Edition
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {/* Original / Standard Edition */}
-                      <button
-                        onClick={() => setSelectedEdition(null)}
-                        className={`relative px-5 py-3 rounded-xl border-2 text-sm font-bold transition-all overflow-hidden ${selectedEdition === null
-                          ? 'border-black bg-black text-white shadow-md transform scale-[1.02]'
-                          : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
-                          }`}
-                      >
-                        Standard Edition
-                      </button>
-
-                      {/* Premium Edition */}
-                      {product.editions?.[0] && (
-                        <button
-                          onClick={() => setSelectedEdition(0)}
-                          className={`relative px-5 py-3 rounded-xl border-2 text-sm font-bold transition-all overflow-hidden ${selectedEdition === 0
-                            ? 'border-black bg-black text-white shadow-md transform scale-[1.02]'
-                            : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
-                            }`}
-                        >
-                          {product.editions[0].name}
-                        </button>
-                      )}
+                  {(product.asin || (product.editions && product.editions.some(e => e.asin))) && (
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
+                        Choose Edition
+                      </h3>
+                      <div className="flex flex-wrap gap-3">
+                        {[
+                          ...(product.asin ? [{ name: 'Standard', value: null }] : []),
+                          ...(product.editions
+                            ?.map((e, i) => ({ ...e, originalIndex: i }))
+                            .filter(e => !!e.asin)
+                            .map((e) => ({ name: e.name, value: e.originalIndex })) || [])
+                        ].map((ed) => (
+                          <button
+                            key={ed.name}
+                            onClick={() => setSelectedEdition(ed.value)}
+                            className={`relative px-5 py-3 rounded-xl border-2 text-sm font-bold transition-all overflow-hidden ${selectedEdition === ed.value
+                              ? 'border-black bg-black text-white shadow-md transform scale-[1.02]'
+                              : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
+                              }`}
+                          >
+                            {ed.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Price */}
                   <div>
@@ -456,7 +466,7 @@ export default function ProductDetailClient() {
                     ) : (
                       <div className="space-y-2">
                         <div className="flex w-full rounded-xl shadow-sm h-12">
-                          <Button 
+                          <Button
                             className="flex-1 rounded-r-none bg-primary hover:bg-primary/90 text-white text-base font-semibold h-full border-0 focus:ring-primary/50 transition-colors flex items-center justify-center relative px-10"
                             onClick={() => handleRegionChange(selectedRegionCode)}
                           >
@@ -465,11 +475,11 @@ export default function ProductDetailClient() {
                               {mounted && (() => {
                                 const m = AMAZON_MARKETPLACES.find(m => m.code === selectedRegionCode) || AMAZON_MARKETPLACES[0];
                                 return (
-                                  <img 
+                                  <img
                                     src={`https://flagcdn.com/w20/${m.countryCode}.png`}
                                     srcSet={`https://flagcdn.com/w40/${m.countryCode}.png 2x`}
-                                    width="20" 
-                                    alt={m.name} 
+                                    width="20"
+                                    alt={m.name}
                                     className="rounded-[2px] object-cover shadow-[0_0_2px_rgba(0,0,0,0.3)]"
                                   />
                                 )
@@ -492,11 +502,11 @@ export default function ProductDetailClient() {
                                 >
                                   <div className="flex items-center justify-between gap-2 w-full pr-2">
                                     <div className="flex items-center gap-2">
-                                      <img 
+                                      <img
                                         src={`https://flagcdn.com/w20/${market.countryCode}.png`}
                                         srcSet={`https://flagcdn.com/w40/${market.countryCode}.png 2x`}
-                                        width="20" 
-                                        alt={market.name} 
+                                        width="20"
+                                        alt={market.name}
                                         className="rounded-[2px] object-cover shadow-sm"
                                       />
                                       <span className={cn("font-medium", selectedRegionCode === market.code ? "text-orange-600 font-bold" : "")}>{market.name}</span>

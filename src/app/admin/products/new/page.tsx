@@ -3,21 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { QUERY_KEYS } from '@/lib/query-keys';
 import { useCreateProduct } from '@/hooks/api/useProducts';
 import { useUploadMedia } from '@/hooks/api/useMedia';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import {
   ArrowLeft, Plus, X, Loader2, Upload, Image as ImageIcon,
-  Star, Check, ExternalLink, Info, Trash2
+  Star, Check, Info, Trash2
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import dynamic from 'next/dynamic';
@@ -123,6 +121,17 @@ export default function NewProductPage() {
 
   const updateEdition = (field: string, value: string) => {
     const updated = [...editions];
+    if (!updated[0]) {
+      updated[0] = { 
+        name: 'Premium', 
+        link: '#', 
+        asin: '', 
+        price: '', 
+        description: '', 
+        coverImage: '', 
+        aPlusContent: [] 
+      };
+    }
     updated[0] = { ...updated[0], [field]: value };
     setEditions(updated);
   };
@@ -130,15 +139,24 @@ export default function NewProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const hasPremium = editions.some(ed => !!ed.asin);
+
     createProductMutation.mutate({
       ...formData,
-      description: DEFAULT_STANDARD_DESCRIPTION,
+      description: hasPremium ? DEFAULT_STANDARD_DESCRIPTION : (formData.generalDescription || ''),
       coverImage,
       galleryImages,
       rating: formData.rating ? parseFloat(formData.rating) : undefined,
       reviewCount: formData.reviewCount ? parseInt(formData.reviewCount) : undefined,
       aPlusContent: aplusImages,
-      editions: editions.map((ed, i) => i === 0 ? { ...ed, description: DEFAULT_PREMIUM_DESCRIPTION } : ed),
+      editions: editions
+        .filter(ed => !!ed.asin)
+        .map(ed => ({ 
+          ...ed, 
+          name: ed.name || 'Premium', 
+          link: ed.link || '#',
+          description: DEFAULT_PREMIUM_DESCRIPTION 
+        })),
     }, {
       onSuccess: () => {
         toast({
@@ -300,24 +318,22 @@ export default function NewProductPage() {
                   <CardContent className="space-y-4">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="asin">Standard Amazon ASIN *</Label>
+                        <Label htmlFor="asin">Standard Amazon ASIN (optional)</Label>
                         <Input
                           id="asin"
                           value={formData.asin}
                           onChange={(e) => setFormData({ ...formData, asin: e.target.value.trim() })}
                           placeholder="e.g., B0GS1TS5HF"
-                          required
                           className="flex-1"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="premiumAsin">Premium Amazon ASIN *</Label>
+                        <Label htmlFor="premiumAsin">Premium Amazon ASIN (optional)</Label>
                         <Input
                           id="premiumAsin"
                           value={editions[0]?.asin || ''}
                           onChange={(e) => updateEdition('asin', e.target.value.trim())}
                           placeholder="e.g., B0GS1TS5HF"
-                          required
                           className="flex-1"
                         />
                       </div>
@@ -484,11 +500,11 @@ export default function NewProductPage() {
                 <div className="pt-4 border-t border-neutral-100">
                   <h3 className="text-sm font-medium mb-3">Product Preview</h3>
                   {coverImage ? (
-                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-neutral-100 mb-3">
+                    <div className="relative aspect-3/4 rounded-lg overflow-hidden bg-neutral-100 mb-3">
                       <Image src={coverImage} alt="Preview" fill className="object-cover" />
                     </div>
                   ) : (
-                    <div className="aspect-[3/4] rounded-lg bg-neutral-100 flex items-center justify-center mb-3">
+                    <div className="aspect-3/4 rounded-lg bg-neutral-100 flex items-center justify-center mb-3">
                       <ImageIcon className="h-8 w-8 text-neutral-300" />
                     </div>
                   )}
@@ -500,7 +516,7 @@ export default function NewProductPage() {
                 <div className="pt-4 border-t border-neutral-100 space-y-2">
                   <Button
                     type="submit"
-                    disabled={isLoading || !formData.title || !formData.generalDescription || !formData.asin || !coverImage}
+                    disabled={isLoading || !formData.title || !formData.generalDescription || !coverImage}
                     className="w-full bg-neutral-900 hover:bg-neutral-800 text-white"
                   >
                     {isLoading ? (
@@ -520,7 +536,7 @@ export default function NewProductPage() {
                   </Button>
                 </div>
 
-                {(!formData.title || !formData.asin || !coverImage) && (
+                {(!formData.title || !formData.generalDescription || !coverImage) && (
                   <div className="text-xs text-neutral-500 space-y-1">
                     <p className="font-medium">Required fields:</p>
                     <ul className="space-y-0.5">
@@ -529,9 +545,6 @@ export default function NewProductPage() {
                       </li>
                       <li className={formData.generalDescription ? 'text-green-600' : 'text-red-500'}>
                         {formData.generalDescription ? '✓' : '○'} General Description
-                      </li>
-                      <li className={formData.asin ? 'text-green-600' : 'text-red-500'}>
-                        {formData.asin ? '✓' : '○'} ASIN
                       </li>
                       <li className={coverImage ? 'text-green-600' : 'text-red-500'}>
                         {coverImage ? '✓' : '○'} Cover Image

@@ -164,6 +164,17 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
 
     const updateEdition = (field: string, value: string) => {
         const updated = [...editions];
+        if (!updated[0]) {
+            updated[0] = { 
+                name: 'Premium', 
+                link: '#', // Required by schema
+                asin: '', 
+                price: '', 
+                description: '', 
+                coverImage: '', 
+                aPlusContent: [] 
+            };
+        }
         updated[0] = { ...updated[0], [field]: value };
         setEditions(updated);
     };
@@ -171,15 +182,24 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const hasPremium = editions.some(ed => !!ed.asin);
+
         updateProductMutation.mutate({
             ...formData,
-            description: DEFAULT_STANDARD_DESCRIPTION,
+            description: hasPremium ? DEFAULT_STANDARD_DESCRIPTION : (formData.generalDescription || ''),
             coverImage,
             galleryImages,
             rating: formData.rating ? parseFloat(formData.rating) : undefined,
             reviewCount: formData.reviewCount ? parseInt(formData.reviewCount) : undefined,
             aPlusContent: aplusImages,
-            editions: editions.map((ed, i) => i === 0 ? { ...ed, description: DEFAULT_PREMIUM_DESCRIPTION } : ed),
+            editions: editions
+                .filter(ed => !!ed.asin)
+                .map(ed => ({ 
+                    ...ed, 
+                    name: ed.name || 'Premium',
+                    link: ed.link || '#', // Placeholder if somehow missing
+                    description: DEFAULT_PREMIUM_DESCRIPTION 
+                })),
         }, {
             onSuccess: () => {
                 toast({
@@ -347,24 +367,22 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                     <CardContent className="space-y-4">
                                         <div className="grid sm:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="asin">Standard Amazon ASIN *</Label>
+                                                <Label htmlFor="asin">Standard Amazon ASIN (optional)</Label>
                                                 <Input
                                                     id="asin"
                                                     value={formData.asin}
                                                     onChange={(e) => setFormData({ ...formData, asin: e.target.value.trim() })}
                                                     placeholder="e.g., B0GS1TS5HF"
-                                                    required
                                                     className="flex-1"
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="premiumAsin">Premium Amazon ASIN *</Label>
+                                                <Label htmlFor="premiumAsin">Premium Amazon ASIN (optional)</Label>
                                                 <Input
                                                     id="premiumAsin"
                                                     value={editions[0]?.asin || ''}
                                                     onChange={(e) => updateEdition('asin', e.target.value.trim())}
                                                     placeholder="e.g., B0GS1TS5HF"
-                                                    required
                                                     className="flex-1"
                                                 />
                                             </div>
@@ -547,7 +565,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                 <div className="pt-4 border-t border-neutral-100 space-y-2">
                                     <Button
                                         type="submit"
-                                        disabled={isLoading || !formData.title || !formData.generalDescription || !formData.asin || !coverImage}
+                                        disabled={isLoading || !formData.title || !formData.generalDescription || !coverImage}
                                         className="w-full bg-neutral-900 hover:bg-neutral-800 text-white"
                                     >
                                         {isLoading ? (
@@ -567,7 +585,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                     </Button>
                                 </div>
 
-                                {(!formData.title || !formData.generalDescription || !formData.asin || !coverImage) && (
+                                {(!formData.title || !formData.generalDescription || !coverImage) && (
                                     <div className="text-xs text-neutral-500 space-y-1">
                                         <p className="font-medium">Required fields:</p>
                                         <ul className="space-y-0.5">
@@ -576,9 +594,6 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                             </li>
                                             <li className={formData.generalDescription ? 'text-green-600' : 'text-red-500'}>
                                                 {formData.generalDescription ? '✓' : '○'} General Description
-                                            </li>
-                                            <li className={formData.asin ? 'text-green-600' : 'text-red-500'}>
-                                                {formData.asin ? '✓' : '○'} ASIN
                                             </li>
                                             <li className={coverImage ? 'text-green-600' : 'text-red-500'}>
                                                 {coverImage ? '✓' : '○'} Cover Image
