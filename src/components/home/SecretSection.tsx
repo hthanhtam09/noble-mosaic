@@ -19,7 +19,7 @@ export default function SecretSection() {
     {}
   );
 
-  const previewBooks = books.slice(0, 4);
+  const previewBooks = books.slice(0, 5);
 
   useEffect(() => {
     if (books.length > 0) {
@@ -66,43 +66,47 @@ export default function SecretSection() {
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
           </div>
         ) : previewBooks.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-6 mt-6">
             {previewBooks.map((book, index) => (
               <div
                 key={book._id}
-                className="w-[160px] sm:w-[200px] flex flex-col items-center"
+                className="p-2 flex flex-col items-center"
               >
-                <Link href={`/secret/${book.slug}`} className="group relative w-full max-w-[200px] sm:max-w-[240px] transition-all duration-500 hover:-translate-y-1 block">
-                  <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-                  <Image
-                    src={book.coverImage}
-                    alt={book.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 15vw"
-                    priority={index < 2}
-                  />
-
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-transparent to-transparent opacity-50 group-hover:opacity-70 transition-opacity z-10" />
+                <div className="relative w-full max-w-[200px] sm:max-w-[240px]">
+                  <Link href={`/secret/${book.slug}`} className="group block aspect-[3/4] relative overflow-hidden rounded-2xl">
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={book.coverImage}
+                        alt={book.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        priority={index < 2}
+                      />
+                    </div>
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-neutral-900/5 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+                  </Link>
 
                   {/* Lock icon */}
-                  <div className="absolute bottom-3 right-3 z-20 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-[var(--mosaic-teal)] transition-colors shadow-sm">
+                  <div className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-neutral-600 shadow-sm pointer-events-none group-hover:text-[var(--mosaic-teal)] transition-colors">
                     {unlockedBooks[book.slug] ? (
                       <LockOpen className="h-4 w-4" />
                     ) : (
                       <Lock className="h-4 w-4" />
                     )}
                   </div>
-                  </div>
-                </Link>
+                </div>
 
                 <div className="p-3 text-center w-full max-w-[200px] sm:max-w-[240px]">
                   <Link href={`/secret/${book.slug}`} className="group">
-                    <h3 className="text-[13px] sm:text-sm font-bold text-neutral-800 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-1 mb-1">
+                    <h3 className="font-semibold text-neutral-900 group-hover:text-[var(--mosaic-teal)] transition-colors line-clamp-2 mb-1">
                       {book.title}
                     </h3>
                   </Link>
+                  <div className="mt-1">
+                    <span className="text-sm font-medium text-neutral-500">Secret Base</span>
+                  </div>
                 </div>
               </div>
             ))}

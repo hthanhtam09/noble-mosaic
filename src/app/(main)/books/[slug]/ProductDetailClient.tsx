@@ -68,6 +68,7 @@ export default function ProductDetailClient() {
   const [showReadMore, setShowReadMore] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selectedRegionCode, setSelectedRegionCode] = useState<string>('US');
+  const [isHoveringGallery, setIsHoveringGallery] = useState(false);
 
   const { addItem, removeItem, isInWishlist } = useWishlist();
 
@@ -154,7 +155,12 @@ export default function ProductDetailClient() {
     ? product.editions[selectedEdition].description
     : product?.description;
 
-  const fullDescription = `${specificDescription || ''}\n\n${product?.generalDescription || ''}`.trim();
+  let fullDescription = specificDescription || '';
+  if (product?.generalDescription && !fullDescription.includes(product.generalDescription)) {
+    fullDescription = `${fullDescription}\n\n${product.generalDescription}`.trim();
+  } else {
+    fullDescription = fullDescription.trim();
+  }
 
   // Check if description needs Read More button
   useEffect(() => {
@@ -191,14 +197,14 @@ export default function ProductDetailClient() {
 
   // Auto-advance gallery images
   useEffect(() => {
-    if (allImages.length <= 1) return;
+    if (allImages.length <= 1 || isHoveringGallery) return;
 
     const interval = setInterval(() => {
       setSelectedImage((prev) => (prev + 1) % allImages.length);
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
-  }, [allImages.length]);
+  }, [allImages.length, isHoveringGallery]);
 
   // Set default edition if standard ASIN is missing
   useEffect(() => {
@@ -279,7 +285,11 @@ export default function ProductDetailClient() {
           <div className="layout-inner py-8 lg:py-12">
             <div className="grid lg:grid-cols-[1.2fr_1.4fr_1fr] gap-8 lg:gap-14 items-start">
               {/* Left: Image Gallery */}
-              <div className="space-y-4">
+              <div 
+                className="space-y-4"
+                onMouseEnter={() => setIsHoveringGallery(true)}
+                onMouseLeave={() => setIsHoveringGallery(false)}
+              >
                 {/* Main Image */}
                 <div className="relative aspect-3/4 bg-neutral-50 overflow-hidden rounded-sm">
                   <AnimatePresence mode="wait">
@@ -310,6 +320,7 @@ export default function ProductDetailClient() {
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
+                        onMouseEnter={() => setSelectedImage(index)}
                         className={`relative w-16 h-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImage === index
                           ? 'border-black shadow-md'
                           : 'border-neutral-200 hover:border-neutral-400'

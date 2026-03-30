@@ -63,7 +63,7 @@ export function useHomeProducts() {
     queryKey: [QUERY_KEYS.homeProducts],
     queryFn: async () => {
       const featuredData = await api
-        .get<any, HomeProductsResponse>("/products?featured=true&limit=4")
+        .get<any, HomeProductsResponse>("/products?featured=true&limit=5")
         .catch(() => ({ products: [] }));
 
       return {
