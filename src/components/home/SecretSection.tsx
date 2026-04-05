@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useSecretBooks } from "@/hooks/api/useSecrets";
-import { Lock, LockOpen, Loader2 } from "lucide-react";
+import { Lock, LockOpen, Loader2, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 
 interface SecretBook {
@@ -47,10 +48,20 @@ export default function SecretSection() {
     <section className="py-12 md:py-16">
       <div className="layout-inner">
         <div className="flex flex-col items-center justify-center gap-3 mb-2">
-          <div className="flex items-baseline gap-3 justify-center">
+          <div className="flex items-center gap-2 justify-center">
             <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-800 text-center">
               Secret Pages
             </h2>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center p-1 rounded-full text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors cursor-help">
+                  <HelpCircle className="h-5 w-5" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-center border bg-white text-neutral-800 shadow-sm z-50">
+                <p>See the answers and final picture. Don’t peek too early 👀</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           <Link
             href="/secret"
@@ -104,9 +115,6 @@ export default function SecretSection() {
                       {book.title}
                     </h3>
                   </Link>
-                  <div className="mt-1">
-                    <span className="text-sm font-medium text-neutral-500">Secret Base</span>
-                  </div>
                 </div>
               </div>
             ))}

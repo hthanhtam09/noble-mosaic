@@ -46,6 +46,7 @@ const TikTokIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+
 export default function AboutPage() {
   return (
     <>
@@ -357,7 +358,7 @@ export default function AboutPage() {
                 <TikTokIcon className="w-5 h-5 text-black" />
                 <span className="font-medium">TikTok</span>
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-neutral-600 hover:text-neutral-900 transition-colors bg-white px-6 py-3 rounded-full shadow-sm hover:shadow border border-stone-200">
+              <a href="https://www.facebook.com/groups/noblemosaiccoloringcommunity" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-neutral-600 hover:text-neutral-900 transition-colors bg-white px-6 py-3 rounded-full shadow-sm hover:shadow border border-stone-200">
                 <Facebook className="w-5 h-5 text-neutral-800" />
                 <span className="font-medium">Facebook Group</span>
               </a>
