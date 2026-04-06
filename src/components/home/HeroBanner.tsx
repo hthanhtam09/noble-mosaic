@@ -49,7 +49,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
           }}
           className="w-full"
         >
-          {heroBanners.map((banner) => (
+          {heroBanners.map((banner, index) => (
             <SwiperSlide key={banner._id}>
               <Link
                 href={banner.link}
@@ -60,7 +60,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   src={banner.imagePc || banner.image || ''}
                   alt={banner.title || 'Banner - PC'}
                   fill
-                  priority
+                  priority={index === 0}
                   sizes="(max-width: 1280px) 100vw, 1280px"
                   className="hidden md:block object-cover"
                 />
@@ -69,8 +69,8 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   src={banner.imageTablet || banner.image || ''}
                   alt={banner.title || 'Banner - Tablet'}
                   fill
-                  priority
-                  sizes="100vw"
+                  priority={index === 0}
+                  sizes="(max-width: 1024px) 100vw, 100vw"
                   className="hidden sm:block md:hidden object-cover"
                 />
                 {/* Mobile */}
@@ -78,8 +78,8 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   src={banner.imageMobile || banner.image || ''}
                   alt={banner.title || 'Banner - Mobile'}
                   fill
-                  priority
-                  sizes="100vw"
+                  priority={index === 0}
+                  sizes="(max-width: 640px) 100vw, 100vw"
                   className="block sm:hidden object-cover"
                 />
                 {/* Keeps SEO structure but removes visual overlay */}

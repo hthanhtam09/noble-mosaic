@@ -264,7 +264,7 @@ export default function ProductDetailClient() {
         ]}
       />
 
-      <div className="grow">
+      <div className="grow pb-[140px] lg:pb-0">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-neutral-100">
           <div className="layout-inner py-3">
@@ -285,8 +285,8 @@ export default function ProductDetailClient() {
           <div className="layout-inner py-8 lg:py-12">
             <div className="grid lg:grid-cols-[1.2fr_1.4fr_1fr] gap-8 lg:gap-14 items-start">
               {/* Left: Image Gallery */}
-              <div 
-                className="space-y-4"
+              <div
+                className="space-y-4 w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] mx-auto lg:max-w-none lg:mx-0 min-w-0"
                 onMouseEnter={() => setIsHoveringGallery(true)}
                 onMouseLeave={() => setIsHoveringGallery(false)}
               >
@@ -340,7 +340,7 @@ export default function ProductDetailClient() {
               </div>
 
               {/* Right: Product Info */}
-              <div className="lg:pl-2 flex flex-col">
+              <div className="lg:pl-2 flex flex-col min-w-0">
                 {/* Title */}
                 {product.isComingSoon && (
                   <div className="mb-3">
@@ -349,9 +349,42 @@ export default function ProductDetailClient() {
                     </span>
                   </div>
                 )}
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-neutral-900 leading-tight">
-                  {product.title}
-                </h1>
+                <div className="flex flex-col gap-3">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-neutral-900 leading-tight flex-wrap break-words">
+                    {product.title}
+                  </h1>
+
+                  {/* Mobile Price & Wishlist Row */}
+                  <div className="flex items-center justify-between lg:hidden mb-1">
+                    <span className="text-3xl font-black text-black block leading-none">
+                      {selectedEdition !== null && product.editions?.[selectedEdition]?.price
+                        ? product.editions[selectedEdition].price
+                        : product.price}
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (!mounted) return;
+                        if (isInWishlist(product._id)) {
+                          removeItem(product._id);
+                        } else {
+                          addItem({
+                            _id: product._id,
+                            title: product.title,
+                            slug: product.slug,
+                            coverImage: product.coverImage,
+                            price: product.price,
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center transition-all bg-neutral-100",
+                        mounted && isInWishlist(product._id) ? "text-orange-600 bg-orange-50" : "text-neutral-500"
+                      )}
+                    >
+                      <Heart className={cn("h-5 w-5", mounted && isInWishlist(product._id) && "fill-current")} />
+                    </button>
+                  </div>
+                </div>
                 <hr className="my-4" />
 
                 {/* Rating */}
@@ -389,7 +422,7 @@ export default function ProductDetailClient() {
                   >
                     <div
                       ref={descriptionRef}
-                      className="text-neutral-900 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-p:my-3 prose-headings:my-4 prose-headings:font-bold prose-h3:text-lg prose-ul:my-2 prose-ul:list-disc prose-strong:font-bold prose-strong:text-neutral-900 pb-2"
+                      className="text-neutral-900 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-p:my-3 prose-headings:my-4 prose-headings:font-bold prose-h3:text-lg prose-ul:my-2 prose-ul:list-disc prose-strong:font-bold prose-strong:text-neutral-900 pb-2 break-words overflow-hidden"
                     >
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -425,15 +458,15 @@ export default function ProductDetailClient() {
               </div>
 
               {/* Right: Purchase Options Column */}
-              <div className="lg:pl-6 flex flex-col pt-4 lg:pt-0 sticky top-24">
-                <div className="p-6 rounded-2xl border border-neutral-200 bg-white shadow-sm flex flex-col">
+              <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-200 p-4 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.05)] lg:relative lg:z-auto lg:p-0 lg:bg-transparent lg:border-none lg:shadow-none lg:block lg:pl-6 lg:pt-0 lg:sticky lg:top-24">
+                <div className="max-w-screen-xl mx-auto lg:p-6 lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:shadow-sm flex flex-col">
                   {/* Product Editions */}
                   {(product.asin || (product.editions && product.editions.some(e => e.asin))) && (
-                    <div className="mb-6">
-                      <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
+                    <div className="mb-3 lg:mb-6">
+                      <h3 className="hidden lg:block text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
                         Choose Edition
                       </h3>
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-row lg:flex-wrap w-full gap-2 lg:gap-3">
                         {[
                           ...(product.asin ? [{ name: 'Standard', value: null }] : []),
                           ...(product.editions
@@ -444,8 +477,8 @@ export default function ProductDetailClient() {
                           <button
                             key={ed.name}
                             onClick={() => setSelectedEdition(ed.value)}
-                            className={`relative px-5 py-3 rounded-xl border-2 text-sm font-bold transition-all overflow-hidden ${selectedEdition === ed.value
-                              ? 'border-black bg-black text-white shadow-md transform scale-[1.02]'
+                            className={`flex-1 shrink-0 relative px-2 py-2 lg:px-5 lg:py-3 rounded-xl border-2 text-sm font-bold transition-all overflow-hidden ${selectedEdition === ed.value
+                              ? 'border-black bg-black text-white shadow-md transform lg:scale-[1.02]'
                               : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
                               }`}
                           >
@@ -456,109 +489,109 @@ export default function ProductDetailClient() {
                     </div>
                   )}
 
-                  {/* Price */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
-                      Price
-                    </h3>
-                    <span className="text-3xl font-bold text-neutral-900 block">
-                      {selectedEdition !== null && product.editions?.[selectedEdition]?.price
-                        ? product.editions[selectedEdition].price
-                        : product.price}
-                    </span>
-                  </div>
+                  <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-stretch lg:gap-0">
+                    {/* Price */}
+                    <div className="hidden lg:block shrink-0">
+                      <h3 className="hidden lg:block text-sm font-semibold text-neutral-900 uppercase tracking-wider mb-3">
+                        Price
+                      </h3>
+                      <span className="text-3xl lg:text-3xl font-black text-orange-600 lg:text-neutral-900 block leading-none">
+                        {selectedEdition !== null && product.editions?.[selectedEdition]?.price
+                          ? product.editions[selectedEdition].price
+                          : product.price}
+                      </span>
+                    </div>
 
-                  <hr className="my-6" />
+                    <hr className="hidden lg:block my-6" />
 
-                  {/* CTA Section */}
-                  <div className="space-y-3">
-                    {product.isComingSoon ? (
-                      null
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex w-full rounded-xl shadow-sm h-12">
-                          <Button
-                            className="flex-1 rounded-r-none bg-primary hover:bg-primary/90 text-white text-base font-semibold h-full border-0 focus:ring-primary/50 transition-colors flex items-center justify-center relative px-10"
-                            onClick={() => handleRegionChange(selectedRegionCode)}
-                          >
-                            Buy on Amazon
-                            <div className="absolute right-4 flex items-center gap-2">
-                              {mounted && (() => {
-                                const m = AMAZON_MARKETPLACES.find(m => m.code === selectedRegionCode) || AMAZON_MARKETPLACES[0];
-                                return (
-                                  <img
-                                    src={`https://flagcdn.com/w20/${m.countryCode}.png`}
-                                    srcSet={`https://flagcdn.com/w40/${m.countryCode}.png 2x`}
-                                    width="20"
-                                    alt={m.name}
-                                    className="rounded-[2px] object-cover shadow-[0_0_2px_rgba(0,0,0,0.3)]"
-                                  />
-                                )
-                              })()}
-                              <ExternalLink className="h-4 w-4 text-white/90" />
-                            </div>
-                          </Button>
-                          <DropdownMenu modal={false}>
-                            <DropdownMenuTrigger asChild>
-                              <Button className="rounded-l-none bg-primary hover:bg-primary/90 border-l border-white/20 text-white h-full w-12 px-0 focus:ring-primary/50 transition-colors flex items-center justify-center">
-                                <ChevronDown className="h-5 w-5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="max-h-75 w-64">
-                              {AMAZON_MARKETPLACES.map((market) => (
-                                <DropdownMenuItem
-                                  key={market.code}
-                                  onClick={() => handleRegionChange(market.code)}
-                                  className="cursor-pointer"
-                                >
-                                  <div className="flex items-center justify-between gap-2 w-full pr-2">
-                                    <div className="flex items-center gap-2">
-                                      <img
-                                        src={`https://flagcdn.com/w20/${market.countryCode}.png`}
-                                        srcSet={`https://flagcdn.com/w40/${market.countryCode}.png 2x`}
-                                        width="20"
-                                        alt={market.name}
-                                        className="rounded-[2px] object-cover shadow-sm"
-                                      />
-                                      <span className={cn("font-medium", selectedRegionCode === market.code ? "text-orange-600 font-bold" : "")}>{market.name}</span>
+                    <div className="flex-1 flex flex-col justify-end lg:space-y-3 lg:gap-0 mt-2 lg:mt-0 w-full">
+                      {product.isComingSoon ? null : (
+                        <div className="w-full lg:space-y-2 lg:max-w-none">
+                          <div className="flex w-full overflow-hidden rounded-xl shadow-[0_4px_14px_rgba(234,88,12,0.3)] lg:shadow-sm h-14 lg:h-12 border lg:border-none border-(--mosaic-orange)">
+                            <Button
+                              className="flex-1 rounded-r-none bg-primary hover:bg-primary/90 text-white text-base sm:text-lg font-bold h-full border-0 focus:ring-primary/50 transition-colors flex items-center justify-center relative px-2 sm:px-10"
+                              onClick={() => handleRegionChange(selectedRegionCode)}
+                            >
+                              <span className="truncate">Buy on Amazon</span>
+                              <div className="absolute right-2 sm:right-4 flex items-center gap-1 sm:gap-2">
+                                {mounted && (() => {
+                                  const m = AMAZON_MARKETPLACES.find(m => m.code === selectedRegionCode) || AMAZON_MARKETPLACES[0];
+                                  return (
+                                    <img
+                                      src={`https://flagcdn.com/w20/${m.countryCode}.png`}
+                                      srcSet={`https://flagcdn.com/w40/${m.countryCode}.png 2x`}
+                                      width="20"
+                                      alt={m.name}
+                                      className="rounded-[2px] object-cover shadow-[0_0_2px_rgba(0,0,0,0.3)]"
+                                    />
+                                  )
+                                })()}
+                                <ExternalLink className="hidden sm:block h-4 w-4 text-white/90" />
+                              </div>
+                            </Button>
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger asChild>
+                                <Button className="rounded-l-none bg-primary hover:bg-primary/90 border-l border-white/20 text-white h-full w-12 sm:w-14 px-0 focus:ring-primary/50 transition-colors flex items-center justify-center shrink-0">
+                                  <ChevronDown className="h-5 w-5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="max-h-75 w-64">
+                                {AMAZON_MARKETPLACES.map((market) => (
+                                  <DropdownMenuItem
+                                    key={market.code}
+                                    onClick={() => handleRegionChange(market.code)}
+                                    className="cursor-pointer"
+                                  >
+                                    <div className="flex items-center justify-between gap-2 w-full pr-2">
+                                      <div className="flex items-center gap-2">
+                                        <img
+                                          src={`https://flagcdn.com/w20/${market.countryCode}.png`}
+                                          srcSet={`https://flagcdn.com/w40/${market.countryCode}.png 2x`}
+                                          width="20"
+                                          alt={market.name}
+                                          className="rounded-[2px] object-cover shadow-sm"
+                                        />
+                                        <span className={cn("font-medium", selectedRegionCode === market.code ? "text-orange-600 font-bold" : "")}>{market.name}</span>
+                                      </div>
+                                      <span className="text-neutral-400 text-xs">({market.domain})</span>
                                     </div>
-                                    <span className="text-neutral-400 text-xs">({market.domain})</span>
-                                  </div>
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                          <p className="hidden lg:block text-center text-xs text-neutral-500 mt-2 font-medium">Select your Amazon marketplace</p>
                         </div>
-                        <p className="text-center text-xs text-neutral-500 mt-2 font-medium">Select your Amazon marketplace</p>
-                      </div>
-                    )}
-                    <Button
-                      onClick={() => {
-                        if (!mounted) return;
-                        if (isInWishlist(product._id)) {
-                          removeItem(product._id);
-                        } else {
-                          addItem({
-                            _id: product._id,
-                            title: product.title,
-                            slug: product.slug,
-                            coverImage: product.coverImage,
-                            price: product.price,
-                          });
-                        }
-                      }}
-                      variant="outline"
-                      size="lg"
-                      className={cn(
-                        "w-full rounded-full h-12 border-2 text-base font-semibold transition-all",
-                        mounted && isInWishlist(product._id)
-                          ? "border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700"
-                          : "border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"
                       )}
-                    >
-                      <Heart className={cn("h-5 w-5 mr-2", mounted && isInWishlist(product._id) && "fill-current")} />
-                      {mounted && isInWishlist(product._id) ? "In Wishlist" : "Add to Wishlist"}
-                    </Button>
+
+                      <Button
+                        onClick={() => {
+                          if (!mounted) return;
+                          if (isInWishlist(product._id)) {
+                            removeItem(product._id);
+                          } else {
+                            addItem({
+                              _id: product._id,
+                              title: product.title,
+                              slug: product.slug,
+                              coverImage: product.coverImage,
+                              price: product.price,
+                            });
+                          }
+                        }}
+                        variant="outline"
+                        size="lg"
+                        className={cn(
+                          "hidden lg:flex w-full rounded-full h-12 border-2 transition-all text-base font-semibold items-center justify-center",
+                          mounted && isInWishlist(product._id)
+                            ? "border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700"
+                            : "border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"
+                        )}
+                      >
+                        <Heart className={cn("h-5 w-5 lg:mr-2", mounted && isInWishlist(product._id) && "fill-current")} />
+                        <span className="hidden lg:inline">{mounted && isInWishlist(product._id) ? "In Wishlist" : "Add to Wishlist"}</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -589,7 +622,7 @@ export default function ProductDetailClient() {
         {/* SECTION 4: Simple A+ Content Layout                           */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="bg-white">
-          <div className="mx-auto max-w-242.5 py-16 space-y-12">
+          <div className="mx-auto max-w-[970px] py-16 space-y-12 px-4 lg:px-0">
             {currentAPlusContent.length > 0 && (
               <div className="space-y-6">
                 {currentAPlusContent.map((imgSrc, i) => (

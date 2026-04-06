@@ -41,7 +41,7 @@ export default function Footer() {
         <div className="absolute top-1/2 left-1/2 w-48 h-48 rounded-full bg-(--mosaic-purple)" />
       </div>
 
-      <div className="relative layout-inner py-12 lg:py-16">
+      <div className="relative layout-inner pt-12 pb-48 lg:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-8 lg:gap-12">
 
 

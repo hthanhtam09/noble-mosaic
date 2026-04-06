@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 import HeroBanner from "@/components/home/HeroBanner";
 import NewRelease from "@/components/home/NewRelease";
-import SecretSection from "@/components/home/SecretSection";
-import PatternSection from "@/components/home/PatternSection";
-import FAQSection from "@/components/home/FAQSection";
-import GiftFloatingWidget from "@/components/home/GiftFloatingWidget";
+
+const SecretSection = nextDynamic(() => import("@/components/home/SecretSection"));
+const PatternSection = nextDynamic(() => import("@/components/home/PatternSection"));
+const FAQSection = nextDynamic(() => import("@/components/home/FAQSection"));
+const GiftFloatingWidget = nextDynamic(() => import("@/components/home/GiftFloatingWidget"));
 import connectDB from "@/lib/mongodb";
 import BannerModel from "@/models/Banner";
 
