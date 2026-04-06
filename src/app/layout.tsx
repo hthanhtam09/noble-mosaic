@@ -55,9 +55,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/logo.png",
-        width: 1200,
-        height: 630,
+        url: "/banner.png",
+        width: 1920,
+        height: 1080,
         alt: "Noble Mosaic - Mosaic Color By Number Books",
       },
     ],
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Noble Mosaic | Mosaic Color By Number Books",
     description: "Discover mosaic color by number books designed for mindful relaxation and creative expression.",
-    images: ["/logo.png"],
+    images: ["/banner.png"],
   },
   robots: {
     index: true,
