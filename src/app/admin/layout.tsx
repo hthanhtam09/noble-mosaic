@@ -2,19 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { IBM_Plex_Sans } from "next/font/google";
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-
-
-
-const ibmPlexSans = IBM_Plex_Sans({
-  variable: "--font-ibm-plex-sans",
-  subsets: ["latin"],
-  weight: "400",
-});
-
 import {
   Home, BookOpen, MessageSquare, LogOut, Menu, X,
   Users, ShoppingBag, Settings, Lock, Gift, ImageIcon
@@ -88,7 +78,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className={`${ibmPlexSans.variable} min-h-screen bg-neutral-100`}>
+    <div className="font-sans min-h-screen bg-neutral-100">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
