@@ -53,8 +53,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   return (
     <div className="p-2 flex flex-col items-center">
-      <div className="relative w-full max-w-[200px] sm:max-w-[240px]">
-        <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="group block aspect-[3/4] relative overflow-hidden rounded-2xl">
+      <div className="relative w-full max-w-50 sm:max-w-60">
+        <Link prefetch={true} href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="group block aspect-3/4 relative overflow-hidden rounded-2xl">
           <div className="relative w-full h-full">
             <Image
               src={product.coverImage}
@@ -68,7 +68,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <div className="absolute inset-0 bg-neutral-900/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
           {product.isComingSoon && (
-            <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 bg-[var(--mosaic-gold)] backdrop-blur-sm text-white text-xs sm:text-sm font-bold uppercase tracking-widest py-3 px-4 shadow-xl z-20 flex items-center justify-center transform -rotate-3 border-y border-[var(--mosaic-gold)]/20">
+            <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 bg-(--mosaic-gold) backdrop-blur-sm text-white text-xs sm:text-sm font-bold uppercase tracking-widest py-3 px-4 shadow-xl z-20 flex items-center justify-center transform -rotate-3 border-y border-(--mosaic-gold)/20">
               Coming Soon
             </div>
           )}
@@ -90,9 +90,9 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       </div>
 
       {/* Content */}
-      <div className="p-3 text-center w-full max-w-[200px] sm:max-w-[240px]">
-        <Link href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="group">
-          <h3 className="font-semibold text-neutral-900 group-hover:text-[var(--mosaic-purple)] transition-colors line-clamp-2 mb-1">
+      <div className="p-3 text-center w-full max-w-50 sm:max-w-60">
+        <Link prefetch={true} href={product.slug.startsWith('/') ? product.slug : `/books/${product.slug}`} className="group">
+          <h3 className="font-semibold text-neutral-900 group-hover:text-(--mosaic-purple) transition-colors line-clamp-2 mb-1">
             {product.title}
           </h3>
         </Link>

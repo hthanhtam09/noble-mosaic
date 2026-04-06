@@ -15,10 +15,12 @@ import "swiper/css/navigation";
 
 import { useBanners } from "@/hooks/api/useBanners";
 
-export default function HeroBanner() {
-  const { data: heroBanners = [], isLoading } = useBanners();
+export default function HeroBanner({ initialBanners = [] }: { initialBanners?: any[] }) {
+  // Use initialBanners for SSR LCP, overriding the client hook if provided
+  const { data: heroBannersData = [], isLoading } = useBanners();
+  const heroBanners = initialBanners.length > 0 ? initialBanners : heroBannersData;
 
-  if (isLoading) {
+  if (isLoading && initialBanners.length === 0) {
     return (
       <section className="layout-inner hero-banner relative w-full pt-8 pb-10 md:pt-12 md:pb-16 flex justify-center items-center aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900" />

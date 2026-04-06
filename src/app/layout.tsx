@@ -42,10 +42,9 @@ export const metadata: Metadata = {
   publisher: "Noble Mosaic",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "32x32" },
-      { url: "/favicon.ico", sizes: "16x16" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: "/logo.png",
+    apple: "/favicon.ico",
   },
   openGraph: {
     title: "Noble Mosaic | Mosaic Color By Number Books",

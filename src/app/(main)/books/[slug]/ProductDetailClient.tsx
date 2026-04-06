@@ -639,6 +639,7 @@ export default function ProductDetailClient() {
                 {relatedProducts.map((relProduct) => (
                   <Link
                     key={relProduct._id}
+                    prefetch={true}
                     href={`/books/${relProduct.slug}`}
                     className="series-item group"
                   >
