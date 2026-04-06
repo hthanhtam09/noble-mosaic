@@ -58,7 +58,6 @@ export default function WishlistPageClient() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/books">
                 <Button className="rounded-xl text-white w-full sm:w-auto px-8 py-6 h-auto text-lg">
-                  <ShoppingBag className="h-5 w-5 mr-2" />
                   Continue Shopping
                 </Button>
               </Link>

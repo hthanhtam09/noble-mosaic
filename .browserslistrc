@@ -1,4 +1,4 @@
-> 0.3%
-not dead
-last 2 versions
+defaults
+not ie <= 11
 not op_mini all
+supports es6-module

@@ -22,8 +22,12 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
 
   if (isLoading && initialBanners.length === 0) {
     return (
-      <section className="layout-inner hero-banner relative w-full pt-8 pb-10 md:pt-12 md:pb-16 flex justify-center items-center aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900" />
+      <section className="layout-inner hero-banner relative w-full pt-8 pb-10 md:pt-12 md:pb-16">
+        <div className="mx-auto max-w-screen">
+          <div className="w-full relative rounded-2xl md:rounded-[32px] overflow-hidden aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] bg-neutral-100/50 flex justify-center items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900" />
+          </div>
+        </div>
       </section>
     );
   }
@@ -61,6 +65,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   alt={banner.title || 'Banner - PC'}
                   fill
                   priority={index === 0}
+                  fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(max-width: 1280px) 100vw, 1280px"
                   className="hidden md:block object-cover"
                 />
@@ -70,6 +75,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   alt={banner.title || 'Banner - Tablet'}
                   fill
                   priority={index === 0}
+                  fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(max-width: 1024px) 100vw, 100vw"
                   className="hidden sm:block md:hidden object-cover"
                 />
@@ -79,6 +85,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   alt={banner.title || 'Banner - Mobile'}
                   fill
                   priority={index === 0}
+                  fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(max-width: 640px) 100vw, 100vw"
                   className="block sm:hidden object-cover"
                 />

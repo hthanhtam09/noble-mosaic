@@ -51,12 +51,12 @@ export default function Header() {
             <div className="absolute right-0 flex items-center pr-2 md:pr-4">
               <Link
                 href="/wishlist"
-                className="relative p-2 text-neutral-600 hover:bg-orange-50 hover:text-orange-500 transition-colors rounded-full"
+                className="relative p-2 text-neutral-600 hover:bg-orange-50 hover:text-orange-700 transition-colors rounded-full"
                 aria-label="Wishlist"
               >
                 <Heart className="h-6 w-6" />
                 {mounted && wishlistItems.length > 0 && (
-                  <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center translate-x-0 translate-y-0 border border-white">
+                  <span className="absolute top-0 right-0 bg-orange-700 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center translate-x-0 translate-y-0 border border-white">
                     {wishlistItems.length}
                   </span>
                 )}
@@ -94,13 +94,6 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
-            <Link
-              href="/gift"
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-extrabold text-white bg-orange-500 rounded-full hover:bg-orange-600 transition-colors ml-2 shadow-lg shadow-orange-200"
-            >
-              <Gift className="h-4 w-4" />
-              Gift
-            </Link>
           </div>
         </nav>
       </div>
@@ -123,14 +116,6 @@ export default function Header() {
               {item.name}
             </Link>
           ))}
-          <Link
-            href="/gift"
-            className="flex items-center gap-2 px-4 py-3 text-base font-extrabold text-orange-500 bg-orange-50 rounded-2xl mt-2 border border-orange-100"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Gift className="h-5 w-5" />
-            Gift
-          </Link>
         </div>
       </div>
     </>
