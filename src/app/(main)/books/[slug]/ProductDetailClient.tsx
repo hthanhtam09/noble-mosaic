@@ -29,11 +29,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
-import rehypeRaw from 'rehype-raw';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const MarkdownRenderer = dynamic(() => import('@/components/ui/MarkdownRenderer'), { ssr: true });
 import {
   ProductJsonLd,
   BreadcrumbJsonLd,
@@ -65,7 +64,7 @@ export default function ProductDetailClient() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedEdition, setSelectedEdition] = useState<number | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [showReadMore, setShowReadMore] = useState(false);
+  const [showReadMore, setShowReadMore] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [selectedRegionCode, setSelectedRegionCode] = useState<string>('US');
   const [isHoveringGallery, setIsHoveringGallery] = useState(false);
@@ -306,8 +305,9 @@ export default function ProductDetailClient() {
                         alt={`${product.title} - Mosaic Color By Number Book`}
                         fill
                         className="object-cover"
-                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        sizes="(max-width: 768px) 360px, 500px"
                         priority
+                        fetchPriority="high"
                       />
                     </motion.div>
                   </AnimatePresence>
@@ -414,24 +414,22 @@ export default function ProductDetailClient() {
 
                 {/* Description */}
                 <div className="relative">
-                  <motion.div
-                    initial={false}
-                    animate={{ height: isDescriptionExpanded || !showReadMore ? 'auto' : 450 }}
-                    className="overflow-hidden"
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  <div
+                    className={cn(
+                      "overflow-hidden transition-[max-height] duration-500 ease-in-out relative",
+                      (isDescriptionExpanded || !showReadMore) ? "max-h-[5000px]" : "max-h-[450px]"
+                    )}
                   >
                     <div
                       ref={descriptionRef}
-                      className="text-neutral-900 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-p:my-3 prose-headings:my-4 prose-headings:font-bold prose-h3:text-lg prose-ul:my-2 prose-ul:list-disc prose-strong:font-bold prose-strong:text-neutral-900 pb-2 break-words overflow-hidden"
+                      className="text-neutral-900 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-p:my-3 prose-headings:my-4 prose-headings:font-bold prose-h3:text-lg prose-ul:my-2 prose-ul:list-disc prose-strong:font-bold prose-strong:text-neutral-900 pb-2 break-words"
                     >
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkBreaks]}
-                        rehypePlugins={[rehypeRaw]}
-                      >
-                        {fullDescription}
-                      </ReactMarkdown>
+                      <MarkdownRenderer content={fullDescription} />
                     </div>
-                  </motion.div>
+                    {showReadMore && !isDescriptionExpanded && (
+                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                    )}
+                  </div>
 
                   {showReadMore && (
                     <div className="mt-4 flex justify-start">
