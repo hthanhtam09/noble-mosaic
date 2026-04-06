@@ -61,9 +61,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               alt={product.title}
               fill
               priority={priority}
+              quality={65}
               fetchPriority={priority ? "high" : "auto"}
               className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              sizes="(max-width: 640px) 200px, (max-width: 1024px) 250px, 300px"
             />
           </div>
           <div className="absolute inset-0 bg-neutral-900/5 opacity-0 group-hover:opacity-100 transition-opacity" />

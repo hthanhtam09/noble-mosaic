@@ -307,6 +307,7 @@ export default function ProductDetailClient() {
                         className="object-cover"
                         sizes="(max-width: 768px) 360px, 500px"
                         priority
+                        quality={70}
                         fetchPriority="high"
                       />
                     </motion.div>

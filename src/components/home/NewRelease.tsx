@@ -26,8 +26,18 @@ export default function NewRelease() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-6 mt-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="p-2 flex flex-col items-center w-full">
+                <div className="relative w-full max-w-50 sm:max-w-60">
+                  <div className="w-full aspect-3/4 bg-neutral-100/60 animate-pulse rounded-2xl" />
+                </div>
+                <div className="p-3 w-full max-w-50 sm:max-w-60 flex flex-col items-center">
+                  <div className="h-4 bg-neutral-100/60 animate-pulse rounded w-3/4 mb-3 mt-1" />
+                  <div className="h-6 bg-neutral-100/60 animate-pulse rounded w-1/2" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : featuredProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-6 mt-6">

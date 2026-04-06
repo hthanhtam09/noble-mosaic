@@ -65,6 +65,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   alt={banner.title || 'Banner - PC'}
                   fill
                   priority={index === 0}
+                  quality={70}
                   fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(max-width: 1280px) 100vw, 1280px"
                   className="hidden md:block object-cover"
@@ -75,6 +76,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   alt={banner.title || 'Banner - Tablet'}
                   fill
                   priority={index === 0}
+                  quality={70}
                   fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(max-width: 1024px) 100vw, 100vw"
                   className="hidden sm:block md:hidden object-cover"
@@ -85,6 +87,7 @@ export default function HeroBanner({ initialBanners = [] }: { initialBanners?: a
                   alt={banner.title || 'Banner - Mobile'}
                   fill
                   priority={index === 0}
+                  quality={70}
                   fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(max-width: 640px) 100vw, 100vw"
                   className="block sm:hidden object-cover"

@@ -40,9 +40,9 @@ export default function Header() {
               <Image
                 src="/logo.png"
                 alt="Noble Mosaic"
-                width={500}
-                height={100}
-                unoptimized
+                width={224}
+                height={112}
+                quality={85}
                 className="h-16 md:h-20 w-auto"
                 priority
               />
