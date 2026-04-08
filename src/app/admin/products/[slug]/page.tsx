@@ -165,14 +165,14 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
     const updateEdition = (field: string, value: string) => {
         const updated = [...editions];
         if (!updated[0]) {
-            updated[0] = { 
-                name: 'Premium', 
+            updated[0] = {
+                name: 'Premium',
                 link: '#', // Required by schema
-                asin: '', 
-                price: '', 
-                description: '', 
-                coverImage: '', 
-                aPlusContent: [] 
+                asin: '',
+                price: '',
+                description: '',
+                coverImage: '',
+                aPlusContent: []
             };
         }
         updated[0] = { ...updated[0], [field]: value };
@@ -182,11 +182,13 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const hasStandard = !!formData.asin;
         const hasPremium = editions.some(ed => !!ed.asin);
+        const hasBoth = hasStandard && hasPremium;
 
         updateProductMutation.mutate({
             ...formData,
-            description: hasPremium ? DEFAULT_STANDARD_DESCRIPTION : (formData.generalDescription || ''),
+            description: hasBoth ? DEFAULT_STANDARD_DESCRIPTION : (formData.generalDescription || ''),
             coverImage,
             galleryImages,
             rating: formData.rating ? parseFloat(formData.rating) : undefined,
@@ -194,11 +196,11 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
             aPlusContent: aplusImages,
             editions: editions
                 .filter(ed => !!ed.asin)
-                .map(ed => ({ 
-                    ...ed, 
+                .map(ed => ({
+                    ...ed,
                     name: ed.name || 'Premium',
                     link: ed.link || '#', // Placeholder if somehow missing
-                    description: DEFAULT_PREMIUM_DESCRIPTION 
+                    description: hasBoth ? DEFAULT_PREMIUM_DESCRIPTION : (formData.generalDescription || '')
                 })),
         }, {
             onSuccess: () => {
@@ -221,7 +223,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
 
     if (isFetching) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex items-center justify-center min-h-100">
                 <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
             </div>
         );
@@ -549,11 +551,11 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                 <div className="pt-4 border-t border-neutral-100">
                                     <h3 className="text-sm font-medium mb-3">Product Preview</h3>
                                     {coverImage ? (
-                                        <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-neutral-100 mb-3">
+                                        <div className="relative aspect-3/4 rounded-lg overflow-hidden bg-neutral-100 mb-3">
                                             <Image src={coverImage} alt="Preview" fill className="object-cover" />
                                         </div>
                                     ) : (
-                                        <div className="aspect-[3/4] rounded-lg bg-neutral-100 flex items-center justify-center mb-3">
+                                        <div className="aspect-3/4 rounded-lg bg-neutral-100 flex items-center justify-center mb-3">
                                             <ImageIcon className="h-8 w-8 text-neutral-300" />
                                         </div>
                                     )}

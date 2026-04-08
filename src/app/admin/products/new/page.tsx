@@ -122,14 +122,14 @@ export default function NewProductPage() {
   const updateEdition = (field: string, value: string) => {
     const updated = [...editions];
     if (!updated[0]) {
-      updated[0] = { 
-        name: 'Premium', 
-        link: '#', 
-        asin: '', 
-        price: '', 
-        description: '', 
-        coverImage: '', 
-        aPlusContent: [] 
+      updated[0] = {
+        name: 'Premium',
+        link: '#',
+        asin: '',
+        price: '',
+        description: '',
+        coverImage: '',
+        aPlusContent: []
       };
     }
     updated[0] = { ...updated[0], [field]: value };
@@ -139,11 +139,13 @@ export default function NewProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const hasStandard = !!formData.asin;
     const hasPremium = editions.some(ed => !!ed.asin);
+    const hasBoth = hasStandard && hasPremium;
 
     createProductMutation.mutate({
       ...formData,
-      description: hasPremium ? DEFAULT_STANDARD_DESCRIPTION : (formData.generalDescription || ''),
+      description: hasBoth ? DEFAULT_STANDARD_DESCRIPTION : (formData.generalDescription || ''),
       coverImage,
       galleryImages,
       rating: formData.rating ? parseFloat(formData.rating) : undefined,
@@ -151,11 +153,11 @@ export default function NewProductPage() {
       aPlusContent: aplusImages,
       editions: editions
         .filter(ed => !!ed.asin)
-        .map(ed => ({ 
-          ...ed, 
-          name: ed.name || 'Premium', 
+        .map(ed => ({
+          ...ed,
+          name: ed.name || 'Premium',
           link: ed.link || '#',
-          description: DEFAULT_PREMIUM_DESCRIPTION 
+          description: hasBoth ? DEFAULT_PREMIUM_DESCRIPTION : (formData.generalDescription || '')
         })),
     }, {
       onSuccess: () => {

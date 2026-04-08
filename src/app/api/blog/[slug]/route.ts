@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb';
 import { BlogPost } from '@/models/BlogPost';
 import { withAuth } from '@/lib/auth';
 import { updateDocumentAndCleanImages, deleteDocumentAndCleanImages } from '@/lib/crud-utils';
+import { generateExcerpt, extractKeywords } from '@/lib/blogSeo';
 
 export async function GET(
   request: NextRequest,
@@ -51,6 +52,16 @@ export const PUT = withAuth(async (
       if (existingPost.slug !== expectedSlug) {
         body.slug = expectedSlug;
       }
+    }
+
+    // Auto-generate excerpt if missing
+    if (!body.excerpt && body.content) {
+      body.excerpt = generateExcerpt(body.content);
+    }
+    
+    // Auto-generate SEO keywords if missing
+    if ((!body.seoKeywords || body.seoKeywords.length === 0) && body.content) {
+      body.seoKeywords = extractKeywords(body.title || existingPost.title, body.content);
     }
 
     const post = await updateDocumentAndCleanImages(BlogPost, { slug }, body);

@@ -25,6 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: post.title,
       description: post.excerpt?.slice(0, 160) || `${post.title} - Noble Mosaic Blog`,
+      keywords: post.seoKeywords?.join(', ') || undefined,
       alternates: {
         canonical: `https://noblemosaic.com/blog/${slug}`,
       },

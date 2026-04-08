@@ -13,6 +13,7 @@ export interface BlogPost {
   published: boolean;
   createdAt: string;
   content?: string;
+  seoKeywords?: string[];
 }
 
 export interface RelatedPost {
@@ -69,6 +70,35 @@ export function useDeleteBlogPost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts, 'admin'] });
+    }
+  });
+}
+
+export function useCreateBlogPost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<BlogPost>) => {
+      const response = await api.post<any, { post: BlogPost }>('/blog', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts, 'admin'] });
+    }
+  });
+}
+
+export function useUpdateBlogPost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ slug, data }: { slug: string; data: Partial<BlogPost> }) => {
+      const response = await api.put<any, { post: BlogPost }>(`/blog/${slug}`, data);
+      return response;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPosts, 'admin'] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.blogPost, variables.slug] });
     }
   });
 }

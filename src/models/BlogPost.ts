@@ -9,6 +9,7 @@ export interface IBlogPost {
   thumbnail: string;
   category: string;
   tags: string[];
+  seoKeywords?: string[];
   published: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +24,7 @@ const BlogPostSchema = new mongoose.Schema<IBlogPost>(
     thumbnail: { type: String, required: true },
     category: { type: String, default: 'General' },
     tags: [{ type: String }],
+    seoKeywords: [{ type: String }],
     published: { type: Boolean, default: true },
   },
   { timestamps: true }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { BlogPost } from '@/models/BlogPost';
+import { withAuth } from '@/lib/auth';
+import { generateExcerpt, extractKeywords } from '@/lib/blogSeo';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +39,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     await connectDB();
     
@@ -49,6 +51,16 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
     
+    // Auto-generate excerpt if missing
+    if (!body.excerpt && body.content) {
+      body.excerpt = generateExcerpt(body.content);
+    }
+    
+    // Auto-generate SEO keywords if missing
+    if ((!body.seoKeywords || body.seoKeywords.length === 0) && body.content) {
+      body.seoKeywords = extractKeywords(body.title, body.content);
+    }
+    
     const post = await BlogPost.create({
       ...body,
       slug,
@@ -59,4 +71,4 @@ export async function POST(request: NextRequest) {
     console.error('Error creating blog post:', error);
     return NextResponse.json({ error: 'Failed to create blog post' }, { status: 500 });
   }
-}
+});

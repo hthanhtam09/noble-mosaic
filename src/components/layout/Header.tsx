@@ -12,7 +12,7 @@ const navigation = [
   { name: "Books", href: "/books" },
   { name: "Secret", href: "/secret" },
   { name: "About", href: "/about" },
-  // { name: "Blog", href: "/blog" },
+  { name: "Blog", href: "/blog" },
   // { name: "Contact", href: "/contact" },
 ];
 
@@ -82,7 +82,7 @@ export default function Header() {
       </header>
 
       {/* Desktop Navigation (Sticky) */}
-      <div className="sticky top-0 z-50 hidden md:block w-full bg-white/90 backdrop-blur-md">
+      <div className="sticky top-0 z-50 hidden md:block w-full bg-white/80 backdrop-blur-md border-b border-neutral-100">
         <nav className="layout-inner pb-4 pt-2" aria-label="Main navigation">
           <div className="flex md:items-center md:justify-center md:gap-x-1">
             {navigation.map((item) => (

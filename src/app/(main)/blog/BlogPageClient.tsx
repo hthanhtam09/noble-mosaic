@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useBlogPosts } from '@/hooks/api/useBlog';
+import { useBlogPosts, BlogPost } from '@/hooks/api/useBlog';
 import Link from 'next/link';
 import Image from 'next/image';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, ArrowRight, Loader2, Clock } from 'lucide-react';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 export default function BlogPageClient() {
@@ -17,6 +17,10 @@ export default function BlogPageClient() {
 
   const categories = ['All', ...new Set(posts.map(p => p.category).filter(Boolean))];
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const getReadTime = (p: BlogPost) =>
+    `${Math.max(1, Math.ceil((p.content || '').split(/\s+/).length / 200))} min read`;
+
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -104,13 +108,9 @@ export default function BlogPageClient() {
                           {displayedPosts[0].excerpt}
                         </p>
                         <div className="flex items-center gap-4 text-sm text-neutral-500">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            {new Date(displayedPosts[0].createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            {getReadTime(displayedPosts[0])}
                           </span>
                         </div>
                       </div>
@@ -157,6 +157,10 @@ export default function BlogPageClient() {
                                 month: 'short',
                                 day: 'numeric'
                               })}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {getReadTime(post)}
                             </span>
                           </div>
                           <span className="text-sm font-medium text-neutral-900 group-hover:text-neutral-700 flex items-center gap-1">
