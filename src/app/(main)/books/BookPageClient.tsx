@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import {  Suspense } from 'react';
 import { useProducts } from '@/hooks/api/useProducts';
-import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/products/ProductCard';
 
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Grid3X3, LayoutGrid, X, Palette, Filter, Loader2 } from 'lucide-react';
+import {  X, Palette,  Loader2 } from 'lucide-react';
 import { CollectionPageJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 import {
   Pagination,
@@ -108,7 +106,7 @@ function BookContent() {
             <>
               <div className={`
                 grid gap-x-6 gap-y-10
-                grid-cols-2 lg:grid-cols-3 xl:grid-cols-5
+                grid-cols-2 lg:grid-cols-3 xl:grid-cols-6
               `}>
                 {displayedProducts.map((product, index) => (
                   <ProductCard key={product._id} product={product} priority={index < 4} />

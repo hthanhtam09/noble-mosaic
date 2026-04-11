@@ -20,7 +20,7 @@ export default function SecretSection() {
     {}
   );
 
-  const previewBooks = books.slice(0, 5);
+  const previewBooks = books.slice(0, 6);
 
   useEffect(() => {
     if (books.length > 0) {
@@ -77,7 +77,7 @@ export default function SecretSection() {
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
           </div>
         ) : previewBooks.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-6 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-6 gap-6 mt-6">
             {previewBooks.map((book, index) => (
               <div
                 key={book._id}

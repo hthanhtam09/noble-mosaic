@@ -154,7 +154,7 @@ export default function SecretPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10 [content-visibility:auto]">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-10 [content-visibility:auto]">
                   {displayedBooks.map((book, index) => (
                     <div key={book._id} className="flex flex-col items-center group/card">
                       <Link href={`/secret/${book.slug}`} className="group relative w-full transition-[transform] duration-500 hover:-translate-y-2 block transform-gpu">

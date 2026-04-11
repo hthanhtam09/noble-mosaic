@@ -26,8 +26,8 @@ export default function NewRelease() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-6 mt-6">
-            {[...Array(5)].map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-6 gap-6 mt-6">
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="p-2 flex flex-col items-center w-full">
                 <div className="relative w-full max-w-50 sm:max-w-60">
                   <div className="w-full aspect-3/4 bg-neutral-100/60 animate-pulse rounded-2xl" />
@@ -40,7 +40,7 @@ export default function NewRelease() {
             ))}
           </div>
         ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-6 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-6 gap-6 mt-6">
             {featuredProducts.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
