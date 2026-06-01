@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Product } from '@/models/Product';
+import { normalizeProductLinks } from '@/lib/review-links';
 
 export async function GET(request: NextRequest) {
   try {
@@ -56,17 +57,7 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
     
-    // Auto-generate links from ASIN if missing
-    if (!body.amazonLink && body.asin) {
-      body.amazonLink = `https://www.amazon.com/dp/${body.asin}`;
-    }
-
-    if (body.editions && Array.isArray(body.editions)) {
-      body.editions = body.editions.map((edition: any) => ({
-        ...edition,
-        link: (!edition.link && edition.asin) ? `https://www.amazon.com/dp/${edition.asin}` : edition.link
-      }));
-    }
+    await normalizeProductLinks(body);
 
     const product = await Product.create({
       ...body,

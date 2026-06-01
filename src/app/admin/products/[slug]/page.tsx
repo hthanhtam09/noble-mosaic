@@ -53,6 +53,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
         title: '',
         generalDescription: '',
         asin: '',
+        reviewId: '',
         price: '',
         rating: '',
         reviewCount: '0',
@@ -76,6 +77,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                 title: product.title || '',
                 generalDescription: product.generalDescription || '',
                 asin: product.asin || '',
+                reviewId: product.reviewId?.toString() || '',
                 price: product.price?.toString() || '',
                 rating: product.rating?.toString() || '',
                 reviewCount: product.reviewCount?.toString() || '0',
@@ -188,6 +190,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
 
         updateProductMutation.mutate({
             ...formData,
+            reviewId: formData.reviewId ? parseInt(formData.reviewId) : undefined,
             description: hasBoth ? DEFAULT_STANDARD_DESCRIPTION : (formData.generalDescription || ''),
             coverImage,
             galleryImages,
@@ -388,6 +391,24 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                                     className="flex-1"
                                                 />
                                             </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="reviewId">Review Redirect ID</Label>
+                                            <Input
+                                                id="reviewId"
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                value={formData.reviewId}
+                                                onChange={(e) => setFormData({ ...formData, reviewId: e.target.value })}
+                                                placeholder="Auto-generate after saving"
+                                            />
+                                            <p className="text-xs text-neutral-500">
+                                                {formData.reviewId
+                                                    ? `Review link: https://noblemosaic.com/review/${formData.reviewId}`
+                                                    : 'Leave empty to auto-generate the next review link.'}
+                                            </p>
                                         </div>
 
                                         <div className="grid sm:grid-cols-2 gap-4">

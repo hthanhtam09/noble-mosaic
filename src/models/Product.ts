@@ -11,6 +11,7 @@ export interface IProduct {
   galleryImages: string[];
   amazonLink: string;
   asin?: string;
+  reviewId?: number;
   dimensions?: string;
   printLength?: string;
   aPlusContent: (
@@ -54,6 +55,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
     galleryImages: [{ type: String }],
     amazonLink: { type: String, required: true },
     asin: { type: String },
+    reviewId: { type: Number, unique: true, sparse: true },
     dimensions: { type: String },
     printLength: { type: String },
     aPlusContent: [

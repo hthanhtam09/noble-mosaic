@@ -38,6 +38,7 @@ interface Product {
   coverImage: string;
   galleryImages: string[];
   amazonLink: string;
+  reviewId?: number;
   rating: number;
   reviewCount: number;
   price: string;
@@ -178,6 +179,11 @@ export default function AdminProductsPage() {
                           )}
                         </div>
                         <p className="text-sm text-neutral-500 line-clamp-1 mt-0.5">{product.description}</p>
+                        {product.reviewId && (
+                          <p className="text-xs text-neutral-500 mt-1">
+                            {`Review link: https://noblemosaic.com/review/${product.reviewId}`}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-neutral-900">{product.price}</p>

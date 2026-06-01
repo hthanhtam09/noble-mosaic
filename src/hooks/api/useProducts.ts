@@ -9,6 +9,7 @@ export interface Product {
   amazonUrl?: string;
   amazonLink?: string;
   asin?: string;
+  reviewId?: number;
   thumbnail?: string;
   coverImage: string;
   galleryImages?: string[];
