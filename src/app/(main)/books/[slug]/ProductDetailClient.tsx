@@ -180,15 +180,26 @@ export default function ProductDetailClient() {
   // Extract A+ Content
   const rawAPlusContent = product?.aPlusContent;
 
-  const currentAPlusContent: string[] = [];
+  const currentAPlusContent: { url: string; size: '970x600' | '970x300' }[] = [];
   if (rawAPlusContent && Array.isArray(rawAPlusContent)) {
     rawAPlusContent.forEach((item: any) => {
       if (typeof item === 'string') {
-        currentAPlusContent.push(item);
-      } else {
-        if (item.image) currentAPlusContent.push(item.image);
-        if (item.images && Array.isArray(item.images)) {
-          currentAPlusContent.push(...item.images);
+        currentAPlusContent.push({ url: item, size: '970x600' });
+      } else if (item && typeof item === 'object') {
+        if (item.url) {
+          currentAPlusContent.push({
+            url: item.url,
+            size: item.size || '970x600',
+          });
+        } else if (item.image) {
+          currentAPlusContent.push({
+            url: item.image,
+            size: item.size || '970x600',
+          });
+        } else if (item.images && Array.isArray(item.images)) {
+          item.images.forEach((img: string) => {
+            currentAPlusContent.push({ url: img, size: '970x600' });
+          });
         }
       }
     });
@@ -624,13 +635,14 @@ export default function ProductDetailClient() {
           <div className="mx-auto max-w-[970px] py-16 space-y-12 px-4 lg:px-0">
             {currentAPlusContent.length > 0 && (
               <div className="space-y-6">
-                {currentAPlusContent.map((imgSrc, i) => (
-                  <div key={i} className="relative w-full aspect-97/60 bg-neutral-100 overflow-hidden">
+                {currentAPlusContent.map((imgObj, i) => (
+                  <div key={i} className="w-full bg-neutral-100 overflow-hidden rounded-sm">
                     <Image
-                      src={imgSrc}
+                      src={imgObj.url}
                       alt={`${product.title} - Preview Detail ${i + 1}`}
-                      fill
-                      className="object-cover"
+                      width={970}
+                      height={imgObj.size === '970x300' ? 300 : 600}
+                      className="w-full h-auto block"
                       sizes="(max-width: 970px) 100vw, 970px"
                     />
                   </div>

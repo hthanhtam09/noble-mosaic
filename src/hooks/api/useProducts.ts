@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { QUERY_KEYS } from "@/lib/query-keys";
+
 export interface Product {
   _id: string;
   name?: string;
@@ -25,6 +26,10 @@ export interface Product {
   reviewCount?: number;
   aPlusContent?: (
     | string
+    | {
+        url: string;
+        size: "970x600" | "970x300";
+      }
     | {
         type: "fullWidth" | "twoColumn" | "featureHighlight" | "lifestyle";
         title?: string;

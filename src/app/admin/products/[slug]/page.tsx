@@ -63,8 +63,13 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
         printLength: '',
     });
 
+interface APlusImageItem {
+    url: string;
+    size: '970x600' | '970x300';
+}
+
     // A+ Content state
-    const [aplusImages, setAplusImages] = useState<string[]>([]);
+    const [aplusImages, setAplusImages] = useState<APlusImageItem[]>([]);
 
     // Editions state
     const [editions, setEditions] = useState<{ name: string; link: string; asin: string; price: string; description?: string; coverImage?: string; aPlusContent?: string[] }[]>([]);
@@ -89,15 +94,18 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
             setCoverImage(product.coverImage || '');
             setGalleryImages(product.galleryImages || []);
 
-            const extractedAplusImages: string[] = [];
+            const extractedAplusImages: APlusImageItem[] = [];
             if (product.aPlusContent && Array.isArray(product.aPlusContent)) {
                 product.aPlusContent.forEach((item: any) => {
                     if (typeof item === 'string') {
-                        extractedAplusImages.push(item);
-                    } else {
-                        if (item.image) extractedAplusImages.push(item.image);
-                        if (item.images && Array.isArray(item.images)) {
-                            extractedAplusImages.push(...item.images);
+                        extractedAplusImages.push({ url: item, size: '970x600' });
+                    } else if (item && typeof item === 'object') {
+                        const url = item.url || item.image || (Array.isArray(item.images) ? item.images[0] : '');
+                        if (url) {
+                            extractedAplusImages.push({
+                                url,
+                                size: item.size || '970x600'
+                            });
                         }
                     }
                 });
@@ -135,7 +143,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
             } else if (type === 'gallery') {
                 setGalleryImages(prev => [...prev, ...urls]);
             } else if (type === 'aplus') {
-                setAplusImages(prev => [...prev, ...urls]);
+                setAplusImages(prev => [...prev, ...urls.map(url => ({ url, size: '970x600' as const }))]);
             }
 
             toast({
@@ -487,7 +495,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                             <Info className="h-5 w-5 text-blue-500 mt-0.5" />
                                             <div className="text-sm text-neutral-600">
                                                 <p className="font-medium text-neutral-900 mb-1">A+ Content</p>
-                                                <p>Upload full-size images to enhance your product page below the main product info. Recommended size: 970 x 600 px.</p>
+                                                <p>Upload full-size images to enhance your product page below the main product info. Recommended sizes: 970 x 600 px or 970 x 300 px.</p>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -524,23 +532,36 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
                                 <Card className="border-0 shadow-sm">
                                     <CardHeader>
                                         <CardTitle className="text-base">A+ Image Gallery</CardTitle>
-                                        <CardDescription>Upload multiple images (970x600px)</CardDescription>
+                                        <CardDescription>Upload multiple images (970x600px or 970x300px)</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="flex flex-wrap gap-4 items-start">
                                             {aplusImages.map((img, index) => (
-                                                <div key={index} className="relative w-40 h-24 rounded-lg overflow-hidden bg-neutral-100 group">
-                                                    <Image src={img} alt={`A+ Image ${index + 1}`} fill className="object-cover" />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setAplusImages(aplusImages.filter((_, i) => i !== index))}
-                                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                <div key={index} className="flex flex-col gap-2">
+                                                    <div className="relative w-40 h-24 rounded-lg overflow-hidden bg-neutral-100 group">
+                                                        <Image src={img.url} alt={`A+ Image ${index + 1}`} fill className="object-cover" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setAplusImages(aplusImages.filter((_, i) => i !== index))}
+                                                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                        >
+                                                            <Trash2 className="h-5 w-5 text-white" />
+                                                        </button>
+                                                    </div>
+                                                    <select
+                                                        value={img.size}
+                                                        onChange={(e) => {
+                                                            const newSize = e.target.value as '970x600' | '970x300';
+                                                            setAplusImages(prev => prev.map((item, i) => i === index ? { ...item, size: newSize } : item));
+                                                        }}
+                                                        className="text-xs font-medium text-neutral-600 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-md py-1.5 px-2 w-40 focus:outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer transition-colors"
                                                     >
-                                                        <Trash2 className="h-5 w-5 text-white" />
-                                                    </button>
+                                                        <option value="970x600">970 x 600 px</option>
+                                                        <option value="970x300">970 x 300 px</option>
+                                                    </select>
                                                 </div>
                                             ))}
-                                            <label className="w-40 h-24 rounded-lg border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-neutral-50 transition-colors">
+                                            <label className="w-40 h-24 rounded-lg border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center cursor-pointer hover:border-neutral-400 hover:bg-neutral-50 transition-colors self-start">
                                                 <Plus className="h-5 w-5 text-neutral-400" />
                                                 <span className="text-xs text-neutral-500 mt-1">Add Images</span>
                                                 <input

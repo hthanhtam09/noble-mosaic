@@ -17,6 +17,10 @@ export interface IProduct {
   aPlusContent: (
     | string
     | {
+        url: string;
+        size: "970x600" | "970x300";
+      }
+    | {
         type: "fullWidth" | "twoColumn" | "featureHighlight" | "lifestyle";
         title?: string;
         content?: string;
